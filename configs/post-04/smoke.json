@@ -1,0 +1,22 @@
+{
+  "post": "04",
+  "profile": "smoke",
+  "title": "How Do Thermostats Change Sampling and Dynamics?",
+  "system": {
+    "kind": "harmonic_oscillator",
+    "mass": 1.0,
+    "omega": 1.0
+  },
+  "thermostat_experiment": {
+    "temperature": 1.0,
+    "time_step": 0.02,
+    "num_steps": 4000,
+    "warmup_steps": 500,
+    "sample_every": 4,
+    "seed": 2026071404,
+    "thermostats": [
+      {"name": "weak_langevin", "method": "baoab_langevin", "gamma": 0.1},
+      {"name": "strong_langevin", "method": "baoab_langevin", "gamma": 5.0}
+    ]
+  }
+}

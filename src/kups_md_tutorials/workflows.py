@@ -5,6 +5,7 @@ from pathlib import Path
 from kups_md_tutorials.config import (
     load_error_spec,
     load_integrator_spec,
+    load_thermostat_spec,
     load_tutorial_spec,
 )
 from kups_md_tutorials.error_diagnostics import (
@@ -19,8 +20,12 @@ from kups_md_tutorials.integrators import (
     load_integrator_summary,
     write_integrator_outputs,
 )
+from kups_md_tutorials.thermostats import (
+    load_thermostat_summary,
+    write_thermostat_outputs,
+)
 
-SUPPORTED_POSTS = ("01", "02", "03")
+SUPPORTED_POSTS = ("01", "02", "03", "04")
 SUPPORTED_PROFILES = ("smoke", "full")
 
 
@@ -36,6 +41,9 @@ def run_post(post: str, profile: str, output_root: Path = Path("results")) -> Pa
     if post == "03":
         spec = load_error_spec(post, profile)
         return write_error_outputs(spec, output_root=output_root)
+    if post == "04":
+        spec = load_thermostat_spec(post, profile)
+        return write_thermostat_outputs(spec, output_root=output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -56,6 +64,8 @@ def verify_post(post: str, profile: str, output_root: Path = Path("results")) ->
         _verify_post02(post, profile, output_root)
     elif post == "03":
         _verify_post03(post, profile, output_root)
+    elif post == "04":
+        _verify_post04(post, profile, output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -184,4 +194,37 @@ def _verify_post03(post: str, profile: str, output_root: Path) -> None:
         raise ValueError(msg)
     if max(abs(run.normalized_energy_drift) for run in biased_runs) <= 1.0e-6:
         msg = "force-error runs do not show measurable normalized drift"
+        raise ValueError(msg)
+
+
+def _verify_post04(post: str, profile: str, output_root: Path) -> None:
+    spec = load_thermostat_spec(post, profile)
+    output_dir = output_root / spec.result_dir_name
+    summary_path = output_dir / "thermostat_summary.json"
+    manifest_path = output_dir / "manifest.json"
+    samples_path = output_dir / "thermostat_samples.csv"
+    missing = [
+        str(path)
+        for path in (summary_path, manifest_path, samples_path)
+        if not path.exists()
+    ]
+    if missing:
+        msg = "missing expected output files: " + ", ".join(missing)
+        raise FileNotFoundError(msg)
+
+    summary = load_thermostat_summary(summary_path)
+    if summary.post != post or summary.profile != profile:
+        msg = "summary post/profile does not match requested verification target"
+        raise ValueError(msg)
+    if len(summary.runs) != len(spec.experiment.thermostats):
+        msg = "summary does not contain the expected thermostat cases"
+        raise ValueError(msg)
+    if min(run.samples for run in summary.runs) <= 0:
+        msg = "thermostat summary contains no samples"
+        raise ValueError(msg)
+    if max(abs(run.kinetic_mean_relative_error) for run in summary.runs) > 0.25:
+        msg = "thermostat kinetic mean is outside the review threshold"
+        raise ValueError(msg)
+    if min(run.position_effective_samples for run in summary.runs) <= 5.0:
+        msg = "thermostat effective sample count is too small"
         raise ValueError(msg)

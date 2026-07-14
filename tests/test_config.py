@@ -2,7 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from kups_md_tutorials.config import RunSpec, load_error_spec, load_integrator_spec
+from kups_md_tutorials.config import (
+    RunSpec,
+    load_error_spec,
+    load_integrator_spec,
+    load_thermostat_spec,
+)
 
 
 def test_run_spec_validates_sampling_interval() -> None:
@@ -46,3 +51,10 @@ def test_load_error_spec() -> None:
     assert spec.system.kind == "harmonic_oscillator"
     assert "float64" in spec.experiment.precisions
     assert spec.experiment.force_cases[0].name == "exact_force"
+
+
+def test_load_thermostat_spec() -> None:
+    spec = load_thermostat_spec("04", "smoke")
+    assert spec.system.kind == "harmonic_oscillator"
+    assert spec.experiment.temperature == 1.0
+    assert spec.experiment.thermostats[0].method == "baoab_langevin"

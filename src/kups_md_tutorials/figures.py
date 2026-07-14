@@ -114,6 +114,35 @@ def generate_post03_figures(
     return [svg_path, png_path, snapshot_path]
 
 
+def generate_post04_figures(
+    result_dir: Path = Path("results/post-04/smoke"),
+    figure_dir: Path = Path("figures/post-04"),
+    snapshot_dir: Path = Path("snapshots/post-04"),
+    name: str = "thermostat_diagnostics",
+) -> list[Path]:
+    """Generate thermostat sampling and dynamics diagnostic figures."""
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+    summary = json.loads((result_dir / "thermostat_summary.json").read_text())
+    samples = _read_post04_samples(result_dir / "thermostat_samples.csv")
+
+    with rc_context({"svg.hashsalt": "kups-md-tutorials-post-04"}):
+        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+        _draw_post04_figure(fig, axes, summary, samples)
+
+        svg_path = figure_dir / f"{name}.svg"
+        png_path = figure_dir / f"{name}.png"
+        snapshot_path = snapshot_dir / f"{name}_snapshot.png"
+        fig.savefig(svg_path, metadata={"Date": None})
+        _strip_trailing_whitespace(svg_path)
+        fig.savefig(png_path, dpi=220)
+        fig.savefig(snapshot_path, dpi=160)
+        plt.close(fig)
+    return [svg_path, png_path, snapshot_path]
+
+
 def _read_post02_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -125,6 +154,16 @@ def _read_post02_samples(path: Path) -> dict[str, np.ndarray]:
 
 
 def _read_post03_samples(path: Path) -> dict[str, np.ndarray]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    return {
+        key: np.array([float(row[key]) for row in rows], dtype=float)
+        for key in reader.fieldnames or []
+    }
+
+
+def _read_post04_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         rows = list(reader)
@@ -447,3 +486,80 @@ def _precision_sort_key(precision: str) -> tuple[int, float]:
     if precision.startswith("rounded_"):
         return (2, float(precision.removeprefix("rounded_")))
     return (3, 0.0)
+
+
+def _draw_post04_figure(
+    fig: plt.Figure,
+    axes: np.ndarray,
+    summary: dict,
+    samples: dict[str, np.ndarray],
+) -> None:
+    fig.patch.set_facecolor("white")
+
+    runs = sorted(summary["runs"], key=lambda run: run["gamma"])
+    labels = [run["thermostat"].replace("_", "\n") for run in runs]
+    x = np.arange(len(runs))
+
+    axes[0].axhline(1.0, color="#333333", linewidth=0.9, label="canonical target")
+    axes[0].plot(
+        x,
+        [run["position_variance"] / run["expected_position_variance"] for run in runs],
+        marker="o",
+        color="#2f6f9f",
+        linewidth=1.5,
+        label="position variance",
+    )
+    axes[0].plot(
+        x,
+        [run["velocity_variance"] / run["expected_velocity_variance"] for run in runs],
+        marker="s",
+        color="#d88c3d",
+        linewidth=1.5,
+        label="velocity variance",
+    )
+    axes[0].set_title("Canonical variance check")
+    axes[0].set_ylabel("observed / expected")
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels(labels, fontsize=8)
+    axes[0].legend(frameon=False, fontsize=8)
+
+    axes[1].axhline(1.0, color="#333333", linewidth=0.9)
+    axes[1].bar(
+        x,
+        [run["kinetic_mean"] / run["expected_kinetic_mean"] for run in runs],
+        color="#6a8f4e",
+        edgecolor="#2d4721",
+        linewidth=0.6,
+    )
+    axes[1].set_title("Kinetic temperature check")
+    axes[1].set_ylabel("<K> / target")
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(labels, fontsize=8)
+
+    axes[2].bar(
+        x,
+        [run["position_integrated_autocorrelation_time"] for run in runs],
+        color="#8c6bb1",
+        edgecolor="#44315d",
+        linewidth=0.6,
+    )
+    axes[2].set_title("Dynamics change with coupling")
+    axes[2].set_ylabel("position autocorrelation time")
+    axes[2].set_xticks(x)
+    axes[2].set_xticklabels(labels, fontsize=8)
+    axes[2].text(
+        0.03,
+        0.95,
+        "same canonical target\n"
+        "different dynamical memory",
+        transform=axes[2].transAxes,
+        va="top",
+        ha="left",
+        fontsize=8.5,
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+    )
+
+    for ax in axes:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(alpha=0.18, linewidth=0.6)

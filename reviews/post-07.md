@@ -6,8 +6,9 @@
 - Profiles reviewed: smoke and full
 - Current status: controlled argon-FCC observable-estimator workflow, committed
   smoke/full outputs, notebook, full-profile diagnostic figure, hidden website
-  draft, and self-review artifact are in place; final prose and
-  rendered page snapshots are still pending.
+  draft, rendered page snapshots, and self-review artifact are in place; the
+  final argon/kUPS production trajectory observable diagnostic is still
+  pending.
 
 ## Commands
 
@@ -19,7 +20,12 @@
 - `uv run jupyter execute notebooks/post-07-observables.ipynb --inplace`
 - `uv run ruff check src tests scripts`
 - `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py -q`
+- `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- GitHub Actions deploy run `29361737064` for website commit
+  `2ae2434e4933fde7fe3f2241e18be00af913d159`
+- GitHub Actions snapshot run `29361900585`
+- `uv run kups-tutorial verify-reviews`
 
 ## Code And Reproducibility Review
 
@@ -37,7 +43,6 @@
 
 Open items:
 
-- Add rendered page snapshots after the hidden website draft deploys.
 - Replace or augment the displaced-FCC estimator with an actual argon/kUPS
   trajectory before treating this post as final.
 
@@ -82,7 +87,6 @@ Feedback loop:
 
 Open items:
 
-- Recheck mobile rendering after the hidden website draft exists.
 - Add a production-observable figure after argon/kUPS diagnostics are
   implemented.
 
@@ -98,9 +102,8 @@ Open items:
 
 Open items:
 
-- Add the full prose article in the website repository.
 - Add citations for RDF normalization, coordination integrals, finite-size
-  effects, and time-correlation functions when writing the full article.
+  effects, and time-correlation functions before final publication.
 
 ## Website Draft Review
 
@@ -111,12 +114,50 @@ Open items:
   notebook, smoke/full summaries, full manifest, and review note.
 - Copied the reviewed full-profile SVG figure to
   `assets/img/blog/kups_md_post07_observable_diagnostics.svg`.
+- Expanded the hidden page from the short draft to about 3,528 words. The
+  expanded prose explains observable definitions, RDF normalization,
+  coordination integrals, VACF interpretation, uncertainty, finite-size
+  support, common estimator mistakes, methods reporting, and the planned
+  argon/kUPS trajectory extension.
+- The expanded prose keeps the scope clear: the committed result is a
+  controlled displaced-FCC observable-estimator diagnostic, not a final
+  production argon/kUPS trajectory-observable study.
+- `python3 scripts/validate_kups_pages.py` passes in the website repository.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
+- `git diff --check` passes in the website repository.
+- Website deploy run `29361737064` succeeded for commit
+  `2ae2434e4933fde7fe3f2241e18be00af913d159`.
+- Snapshot workflow run `29361900585` captured the expanded hidden page.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post07-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post07-expanded-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`; both
+  returned HTTP 200 with page title
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post07-expanded-snapshots/post-07-desktop.png` and
+  `/tmp/kups-post07-expanded-snapshots/post-07-mobile.png`.
+
+Rendered page feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-page note, source links, estimator tables, display equation,
+  full-profile observable figure, reproduction code block, current-status
+  section, references, and footer present. No blank page, missing figure,
+  obvious clipping, or broken page chrome was found in the inspected snapshot.
+- Mobile capture renders the same content through the mobile layout with title,
+  navigation, author note, tables, equation, figure, code block,
+  current-status section, and references present. The title wraps heavily but
+  remains readable; tables and code block stay within the page.
 
 Open items:
 
-- Capture and inspect deployed desktop and mobile snapshots for this hidden
-  page.
-- Expand the draft into the full 3,500-10,000-word article after rendered page
-  snapshots and the argon/kUPS observable diagnostic are reviewed.
+- Keep mobile title and table wrapping as final typography-polish items after
+  the rest of the articles are expanded.
+- Add argon/kUPS trajectory diagnostics for physical observables before
+  treating this post as final.
+- Re-run the page snapshot workflow after the final production-observable
+  figure and citations are added.

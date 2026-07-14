@@ -432,3 +432,52 @@ Revision decisions:
 - The argon/kUPS physical-observable trajectory-length diagnostic remains a
   final-release blocker for post 06.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 07 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29361900585`.
+- Website commit: `2ae2434e4933fde7fe3f2241e18be00af913d159`.
+- Deploy run for that commit: `29361737064`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post07-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post07-expanded-snapshots/manifest.json`.
+- Capture scope: post 07 only, after expansion to about 3,528 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post07-expanded-snapshots/post-07-desktop.png`
+- `/tmp/kups-post07-expanded-snapshots/post-07-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-draft note, source links, observable-estimator tables,
+  display equation, full-profile RDF/coordination/VACF figure, reproduction
+  code block, practical checklist, current-status section, references, and
+  footer present. No blank page, missing figure, obvious text clipping, or
+  broken page chrome was found in the inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, navigation, hidden-draft note, tables, equation, figure, code block,
+  current-status section, and references present. The title wraps heavily but
+  remains readable; tables and code block remain within the page.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 07 hidden draft.
+- Keep mobile title and table wrapping as final typography-polish items after
+  the rest of the articles are expanded.
+- The argon/kUPS production trajectory-observable diagnostic remains a
+  final-release blocker for post 07.
+- The page remains hidden from public navigation and direct-link reachable.

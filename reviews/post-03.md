@@ -152,14 +152,23 @@ Open items:
 - `git diff --check` passes in the website repository.
 - GitHub Pages deploy `29358250043` built and deployed website commit
   `ebf717a523ff21f9475abc6e04515db8e98e13e4` successfully.
+- GitHub Pages deploy `29368638564` built and deployed updated website commit
+  `c33b1adc726f91eb4a1f258f6e2a5e2e3651d69d` successfully after adding the
+  compact argon NVE figure/prose refresh.
 - The deployed page snapshot manifest from workflow `29358450830` contains
   desktop and mobile captures for the hidden URL, both HTTP 200, with title
+  `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
+- The deployed page snapshot manifest from workflow `29368819123` contains
+  desktop and mobile captures for the updated hidden URL, both HTTP 200, with
+  title
   `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
 
 Rendered snapshots reviewed:
 
 - `/tmp/kups-post03-expanded-snapshots/post-03-desktop.png`
 - `/tmp/kups-post03-expanded-snapshots/post-03-mobile.png`
+- `/tmp/kups-post03-argon-nve-snapshots/post-03-desktop.png`
+- `/tmp/kups-post03-argon-nve-snapshots/post-03-mobile.png`
 
 Rendered feedback:
 
@@ -173,11 +182,19 @@ Rendered feedback:
   block, status, references, and footer. The two tables are tight but readable
   and not clipped in the inspected screenshot. Keep table wrapping as a final
   typography-polish item after the remaining articles are expanded.
+- Updated desktop full-page capture at `1440 x 10796` renders the revised
+  four-panel figure, caption, source links, reproduction block, current-status
+  list, references, and footer. The new compact argon NVE panel is visible in
+  the article body; no missing figure, blank page, obvious clipped text, or
+  broken page chrome was found in the inspected snapshot.
+- Updated mobile full-page capture at `390 x 16893` renders the long title,
+  hidden-draft note, mechanism table, revised figure, caption, timestep-choice
+  table, code block, current-status list, and references within the viewport.
+  The four-panel figure is small at mobile width but not clipped; table cells
+  wrap tightly but remain contained.
 
 Open items:
 
 - The page remains intentionally hidden from public navigation.
-- Re-run deployed desktop/mobile page snapshots after the updated figure and
-  prose are committed and deployed.
 - Add a larger GPU kUPS production NVE diagnostic before treating this post as
   final.

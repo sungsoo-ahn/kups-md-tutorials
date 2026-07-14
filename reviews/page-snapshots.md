@@ -797,3 +797,53 @@ Revision decisions:
   final estimator/enhanced-sampling figures where applicable, real MACE/fcc-Al
   GPU diagnostics, pinned model artifact metadata, and another rendered
   snapshot pass after final figure/publication changes.
+
+## Post 03 Compact Argon NVE Snapshot Refresh
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29368819123`.
+- Website commit: `c33b1adc726f91eb4a1f258f6e2a5e2e3651d69d`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post03-argon-nve-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post03-argon-nve-snapshots/manifest.json`.
+- Capture scope: post 03 after adding the compact argon NVE figure panel,
+  exported compact result files, and updated hidden-page prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-03-errors/`.
+- Both captured URLs returned HTTP 200.
+- Page title in both captures:
+  `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post03-argon-nve-snapshots/post-03-desktop.png`
+- `/tmp/kups-post03-argon-nve-snapshots/post-03-mobile.png`
+
+Feedback:
+
+- Desktop capture at `1440 x 10796` renders the updated hidden draft end to
+  end with sidebar table of contents, source links, mechanism table, revised
+  four-panel diagnostic figure, caption, timestep-choice table, reproduction
+  block, current-status section, references, and footer present. No missing
+  figure, blank page, obvious clipped text, or broken page chrome was found in
+  the inspected snapshot.
+- Mobile capture at `390 x 16893` renders the title, hidden-draft note, tables,
+  revised four-panel figure, caption, code block, current-status section,
+  references, and footer. The figure is necessarily small at mobile width, but
+  it remains contained; table wrapping is tight but not clipped.
+
+Revision decisions:
+
+- No blocking layout issue was found for the updated post 03 hidden draft.
+- The compact argon NVE figure/prose update is snapshot-reviewed for the hidden
+  draft state.
+- Keep mobile table and title wrapping as final typography-polish items.
+- A larger GPU kUPS production NVE diagnostic remains a final-release blocker
+  before public indexing.
+- The page remains hidden from public navigation and direct-link reachable.

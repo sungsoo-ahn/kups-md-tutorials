@@ -1,0 +1,44 @@
+[project]
+name = "kups-tutorial"
+version = "0.1.0"
+description = "Reproducible molecular dynamics tutorials built with kUPS"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "ase>=3.26",
+    "h5py>=3.14",
+    "hdf5plugin>=5.1",
+    "jax>=0.7",
+    "kups==1.0.3",
+    "matplotlib>=3.10",
+    "numpy>=2.3",
+]
+
+[project.optional-dependencies]
+gpu = ["kups[cuda]==1.0.3"]
+mlff = ["kups[hf]==1.0.3"]
+
+[dependency-groups]
+dev = [
+    "nbclient>=0.10",
+    "nbformat>=5.10",
+    "pytest>=8.4",
+    "ruff>=0.12",
+]
+
+[project.scripts]
+kups-tutorial = "kups_md_tutorials.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kups_md_tutorials"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"

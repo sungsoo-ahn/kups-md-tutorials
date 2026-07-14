@@ -18,6 +18,10 @@
 - `uv run ruff check .`
 - `git diff --check`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `curl -I -L https://sungsoo-ahn.github.io/kups-md-tutorials/post-01-initialization/`
+- attempted `npx --yes playwright@latest screenshot ...` for desktop/mobile
+  snapshots; blocked because the local Node.js is 12.22.9 and Playwright
+  requires Node.js 18 or higher.
 
 ## Code And Reproducibility Review
 
@@ -91,8 +95,8 @@ Open items:
 
 ## Website Draft Review
 
-- Added a hidden draft page in `../sungsoo-ahn.github.io` at
-  `/kups-md-tutorials/post-01-initialization/`.
+- Added and deployed a hidden draft page in `../sungsoo-ahn.github.io` at
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-01-initialization/`.
 - The page uses the website `post` layout, `nav: false`, the shared
   `kups-md-tutorials` series metadata, and links back to the executable config,
   notebook, smoke summary, manifest, and review note.
@@ -100,10 +104,13 @@ Open items:
   `assets/img/blog/kups_md_post01_initialization_diagnostics.svg`.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
+- The deployed page returns HTTP 200.
 
 Open items:
 
 - Capture and inspect deployed desktop and mobile snapshots for this hidden
-  page.
+  page. The current local environment lacks a browser-capable screenshot path:
+  `bundle` is unavailable, no Chromium/Firefox binary is installed, and
+  Playwright CLI is blocked by Node.js 12.22.9.
 - Expand the draft into the full 3,500-10,000-word article after full-profile
   outputs and final figures are reviewed.

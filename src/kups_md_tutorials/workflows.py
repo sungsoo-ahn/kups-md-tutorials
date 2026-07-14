@@ -307,9 +307,10 @@ def _verify_post04(post: str, profile: str, output_root: Path) -> None:
     summary_path = output_dir / "thermostat_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "thermostat_samples.csv"
+    argon_samples_path = output_dir / "argon_langevin_samples.csv"
     missing = [
         str(path)
-        for path in (summary_path, manifest_path, samples_path)
+        for path in (summary_path, manifest_path, samples_path, argon_samples_path)
         if not path.exists()
     ]
     if missing:
@@ -332,6 +333,22 @@ def _verify_post04(post: str, profile: str, output_root: Path) -> None:
     if min(run.position_effective_samples for run in summary.runs) <= 5.0:
         msg = "thermostat effective sample count is too small"
         raise ValueError(msg)
+    if spec.argon_langevin is not None:
+        if len(summary.argon_langevin_runs) != len(spec.argon_langevin.cases):
+            msg = "summary does not contain the expected argon thermostat cases"
+            raise ValueError(msg)
+        if min(run.samples for run in summary.argon_langevin_runs) <= 0:
+            msg = "argon thermostat summary contains no samples"
+            raise ValueError(msg)
+        if max(abs(run.kinetic_temperature_relative_error) for run in summary.argon_langevin_runs) > 0.35:
+            msg = "argon thermostat kinetic temperature is outside the review threshold"
+            raise ValueError(msg)
+        ordered = sorted(summary.argon_langevin_runs, key=lambda run: run.gamma)
+        if ordered[-1].velocity_integrated_autocorrelation_time >= (
+            1.5 * ordered[0].velocity_integrated_autocorrelation_time
+        ):
+            msg = "strong argon thermostat did not reduce velocity-temperature memory"
+            raise ValueError(msg)
 
 
 def _verify_post05(post: str, profile: str, output_root: Path) -> None:

@@ -5,11 +5,14 @@ from pathlib import Path
 import csv
 import json
 
+import ase
 import kups
 import numpy as np
 
 from kups_md_tutorials.config import ThermostatCase, ThermostatTutorialSpec
+from kups_md_tutorials.error_diagnostics import _lennard_jones_forces
 from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.systems import argon_fcc
 
 
 @dataclass(frozen=True)
@@ -39,6 +42,23 @@ class ThermostatRunSummary:
 
 
 @dataclass(frozen=True)
+class ArgonThermostatRunSummary:
+    """Compact diagnostics for one argon Langevin thermostat run."""
+
+    thermostat: str
+    gamma: float
+    atom_count: int
+    samples: int
+    target_temperature: float
+    kinetic_temperature_mean: float
+    kinetic_temperature_std: float
+    kinetic_temperature_relative_error: float
+    velocity_lag1_autocorrelation: float
+    velocity_integrated_autocorrelation_time: float
+    final_total_energy: float
+
+
+@dataclass(frozen=True)
 class ThermostatExperimentSummary:
     """Summary table for one post/profile thermostat experiment."""
 
@@ -52,6 +72,7 @@ class ThermostatExperimentSummary:
     seed: int
     config_sha256: str
     runs: list[ThermostatRunSummary]
+    argon_langevin_runs: list[ArgonThermostatRunSummary]
 
 
 def simulate_baoab_langevin(
@@ -199,9 +220,114 @@ def run_thermostat_experiment(
             seed=spec.experiment.seed,
             config_sha256=config_sha256,
             runs=summaries,
+            argon_langevin_runs=run_argon_langevin_experiment(spec),
         ),
         trajectories,
     )
+
+
+def run_argon_langevin_experiment(
+    spec: ThermostatTutorialSpec,
+) -> list[ArgonThermostatRunSummary]:
+    """Run optional compact argon Langevin thermostat diagnostics."""
+
+    if spec.argon_langevin is None:
+        return []
+    return [
+        summarize_argon_langevin_run(spec, case_index=idx)[0]
+        for idx, _ in enumerate(spec.argon_langevin.cases)
+    ]
+
+
+def summarize_argon_langevin_run(
+    spec: ThermostatTutorialSpec,
+    case_index: int,
+) -> tuple[ArgonThermostatRunSummary, tuple[np.ndarray, np.ndarray]]:
+    """Simulate reduced-unit argon with BAOAB Langevin dynamics."""
+
+    if spec.argon_langevin is None:
+        msg = "argon_langevin config is required"
+        raise ValueError(msg)
+    argon = spec.argon_langevin
+    case = argon.cases[case_index]
+    atoms = argon_fcc(argon.repetitions, argon.number_density)
+    positions = atoms.get_positions().astype(float)
+    box = float(atoms.cell.lengths()[0])
+    velocities = _initialized_argon_velocities(
+        atom_count=len(atoms),
+        temperature=argon.temperature,
+        seed=argon.seed + case_index * 1009,
+    )
+    forces, potential = _lennard_jones_forces(
+        positions,
+        box_length=box,
+        epsilon=argon.epsilon,
+        sigma=argon.sigma,
+        cutoff=argon.cutoff,
+    )
+    c = float(np.exp(-case.gamma * argon.time_step))
+    sigma_v = float(np.sqrt(argon.temperature * (1.0 - c**2)))
+    rng = np.random.default_rng(argon.seed + case_index * 1009 + 17)
+    times: list[float] = []
+    kinetic_temperatures: list[float] = []
+    velocity_memory: list[float] = []
+
+    for step in range(argon.num_steps):
+        velocities += 0.5 * argon.time_step * forces
+        positions = (positions + 0.5 * argon.time_step * velocities) % box
+        velocities = c * velocities + sigma_v * rng.normal(size=velocities.shape)
+        velocities -= np.mean(velocities, axis=0)
+        positions = (positions + 0.5 * argon.time_step * velocities) % box
+        forces, potential = _lennard_jones_forces(
+            positions,
+            box_length=box,
+            epsilon=argon.epsilon,
+            sigma=argon.sigma,
+            cutoff=argon.cutoff,
+        )
+        velocities += 0.5 * argon.time_step * forces
+
+        if step >= argon.warmup_steps and (step - argon.warmup_steps) % argon.sample_every == 0:
+            kinetic = 0.5 * float(np.sum(velocities**2))
+            kinetic_temperature = 2.0 * kinetic / (3 * len(atoms) - 3)
+            times.append(step * argon.time_step)
+            kinetic_temperatures.append(kinetic_temperature)
+            velocity_memory.append(float(np.mean(np.sum(velocities * velocities, axis=1))))
+
+    time_array = np.asarray(times, dtype=float)
+    temperature_array = np.asarray(kinetic_temperatures, dtype=float)
+    memory_array = np.asarray(velocity_memory, dtype=float)
+    velocity_iat = _integrated_autocorrelation_time(memory_array)
+    final_energy = float(0.5 * np.sum(velocities**2) + potential)
+    summary = ArgonThermostatRunSummary(
+        thermostat=case.name,
+        gamma=case.gamma,
+        atom_count=len(atoms),
+        samples=len(temperature_array),
+        target_temperature=argon.temperature,
+        kinetic_temperature_mean=float(np.mean(temperature_array)),
+        kinetic_temperature_std=float(np.std(temperature_array, ddof=1)),
+        kinetic_temperature_relative_error=float(
+            np.mean(temperature_array) / argon.temperature - 1.0
+        ),
+        velocity_lag1_autocorrelation=_lag_autocorrelation(memory_array, lag=1),
+        velocity_integrated_autocorrelation_time=velocity_iat,
+        final_total_energy=final_energy,
+    )
+    return summary, (time_array, temperature_array)
+
+
+def _initialized_argon_velocities(
+    atom_count: int,
+    temperature: float,
+    seed: int,
+) -> np.ndarray:
+    rng = np.random.default_rng(seed)
+    velocities = rng.normal(0.0, np.sqrt(temperature), size=(atom_count, 3))
+    velocities -= np.mean(velocities, axis=0)
+    target_kinetic = 0.5 * (3 * atom_count - 3) * temperature
+    current_kinetic = 0.5 * float(np.sum(velocities**2))
+    return velocities * np.sqrt(target_kinetic / current_kinetic)
 
 
 def _write_samples(
@@ -227,6 +353,34 @@ def _write_samples(
             writer.writerow(row)
 
 
+def _write_argon_langevin_samples(
+    path: Path,
+    spec: ThermostatTutorialSpec,
+    max_rows: int = 800,
+) -> None:
+    if spec.argon_langevin is None:
+        return
+
+    trajectories = {
+        spec.argon_langevin.cases[idx].name: summarize_argon_langevin_run(spec, idx)[1]
+        for idx in range(len(spec.argon_langevin.cases))
+    }
+    longest = max(len(times) for times, _ in trajectories.values())
+    stride = max(1, int(np.ceil(longest / max_rows)))
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["thermostat", "time", "kinetic_temperature"])
+        for name, (times, temperatures) in trajectories.items():
+            for idx in range(0, len(times), stride):
+                writer.writerow(
+                    [
+                        name,
+                        f"{times[idx]:.12g}",
+                        f"{temperatures[idx]:.12g}",
+                    ]
+                )
+
+
 def write_thermostat_outputs(
     spec: ThermostatTutorialSpec,
     output_root: Path = Path("results"),
@@ -243,18 +397,24 @@ def write_thermostat_outputs(
     summary_path = output_dir / "thermostat_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "thermostat_samples.csv"
+    argon_samples_path = output_dir / "argon_langevin_samples.csv"
 
     summary_path.write_text(
         json.dumps(asdict(summary), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     _write_samples(samples_path, trajectories)
+    _write_argon_langevin_samples(argon_samples_path, spec)
     manifest = {
         "config": asdict(spec),
         "summary_file": summary_path.name,
         "samples_file": samples_path.name,
+        "argon_langevin_samples_file": (
+            argon_samples_path.name if spec.argon_langevin is not None else None
+        ),
         "provenance": asdict(prov),
         "versions": {
+            "ase": ase.__version__,
             "kups": kups.__version__,
             "numpy": np.__version__,
         },
@@ -271,4 +431,12 @@ def load_thermostat_summary(path: Path) -> ThermostatExperimentSummary:
 
     data = json.loads(path.read_text(encoding="utf-8"))
     runs = [ThermostatRunSummary(**run) for run in data.pop("runs")]
-    return ThermostatExperimentSummary(runs=runs, **data)
+    argon_langevin_runs = [
+        ArgonThermostatRunSummary(**run)
+        for run in data.pop("argon_langevin_runs", [])
+    ]
+    return ThermostatExperimentSummary(
+        runs=runs,
+        argon_langevin_runs=argon_langevin_runs,
+        **data,
+    )

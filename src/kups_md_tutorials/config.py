@@ -308,6 +308,73 @@ class ThermostatExperimentSpec:
 
 
 @dataclass(frozen=True)
+class ArgonThermostatCase:
+    """One compact argon thermostat setting for post-04 diagnostics."""
+
+    name: str
+    gamma: float
+
+
+@dataclass(frozen=True)
+class ArgonThermostatSpec:
+    """Configuration for compact argon Langevin thermostat diagnostics."""
+
+    repetitions: int
+    number_density: float
+    temperature: float
+    seed: int
+    time_step: float
+    num_steps: int
+    warmup_steps: int
+    sample_every: int
+    epsilon: float
+    sigma: float
+    cutoff: float
+    cases: tuple[ArgonThermostatCase, ...]
+
+    def validate(self) -> None:
+        if self.repetitions <= 0:
+            msg = "argon_langevin repetitions must be positive"
+            raise ValueError(msg)
+        if self.number_density <= 0.0:
+            msg = "argon_langevin number_density must be positive"
+            raise ValueError(msg)
+        if self.temperature <= 0.0:
+            msg = "argon_langevin temperature must be positive"
+            raise ValueError(msg)
+        if self.time_step <= 0.0:
+            msg = "argon_langevin time_step must be positive"
+            raise ValueError(msg)
+        if self.num_steps <= 0:
+            msg = "argon_langevin num_steps must be positive"
+            raise ValueError(msg)
+        if self.warmup_steps < 0 or self.warmup_steps >= self.num_steps:
+            msg = "argon_langevin warmup_steps must be non-negative and smaller than num_steps"
+            raise ValueError(msg)
+        if self.sample_every <= 0:
+            msg = "argon_langevin sample_every must be positive"
+            raise ValueError(msg)
+        if not self.cases:
+            msg = "argon_langevin cases must be non-empty"
+            raise ValueError(msg)
+        if any(not case.name for case in self.cases):
+            msg = "argon_langevin case names must be non-empty"
+            raise ValueError(msg)
+        if any(case.gamma <= 0.0 for case in self.cases):
+            msg = "argon_langevin gamma must be positive"
+            raise ValueError(msg)
+        if self.epsilon <= 0.0:
+            msg = "argon_langevin epsilon must be positive"
+            raise ValueError(msg)
+        if self.sigma <= 0.0:
+            msg = "argon_langevin sigma must be positive"
+            raise ValueError(msg)
+        if self.cutoff <= self.sigma:
+            msg = "argon_langevin cutoff must be larger than sigma"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
 class ThermostatTutorialSpec:
     """Configuration for post-04 thermostat experiments."""
 
@@ -316,6 +383,7 @@ class ThermostatTutorialSpec:
     title: str
     system: HarmonicOscillatorSpec
     experiment: ThermostatExperimentSpec
+    argon_langevin: ArgonThermostatSpec | None = None
 
     @property
     def result_dir_name(self) -> Path:
@@ -1125,6 +1193,30 @@ def load_thermostat_spec(
     experiment = _expect_mapping(
         root.get("thermostat_experiment"), "thermostat_experiment"
     )
+    argon_data = root.get("argon_langevin")
+    argon_langevin = None
+    if argon_data is not None:
+        argon_root = _expect_mapping(argon_data, "argon_langevin")
+        argon_langevin = ArgonThermostatSpec(
+            repetitions=int(argon_root["repetitions"]),
+            number_density=float(argon_root["number_density"]),
+            temperature=float(argon_root["temperature"]),
+            seed=int(argon_root["seed"]),
+            time_step=float(argon_root["time_step"]),
+            num_steps=int(argon_root["num_steps"]),
+            warmup_steps=int(argon_root["warmup_steps"]),
+            sample_every=int(argon_root["sample_every"]),
+            epsilon=float(argon_root["epsilon"]),
+            sigma=float(argon_root["sigma"]),
+            cutoff=float(argon_root["cutoff"]),
+            cases=tuple(
+                ArgonThermostatCase(
+                    name=str(_expect_mapping(value, "argon thermostat")["name"]),
+                    gamma=float(_expect_mapping(value, "argon thermostat")["gamma"]),
+                )
+                for value in argon_root["cases"]
+            ),
+        )
 
     spec = ThermostatTutorialSpec(
         post=str(root["post"]),
@@ -1153,6 +1245,7 @@ def load_thermostat_spec(
                 for value in experiment["thermostats"]
             ),
         ),
+        argon_langevin=argon_langevin,
     )
     if spec.post != post:
         msg = f"config post {spec.post!r} does not match requested {post!r}"
@@ -1172,6 +1265,8 @@ def load_thermostat_spec(
         msg = "harmonic oscillator omega must be positive"
         raise ValueError(msg)
     spec.experiment.validate()
+    if spec.argon_langevin is not None:
+        spec.argon_langevin.validate()
     return spec
 
 

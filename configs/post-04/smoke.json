@@ -18,5 +18,22 @@
       {"name": "weak_langevin", "method": "baoab_langevin", "gamma": 0.1},
       {"name": "strong_langevin", "method": "baoab_langevin", "gamma": 5.0}
     ]
+  },
+  "argon_langevin": {
+    "repetitions": 2,
+    "number_density": 0.65,
+    "temperature": 0.70,
+    "seed": 4041,
+    "time_step": 0.003,
+    "num_steps": 1200,
+    "warmup_steps": 200,
+    "sample_every": 5,
+    "epsilon": 1.0,
+    "sigma": 1.0,
+    "cutoff": 2.5,
+    "cases": [
+      {"name": "weak_argon_langevin", "gamma": 0.2},
+      {"name": "strong_argon_langevin", "gamma": 4.0}
+    ]
   }
 }

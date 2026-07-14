@@ -69,6 +69,9 @@ def test_load_thermostat_spec() -> None:
     assert spec.system.kind == "harmonic_oscillator"
     assert spec.experiment.temperature == 1.0
     assert spec.experiment.thermostats[0].method == "baoab_langevin"
+    assert spec.argon_langevin is not None
+    assert spec.argon_langevin.repetitions == 2
+    assert spec.argon_langevin.cases[-1].gamma == 4.0
 
 
 def test_load_barostat_spec() -> None:

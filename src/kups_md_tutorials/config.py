@@ -411,6 +411,87 @@ class TrajectoryLengthTutorialSpec:
         return Path(f"post-{self.post}") / self.profile
 
 
+@dataclass(frozen=True)
+class ObservableSystemSpec:
+    """One finite-size argon system for observable diagnostics."""
+
+    name: str
+    repetitions: int
+
+
+@dataclass(frozen=True)
+class ObservableExperimentSpec:
+    """Configuration for RDF, coordination, and time-correlation diagnostics."""
+
+    number_density: float
+    displacement_sigma: float
+    frame_count: int
+    sample_every: int
+    seed: int
+    rdf_max_radius: float
+    rdf_bin_width: float
+    coordination_cutoff: float
+    velocity_correlation_time: float
+    max_vacf_lag: int
+    systems: tuple[ObservableSystemSpec, ...]
+
+    def validate(self) -> None:
+        if self.number_density <= 0.0:
+            msg = "number_density must be positive"
+            raise ValueError(msg)
+        if self.displacement_sigma < 0.0:
+            msg = "displacement_sigma must be non-negative"
+            raise ValueError(msg)
+        if self.frame_count <= 1:
+            msg = "frame_count must exceed one"
+            raise ValueError(msg)
+        if self.sample_every <= 0:
+            msg = "sample_every must be positive"
+            raise ValueError(msg)
+        if self.rdf_max_radius <= 0.0:
+            msg = "rdf_max_radius must be positive"
+            raise ValueError(msg)
+        if self.rdf_bin_width <= 0.0:
+            msg = "rdf_bin_width must be positive"
+            raise ValueError(msg)
+        if self.coordination_cutoff <= 0.0:
+            msg = "coordination_cutoff must be positive"
+            raise ValueError(msg)
+        if self.coordination_cutoff > self.rdf_max_radius:
+            msg = "coordination_cutoff cannot exceed rdf_max_radius"
+            raise ValueError(msg)
+        if self.velocity_correlation_time <= 0.0:
+            msg = "velocity_correlation_time must be positive"
+            raise ValueError(msg)
+        if self.max_vacf_lag <= 0 or self.max_vacf_lag >= self.frame_count:
+            msg = "max_vacf_lag must be positive and smaller than frame_count"
+            raise ValueError(msg)
+        if not self.systems:
+            msg = "systems must be non-empty"
+            raise ValueError(msg)
+        for system in self.systems:
+            if not system.name:
+                msg = "system names must be non-empty"
+                raise ValueError(msg)
+            if system.repetitions <= 0:
+                msg = "system repetitions must be positive"
+                raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class ObservableTutorialSpec:
+    """Configuration for post-07 observable-estimator experiments."""
+
+    post: str
+    profile: str
+    title: str
+    experiment: ObservableExperimentSpec
+
+    @property
+    def result_dir_name(self) -> Path:
+        return Path(f"post-{self.post}") / self.profile
+
+
 def _expect_mapping(value: Any, name: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         msg = f"{name} must be an object"
@@ -731,6 +812,55 @@ def load_trajectory_length_spec(
             replica_count=int(experiment["replica_count"]),
             seed=int(experiment["seed"]),
             checkpoints=tuple(int(value) for value in experiment["checkpoints"]),
+        ),
+    )
+    if spec.post != post:
+        msg = f"config post {spec.post!r} does not match requested {post!r}"
+        raise ValueError(msg)
+    if spec.profile != profile:
+        msg = (
+            f"config profile {spec.profile!r} does not match requested {profile!r}"
+        )
+        raise ValueError(msg)
+    spec.experiment.validate()
+    return spec
+
+
+def load_observable_spec(
+    post: str, profile: str, config_root: Path = Path("configs")
+) -> ObservableTutorialSpec:
+    """Load a committed JSON configuration for observable diagnostics."""
+
+    path = config_root / f"post-{post}" / f"{profile}.json"
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    root = _expect_mapping(data, "observable config")
+    experiment = _expect_mapping(root.get("observable_experiment"), "observable_experiment")
+    spec = ObservableTutorialSpec(
+        post=str(root["post"]),
+        profile=str(root["profile"]),
+        title=str(root["title"]),
+        experiment=ObservableExperimentSpec(
+            number_density=float(experiment["number_density"]),
+            displacement_sigma=float(experiment["displacement_sigma"]),
+            frame_count=int(experiment["frame_count"]),
+            sample_every=int(experiment["sample_every"]),
+            seed=int(experiment["seed"]),
+            rdf_max_radius=float(experiment["rdf_max_radius"]),
+            rdf_bin_width=float(experiment["rdf_bin_width"]),
+            coordination_cutoff=float(experiment["coordination_cutoff"]),
+            velocity_correlation_time=float(experiment["velocity_correlation_time"]),
+            max_vacf_lag=int(experiment["max_vacf_lag"]),
+            systems=tuple(
+                ObservableSystemSpec(
+                    name=str(_expect_mapping(value, "observable system")["name"]),
+                    repetitions=int(
+                        _expect_mapping(value, "observable system")["repetitions"]
+                    ),
+                )
+                for value in experiment["systems"]
+            ),
         ),
     )
     if spec.post != post:

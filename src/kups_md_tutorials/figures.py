@@ -201,6 +201,36 @@ def generate_post06_figures(
     return [svg_path, png_path, snapshot_path]
 
 
+def generate_post07_figures(
+    result_dir: Path = Path("results/post-07/smoke"),
+    figure_dir: Path = Path("figures/post-07"),
+    snapshot_dir: Path = Path("snapshots/post-07"),
+    name: str = "observable_diagnostics",
+) -> list[Path]:
+    """Generate RDF, coordination, and VACF diagnostic figures."""
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+    summary = json.loads((result_dir / "observable_summary.json").read_text())
+    rdf_samples = _read_post07_samples(result_dir / "rdf_samples.csv")
+    vacf_samples = _read_post07_samples(result_dir / "vacf_samples.csv")
+
+    with rc_context({"svg.hashsalt": "kups-md-tutorials-post-07"}):
+        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+        _draw_post07_figure(fig, axes, summary, rdf_samples, vacf_samples)
+
+        svg_path = figure_dir / f"{name}.svg"
+        png_path = figure_dir / f"{name}.png"
+        snapshot_path = snapshot_dir / f"{name}_snapshot.png"
+        fig.savefig(svg_path, metadata={"Date": None})
+        _strip_trailing_whitespace(svg_path)
+        fig.savefig(png_path, dpi=220)
+        fig.savefig(snapshot_path, dpi=160)
+        plt.close(fig)
+    return [svg_path, png_path, snapshot_path]
+
+
 def _read_post02_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -242,6 +272,16 @@ def _read_post05_samples(path: Path) -> dict[str, np.ndarray]:
 
 
 def _read_post06_samples(path: Path) -> dict[str, np.ndarray]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    return {
+        key: np.array([float(row[key]) for row in rows], dtype=float)
+        for key in reader.fieldnames or []
+    }
+
+
+def _read_post07_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         rows = list(reader)
@@ -773,6 +813,79 @@ def _draw_post06_figure(
         0.95,
         f"tau target = {summary['correlation_time']:.0f}\n"
         f"replicas = {summary['replica_count']}",
+        transform=axes[2].transAxes,
+        va="top",
+        ha="left",
+        fontsize=8.5,
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+    )
+
+    for ax in axes:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(alpha=0.18, linewidth=0.6)
+
+
+def _draw_post07_figure(
+    fig: plt.Figure,
+    axes: np.ndarray,
+    summary: dict,
+    rdf_samples: dict[str, np.ndarray],
+    vacf_samples: dict[str, np.ndarray],
+) -> None:
+    fig.patch.set_facecolor("white")
+    systems = sorted(summary["systems"], key=lambda system: system["atom_count"])
+    radius = rdf_samples["radius"]
+    colors = ["#2f6f9f", "#d88c3d", "#6a8f4e"]
+
+    for idx, system in enumerate(systems):
+        key = f"{system['system']}_rdf"
+        axes[0].plot(
+            radius,
+            rdf_samples[key],
+            color=colors[idx % len(colors)],
+            linewidth=1.4,
+            label=f"{system['system']} (N={system['atom_count']})",
+        )
+    axes[0].axhline(1.0, color="#333333", linewidth=0.8, linestyle="--")
+    axes[0].set_title("RDF is an estimator")
+    axes[0].set_xlabel("radius")
+    axes[0].set_ylabel("g(r)")
+    axes[0].legend(frameon=False, fontsize=8)
+
+    x = np.arange(len(systems))
+    axes[1].bar(
+        x,
+        [system["coordination_number"] for system in systems],
+        yerr=[system["coordination_block_standard_error"] for system in systems],
+        capsize=4,
+        color=["#6a8f4e", "#8c6bb1", "#d88c3d"][: len(systems)],
+        edgecolor="#2d4721",
+        linewidth=0.6,
+    )
+    axes[1].set_title("Coordination needs an error bar")
+    axes[1].set_ylabel("coordination number")
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(
+        [f"{system['system']}\nN={system['atom_count']}" for system in systems],
+        fontsize=8,
+    )
+
+    axes[2].axhline(0.0, color="#333333", linewidth=0.8)
+    axes[2].plot(
+        vacf_samples["lag"],
+        vacf_samples["normalized_vacf"],
+        color="#2f6f9f",
+        linewidth=1.5,
+    )
+    axes[2].set_title("Time correlation is an observable")
+    axes[2].set_xlabel("lag")
+    axes[2].set_ylabel("normalized VACF")
+    axes[2].text(
+        0.03,
+        0.95,
+        f"rho = {summary['number_density']:.3g}\n"
+        f"bin = {summary['rdf_bin_width']:.2g}",
         transform=axes[2].transAxes,
         va="top",
         ha="left",

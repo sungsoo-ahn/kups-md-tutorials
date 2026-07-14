@@ -4,6 +4,7 @@ from kups_md_tutorials.config import (
     load_barostat_spec,
     load_error_spec,
     load_integrator_spec,
+    load_observable_spec,
     load_trajectory_length_spec,
     load_thermostat_spec,
     load_tutorial_spec,
@@ -17,9 +18,11 @@ from kups_md_tutorials.figures import (
     generate_post04_figures,
     generate_post05_figures,
     generate_post06_figures,
+    generate_post07_figures,
 )
 from kups_md_tutorials.initialization import write_initialization_outputs
 from kups_md_tutorials.integrators import write_integrator_outputs
+from kups_md_tutorials.observables import write_observable_outputs
 from kups_md_tutorials.thermostats import write_thermostat_outputs
 from kups_md_tutorials.trajectory_length import write_trajectory_length_outputs
 
@@ -98,6 +101,20 @@ def test_post06_figure_generation(tmp_path: Path) -> None:
     spec = load_trajectory_length_spec("06", "smoke")
     result_dir = write_trajectory_length_outputs(spec, output_root=tmp_path / "results")
     outputs = generate_post06_figures(
+        result_dir=result_dir,
+        figure_dir=tmp_path / "figures",
+        snapshot_dir=tmp_path / "snapshots",
+    )
+    assert len(outputs) == 3
+    for path in outputs:
+        assert path.exists()
+        assert path.stat().st_size > 0
+
+
+def test_post07_figure_generation(tmp_path: Path) -> None:
+    spec = load_observable_spec("07", "smoke")
+    result_dir = write_observable_outputs(spec, output_root=tmp_path / "results")
+    outputs = generate_post07_figures(
         result_dir=result_dir,
         figure_dir=tmp_path / "figures",
         snapshot_dir=tmp_path / "snapshots",

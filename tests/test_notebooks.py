@@ -57,3 +57,12 @@ def test_post06_notebook_executes(tmp_path: Path) -> None:
     notebook = nbformat.read(notebook_path, as_version=4)
     client = NotebookClient(notebook, timeout=120, kernel_name="python3")
     client.execute(cwd=Path.cwd())
+
+
+def test_post07_notebook_executes(tmp_path: Path) -> None:
+    source = Path("notebooks/post-07-observables.ipynb")
+    notebook_path = tmp_path / source.name
+    shutil.copy(source, notebook_path)
+    notebook = nbformat.read(notebook_path, as_version=4)
+    client = NotebookClient(notebook, timeout=120, kernel_name="python3")
+    client.execute(cwd=Path.cwd())

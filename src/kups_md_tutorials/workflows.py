@@ -6,6 +6,7 @@ from kups_md_tutorials.config import (
     load_barostat_spec,
     load_error_spec,
     load_integrator_spec,
+    load_observable_spec,
     load_trajectory_length_spec,
     load_thermostat_spec,
     load_tutorial_spec,
@@ -26,6 +27,10 @@ from kups_md_tutorials.integrators import (
     load_integrator_summary,
     write_integrator_outputs,
 )
+from kups_md_tutorials.observables import (
+    load_observable_summary,
+    write_observable_outputs,
+)
 from kups_md_tutorials.thermostats import (
     load_thermostat_summary,
     write_thermostat_outputs,
@@ -35,7 +40,7 @@ from kups_md_tutorials.trajectory_length import (
     write_trajectory_length_outputs,
 )
 
-SUPPORTED_POSTS = ("01", "02", "03", "04", "05", "06")
+SUPPORTED_POSTS = ("01", "02", "03", "04", "05", "06", "07")
 SUPPORTED_PROFILES = ("smoke", "full")
 
 
@@ -60,6 +65,9 @@ def run_post(post: str, profile: str, output_root: Path = Path("results")) -> Pa
     if post == "06":
         spec = load_trajectory_length_spec(post, profile)
         return write_trajectory_length_outputs(spec, output_root=output_root)
+    if post == "07":
+        spec = load_observable_spec(post, profile)
+        return write_observable_outputs(spec, output_root=output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -86,6 +94,8 @@ def verify_post(post: str, profile: str, output_root: Path = Path("results")) ->
         _verify_post05(post, profile, output_root)
     elif post == "06":
         _verify_post06(post, profile, output_root)
+    elif post == "07":
+        _verify_post07(post, profile, output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -324,4 +334,49 @@ def _verify_post06(post: str, profile: str, output_root: Path) -> None:
         0.75 * summary.checkpoints[0].conservative_ci95_half_width
     ):
         msg = "uncertainty did not shrink enough over the configured trajectory"
+        raise ValueError(msg)
+
+
+def _verify_post07(post: str, profile: str, output_root: Path) -> None:
+    spec = load_observable_spec(post, profile)
+    output_dir = output_root / spec.result_dir_name
+    summary_path = output_dir / "observable_summary.json"
+    manifest_path = output_dir / "manifest.json"
+    rdf_path = output_dir / "rdf_samples.csv"
+    vacf_path = output_dir / "vacf_samples.csv"
+    missing = [
+        str(path)
+        for path in (summary_path, manifest_path, rdf_path, vacf_path)
+        if not path.exists()
+    ]
+    if missing:
+        msg = "missing expected output files: " + ", ".join(missing)
+        raise FileNotFoundError(msg)
+
+    summary = load_observable_summary(summary_path)
+    if summary.post != post or summary.profile != profile:
+        msg = "summary post/profile does not match requested verification target"
+        raise ValueError(msg)
+    if len(summary.systems) != len(spec.experiment.systems):
+        msg = "summary does not contain the expected observable systems"
+        raise ValueError(msg)
+    if min(system.atom_count for system in summary.systems) <= 0:
+        msg = "observable summary contains no atoms"
+        raise ValueError(msg)
+    if min(system.coordination_number for system in summary.systems) <= 0.0:
+        msg = "coordination estimates must be positive"
+        raise ValueError(msg)
+    if min(system.rdf_first_peak_value for system in summary.systems) <= 1.0:
+        msg = "RDF first peak should exceed the ideal-gas baseline"
+        raise ValueError(msg)
+    if len(summary.systems) >= 2:
+        ordered = sorted(summary.systems, key=lambda system: system.atom_count)
+        if ordered[-1].finite_size_shell_fraction >= ordered[0].finite_size_shell_fraction:
+            msg = "larger system should reduce the RDF finite-size shell fraction"
+            raise ValueError(msg)
+    if summary.vacf.lag1_autocorrelation <= 0.0:
+        msg = "VACF lag-1 autocorrelation should be positive"
+        raise ValueError(msg)
+    if summary.vacf.normalized_integral <= 0.0:
+        msg = "VACF integral should be positive"
         raise ValueError(msg)

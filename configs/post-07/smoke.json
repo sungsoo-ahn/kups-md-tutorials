@@ -1,0 +1,21 @@
+{
+  "post": "07",
+  "profile": "smoke",
+  "title": "How Do Trajectories Become Physical Observables?",
+  "observable_experiment": {
+    "number_density": 0.021,
+    "displacement_sigma": 0.10,
+    "frame_count": 80,
+    "sample_every": 1,
+    "seed": 2026071407,
+    "rdf_max_radius": 8.0,
+    "rdf_bin_width": 0.08,
+    "coordination_cutoff": 4.6,
+    "velocity_correlation_time": 8.0,
+    "max_vacf_lag": 40,
+    "systems": [
+      {"name": "small_cell", "repetitions": 2},
+      {"name": "large_cell", "repetitions": 3}
+    ]
+  }
+}

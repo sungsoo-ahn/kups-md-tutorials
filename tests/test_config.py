@@ -7,6 +7,7 @@ from kups_md_tutorials.config import (
     load_barostat_spec,
     load_error_spec,
     load_integrator_spec,
+    load_observable_spec,
     load_trajectory_length_spec,
     load_thermostat_spec,
 )
@@ -74,3 +75,10 @@ def test_load_trajectory_length_spec() -> None:
     assert spec.experiment.true_mean == 0.5
     assert spec.experiment.replica_count == 4
     assert spec.experiment.checkpoints[-1] == spec.experiment.max_steps
+
+
+def test_load_observable_spec() -> None:
+    spec = load_observable_spec("07", "smoke")
+    assert spec.experiment.number_density == 0.021
+    assert spec.experiment.systems[0].name == "small_cell"
+    assert spec.experiment.coordination_cutoff < spec.experiment.rdf_max_radius

@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 import hashlib
+import os
 import platform
 import subprocess
 
@@ -13,9 +14,13 @@ class Provenance:
 
     config_path: str
     config_sha256: str
+    lock_path: str | None
+    lock_sha256: str | None
     git_revision: str
     python_version: str
     platform: str
+    runtime_device: str
+    precision_policy: str
 
 
 def file_sha256(path: Path) -> str:
@@ -44,13 +49,53 @@ def git_revision(cwd: Path = Path(".")) -> str:
     return result.stdout.strip()
 
 
+def runtime_device() -> str:
+    """Return a compact description of the numerical runtime device."""
+
+    try:
+        import jax
+    except Exception:
+        return "unknown"
+    try:
+        backend = jax.default_backend()
+        devices = ",".join(device.platform for device in jax.devices())
+    except Exception:
+        return "unknown"
+    return f"jax:{backend};devices:{devices}"
+
+
+def precision_policy() -> str:
+    """Return the active global precision policy relevant to JAX/kUPS runs."""
+
+    try:
+        import jax
+    except Exception:
+        jax_enable_x64 = "unknown"
+    else:
+        try:
+            jax_enable_x64 = str(bool(jax.config.jax_enable_x64)).lower()
+        except Exception:
+            jax_enable_x64 = "unknown"
+    env_value = os.environ.get("JAX_ENABLE_X64")
+    if env_value is None:
+        return f"jax_enable_x64={jax_enable_x64};env_JAX_ENABLE_X64=unset"
+    return f"jax_enable_x64={jax_enable_x64};env_JAX_ENABLE_X64={env_value}"
+
+
 def provenance(config_path: Path) -> Provenance:
     """Collect provenance metadata for an output generated from a config file."""
 
+    repo_root = config_path.parents[2]
+    lock_path = repo_root / "uv.lock"
+    lock_sha256 = file_sha256(lock_path) if lock_path.exists() else None
     return Provenance(
         config_path=str(config_path),
         config_sha256=file_sha256(config_path),
-        git_revision=git_revision(config_path.parents[2]),
+        lock_path=str(lock_path.relative_to(repo_root)) if lock_path.exists() else None,
+        lock_sha256=lock_sha256,
+        git_revision=git_revision(repo_root),
         python_version=platform.python_version(),
         platform=platform.platform(),
+        runtime_device=runtime_device(),
+        precision_policy=precision_policy(),
     )

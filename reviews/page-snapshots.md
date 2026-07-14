@@ -286,3 +286,51 @@ Revision decisions:
   of the articles are expanded.
 - The argon/kUPS NVE diagnostic remains a final-release blocker for post 03.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 04 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29359320951`.
+- Website commit: `7aa89addc2ee2fa2e334bdc2f2b9a38fecb22a07`.
+- Deploy run for that commit: `29359119367`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post04-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post04-expanded-snapshots/manifest.json`.
+- Capture scope: post 04 only, after expansion to about 3,630 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-04-thermostats/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Thermostats Change Sampling and Dynamics? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post04-expanded-snapshots/post-04-desktop.png`
+- `/tmp/kups-post04-expanded-snapshots/post-04-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, equations, multiple tables, thermostat diagnostic figure,
+  reproduction code block, current-status section, references, and footer
+  present. No blank page, missing figure, obvious text clipping, or broken page
+  chrome was found in the inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, author note, equations, tables, figure, code block, current-status
+  section, references, and footer present. The tables are tight but readable
+  and are not clipped in the inspected snapshot.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 04 hidden draft.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- The argon/kUPS thermostat diagnostic remains a final-release blocker for post
+  04.
+- The page remains hidden from public navigation and direct-link reachable.

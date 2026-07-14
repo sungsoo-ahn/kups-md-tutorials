@@ -1177,3 +1177,68 @@ Revision decisions:
 - Re-run rendered snapshots if publication indexing changes or if a later
   public article adds a chemistry-specific estimator figure.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Hidden Index And Post 10 Umbrella Replica-Disagreement Snapshot Refresh
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29376446171`.
+- Website commit: `41f0674ecf059ba84c58d9e8f71657b67d203c88`.
+- Deploy run for that commit: `29376297732`.
+- Tutorial commit reviewed:
+  `f56985cb9915ad0a6f001ed1d56364d915ae8c92`.
+- Tutorial verify run for that commit: `29376292286`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-index-post10-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-index-post10-snapshots/manifest.json`.
+- Capture scope: hidden tutorial index plus post 10 after adding the
+  replica-disagreement umbrella diagnostic, refreshed four-panel figure,
+  exported compact result files, and blog-style hidden index text.
+
+Manifest coverage:
+
+- 4 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/`.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/`.
+- All captured URLs returned HTTP 200.
+- Page titles:
+  `kUPS MD Tutorials | Sungsoo Ahn` and
+  `What Does Umbrella Sampling Actually Sample? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-index-post10-snapshots/post-index-desktop.png`
+- `/tmp/kups-index-post10-snapshots/post-index-mobile.png`
+- `/tmp/kups-index-post10-snapshots/post-10-desktop.png`
+- `/tmp/kups-index-post10-snapshots/post-10-mobile.png`
+
+Feedback:
+
+- Desktop index capture renders the hidden tutorial series in the same
+  blog-list style as the main `/blog/` page, with all twelve draft tutorials
+  linked from the direct-link index.
+- Mobile index capture keeps the heading, status row, tutorial list, and
+  repository block readable and contained.
+- Public navigation in both captures shows only the normal site links; kUPS is
+  still hidden from public navigation.
+- Desktop post 10 capture renders the refreshed long article end to end with
+  source links, diagnostic tables, the updated four-panel umbrella figure,
+  reproduction block, current-status section, references, and footer present.
+- Mobile post 10 capture keeps the four-panel figure inside the article column.
+  The figure is small at mobile width, but the caption wraps correctly and no
+  obvious text overlap or broken asset was found.
+
+Revision decisions:
+
+- No blocking layout issue was found for the blog-style hidden index or the
+  refreshed post 10 hidden draft.
+- The local replica-disagreement figure/prose update is snapshot-reviewed for
+  the hidden draft state.
+- Keep mobile title/table/figure density as final typography-polish items.
+- Re-run rendered snapshots after any final production MD additions or public
+  indexing change.
+- The page series remains hidden from public navigation and direct-link
+  reachable.

@@ -238,7 +238,103 @@ Final-release blockers:
 
 - Add production MD context and any final diagnostics needed for the public
   article, including final uncertainty diagnostics.
-- Add any final WHAM/MBAR, hysteresis, or uncertainty figures and
-  snapshot-review them.
 - Re-run rendered desktop/mobile snapshots after any final production MD or
   figure additions.
+
+## Update 2026-07-14: Replica-Disagreement Figure And Blog-Style Index
+
+- Tutorial commit reviewed:
+  `f56985cb9915ad0a6f001ed1d56364d915ae8c92`.
+- Tutorial verification run:
+  `29376292286`.
+- Website commit reviewed:
+  `41f0674ecf059ba84c58d9e8f71657b67d203c88`.
+- Website deployment run:
+  `29376297732`.
+- Snapshot workflow run:
+  `29376446171`.
+- Snapshot artifact: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-index-post10-snapshots/`.
+
+Commands added in this pass:
+
+- `uv run kups-tutorial run 10 --profile smoke`
+- `uv run kups-tutorial verify 10 --profile smoke`
+- `uv run kups-tutorial run 10 --profile full`
+- `uv run kups-tutorial verify 10 --profile full`
+- `uv run python scripts/generate_post10_figures.py`
+- `uv run ruff check src/kups_md_tutorials/umbrella_sampling.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `uv run kups-tutorial verify-reviews`
+- `python3 scripts/validate_kups_pages.py` in
+  `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `gh workflow run "Capture kUPS snapshots" --ref main -f posts=index,10`
+- `gh run download 29376446171 --name kups-md-page-snapshots --dir /tmp/kups-index-post10-snapshots`
+
+Code and artifact review:
+
+- `UmbrellaProtocolSummary` now records replica barrier height, barrier
+  replica difference, and maximum local replica PMF difference.
+- `umbrella_curves.csv` now exports each protocol's local
+  `replica_abs_difference` curve.
+- Post 10 verification now checks that dense windows improve forward/reverse
+  PMF consistency relative to the sparse protocol.
+- CSV writers use explicit LF line endings, and `git diff --check` passes.
+
+Scientific review:
+
+- Dense windows have forward/reverse replica PMF RMSE `0.1148` and maximum
+  local replica PMF difference `0.6938`.
+- Sparse windows have forward/reverse replica PMF RMSE `0.2352` and maximum
+  local replica PMF difference `0.9656`.
+- The dense barrier replica difference is `0.0206`; the sparse barrier replica
+  difference is `0.0151`. This scalar is not the central comparison. The local
+  replica-disagreement curve and replica PMF RMSE are more informative because
+  they expose the missing-bridge region directly.
+
+Figure feedback:
+
+- The first revised four-panel figure used a barrier-difference annotation in
+  the replica-disagreement panel. That was rejected as potentially misleading
+  because the sparse scalar barrier difference was not larger in this seed.
+- The accepted figure annotates dense/sparse replica PMF RMSE instead.
+- The inspected full-profile figure snapshot
+  `snapshots/post-10/umbrella_diagnostics_full_snapshot.png` shows a sparse
+  local-disagreement spike near the missing bridge, while dense disagreement is
+  mostly lower. Labels, legends, and panel titles fit.
+
+Notebook review:
+
+- The notebook now prints replica PMF RMSE, maximum local replica difference,
+  and barrier replica difference for each protocol.
+- `uv run jupyter execute notebooks/post-10-umbrella-sampling.ipynb --inplace`
+  completed successfully during artifact regeneration.
+
+Website and rendered-page review:
+
+- The hidden index at
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/` now mirrors the main
+  `/blog/` listing structure more closely while keeping `nav: false`.
+- The hidden Post 10 page caption and diagnostic prose now describe the
+  four-panel figure and local replica-disagreement panel.
+- Snapshot manifest reviewed:
+  `/tmp/kups-index-post10-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for the hidden
+  index and Post 10 page; all returned HTTP 200.
+- Index snapshots inspected:
+  `/tmp/kups-index-post10-snapshots/post-index-desktop.png` and
+  `/tmp/kups-index-post10-snapshots/post-index-mobile.png`.
+- Post 10 snapshots inspected:
+  `/tmp/kups-index-post10-snapshots/post-10-desktop.png` and
+  `/tmp/kups-index-post10-snapshots/post-10-mobile.png`.
+- Desktop index feedback: the page renders in the same blog-list style as the
+  main blog, lists all 12 tutorials, and does not add kUPS to the public nav.
+- Mobile index feedback: the heading, status row, all tutorial entries, and
+  repository block remain readable and contained.
+- Desktop Post 10 feedback: the four-panel diagnostic renders in the article
+  body without overflow; caption and surrounding prose are readable.
+- Mobile Post 10 feedback: the figure scales inside the article column, the
+  caption wraps, and no text overlap was found in the inspected snapshot.

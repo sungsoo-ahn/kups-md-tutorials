@@ -710,6 +710,79 @@ class ObservableExperimentSpec:
 
 
 @dataclass(frozen=True)
+class ArgonObservableTrajectorySpec:
+    """Configuration for compact argon trajectory observable diagnostics."""
+
+    repetitions: int
+    number_density: float
+    temperature: float
+    gamma: float
+    time_step: float
+    num_steps: int
+    warmup_steps: int
+    sample_every: int
+    seed: int
+    rdf_max_radius: float
+    rdf_bin_width: float
+    coordination_cutoff: float
+    max_vacf_lag: int
+    epsilon: float = 1.0
+    sigma: float = 1.0
+    cutoff: float = 2.5
+
+    def validate(self) -> None:
+        if self.repetitions <= 0:
+            msg = "argon trajectory repetitions must be positive"
+            raise ValueError(msg)
+        if self.number_density <= 0.0:
+            msg = "argon trajectory number_density must be positive"
+            raise ValueError(msg)
+        if self.temperature <= 0.0:
+            msg = "argon trajectory temperature must be positive"
+            raise ValueError(msg)
+        if self.gamma <= 0.0:
+            msg = "argon trajectory gamma must be positive"
+            raise ValueError(msg)
+        if self.time_step <= 0.0:
+            msg = "argon trajectory time_step must be positive"
+            raise ValueError(msg)
+        if self.num_steps <= 0:
+            msg = "argon trajectory num_steps must be positive"
+            raise ValueError(msg)
+        if self.warmup_steps < 0 or self.warmup_steps >= self.num_steps:
+            msg = "argon trajectory warmup_steps must be non-negative and smaller than num_steps"
+            raise ValueError(msg)
+        if self.sample_every <= 0:
+            msg = "argon trajectory sample_every must be positive"
+            raise ValueError(msg)
+        sample_count = 1 + (self.num_steps - self.warmup_steps - 1) // self.sample_every
+        if self.max_vacf_lag <= 0 or self.max_vacf_lag >= sample_count:
+            msg = "argon trajectory max_vacf_lag must be positive and smaller than sample count"
+            raise ValueError(msg)
+        if self.rdf_max_radius <= 0.0:
+            msg = "argon trajectory rdf_max_radius must be positive"
+            raise ValueError(msg)
+        if self.rdf_bin_width <= 0.0:
+            msg = "argon trajectory rdf_bin_width must be positive"
+            raise ValueError(msg)
+        if self.coordination_cutoff <= 0.0:
+            msg = "argon trajectory coordination_cutoff must be positive"
+            raise ValueError(msg)
+        if self.coordination_cutoff > self.rdf_max_radius:
+            msg = "argon trajectory coordination_cutoff cannot exceed rdf_max_radius"
+            raise ValueError(msg)
+        if self.epsilon <= 0.0:
+            msg = "argon trajectory epsilon must be positive"
+            raise ValueError(msg)
+        if self.sigma <= 0.0:
+            msg = "argon trajectory sigma must be positive"
+            raise ValueError(msg)
+        if self.cutoff <= self.sigma:
+            msg = "argon trajectory cutoff must be larger than sigma"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
 class ObservableTutorialSpec:
     """Configuration for post-07 observable-estimator experiments."""
 
@@ -717,6 +790,7 @@ class ObservableTutorialSpec:
     profile: str
     title: str
     experiment: ObservableExperimentSpec
+    argon_trajectory: ArgonObservableTrajectorySpec | None = None
 
     @property
     def result_dir_name(self) -> Path:
@@ -1611,6 +1685,28 @@ def load_observable_spec(
 
     root = _expect_mapping(data, "observable config")
     experiment = _expect_mapping(root.get("observable_experiment"), "observable_experiment")
+    argon_data = root.get("argon_trajectory")
+    argon_trajectory = None
+    if argon_data is not None:
+        argon_root = _expect_mapping(argon_data, "argon_trajectory")
+        argon_trajectory = ArgonObservableTrajectorySpec(
+            repetitions=int(argon_root["repetitions"]),
+            number_density=float(argon_root["number_density"]),
+            temperature=float(argon_root["temperature"]),
+            gamma=float(argon_root["gamma"]),
+            time_step=float(argon_root["time_step"]),
+            num_steps=int(argon_root["num_steps"]),
+            warmup_steps=int(argon_root["warmup_steps"]),
+            sample_every=int(argon_root["sample_every"]),
+            seed=int(argon_root["seed"]),
+            rdf_max_radius=float(argon_root["rdf_max_radius"]),
+            rdf_bin_width=float(argon_root["rdf_bin_width"]),
+            coordination_cutoff=float(argon_root["coordination_cutoff"]),
+            max_vacf_lag=int(argon_root["max_vacf_lag"]),
+            epsilon=float(argon_root.get("epsilon", 1.0)),
+            sigma=float(argon_root.get("sigma", 1.0)),
+            cutoff=float(argon_root.get("cutoff", 2.5)),
+        )
     spec = ObservableTutorialSpec(
         post=str(root["post"]),
         profile=str(root["profile"]),
@@ -1636,6 +1732,7 @@ def load_observable_spec(
                 for value in experiment["systems"]
             ),
         ),
+        argon_trajectory=argon_trajectory,
     )
     if spec.post != post:
         msg = f"config post {spec.post!r} does not match requested {post!r}"
@@ -1646,6 +1743,8 @@ def load_observable_spec(
         )
         raise ValueError(msg)
     spec.experiment.validate()
+    if spec.argon_trajectory is not None:
+        spec.argon_trajectory.validate()
     return spec
 
 

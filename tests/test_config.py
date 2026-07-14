@@ -97,6 +97,8 @@ def test_load_observable_spec() -> None:
     assert spec.experiment.number_density == 0.021
     assert spec.experiment.systems[0].name == "small_cell"
     assert spec.experiment.coordination_cutoff < spec.experiment.rdf_max_radius
+    assert spec.argon_trajectory is not None
+    assert spec.argon_trajectory.repetitions == 2
 
 
 def test_load_free_energy_spec() -> None:

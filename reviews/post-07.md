@@ -4,11 +4,11 @@
 
 - Post: 07
 - Profiles reviewed: smoke and full
-- Current status: controlled argon-FCC observable-estimator workflow, committed
-  smoke/full outputs, notebook, full-profile diagnostic figure, hidden website
-  draft, rendered page snapshots, and self-review artifact are in place; the
-  final argon/kUPS production trajectory observable diagnostic is still
-  pending.
+- Current status: controlled argon-FCC observable-estimator workflow, compact
+  reduced-unit argon trajectory observable workflow, committed smoke/full
+  outputs, notebook, full-profile diagnostic figure, hidden website draft,
+  rendered page snapshots, and self-review artifact are in place; larger GPU
+  kUPS production trajectory observable diagnostics remain pending.
 
 ## Commands
 
@@ -18,8 +18,10 @@
 - `uv run kups-tutorial verify 07 --profile full`
 - `uv run python scripts/generate_post07_figures.py`
 - `uv run jupyter execute notebooks/post-07-observables.ipynb --inplace`
-- `uv run ruff check src tests scripts`
+- `uv run ruff check .`
 - `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `git diff --check`
 - `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
 - GitHub Actions deploy run `29361737064` for website commit
@@ -35,6 +37,9 @@
   displacements, PBC minimum-image pair distances, RDF normalization,
   coordination integration, block standard errors, and a seeded velocity
   autocorrelation estimator.
+- The workflow now also writes `argon_trajectory_rdf_samples.csv` and
+  `argon_trajectory_vacf_samples.csv`, generated from a compact reduced-unit
+  argon Langevin trajectory with actual sampled positions and velocities.
 - The manifest records config hash, Git revision, Python/platform metadata, and
   kUPS/NumPy versions.
 - `kups-tutorial run`, `verify`, and `run-all` include post 07.
@@ -43,8 +48,9 @@
 
 Open items:
 
-- Replace or augment the displaced-FCC estimator with an actual argon/kUPS
-  trajectory before treating this post as final.
+- Add larger GPU kUPS trajectory-observable diagnostics before treating this
+  post as final. The compact reduced-unit trajectory exercises real
+  time-correlated frames, but it is not yet a production kUPS observable study.
 
 ## Scientific Review
 
@@ -59,13 +65,20 @@ Open items:
   corrected before committing the review snapshot.
 - The full-profile VACF has lag-1 autocorrelation about `0.921` and normalized
   integral about `12.0`, matching the configured correlated-velocity timescale.
+- The compact full-profile argon trajectory uses 108 atoms and 551 sampled
+  frames. Its trajectory RDF has a first peak near radius `1.095`, first peak
+  value about `3.02`, and first-shell coordination number about `11.66` with
+  block standard error about `0.035`.
+- The compact trajectory VACF has lag-1 autocorrelation about `0.800` and a
+  first zero crossing at lag `4`; this supports only a wiring check for
+  time-correlated velocity samples, not a transport claim.
 
 Open items:
 
 - The website prose should emphasize that RDF is a normalized estimator, not
   just a plotted histogram.
 - The final article should connect coordination and time-correlation estimates
-  to uncertainty and finite-size diagnostics from actual kUPS trajectories.
+  to uncertainty and finite-size diagnostics from larger GPU kUPS trajectories.
 
 ## Figure Snapshot Review
 
@@ -81,19 +94,24 @@ Feedback loop:
 - Figure correction: small-cell RDF bins beyond half the box length were masked
   and the figure was regenerated, so the plot does not present invalid radial
   shells as physical estimator support.
-- The current figure is intentionally estimator-focused. A final post should
-  add a production trajectory observable figure if dynamical or liquid-like
-  argon claims are made.
+- Compact argon trajectory refresh: the fourth panel is visible in
+  `snapshots/post-07/observable_diagnostics_full_snapshot.png`; `g(r)` and
+  radius labels fit, the first peak and coordination cutoff marker are visible,
+  and the `N = 108`, `coord = 11.66` annotation does not cover the peak.
+- The current figure includes a physical reduced-unit trajectory RDF, but it
+  does not yet show larger GPU kUPS production observables, finite-size
+  production comparisons, or transport-quality VACF uncertainty.
 
 Open items:
 
-- Add a production-observable figure after argon/kUPS diagnostics are
+- Add larger production-observable figures after GPU kUPS diagnostics are
   implemented.
 
 ## Notebook Review
 
 - `notebooks/post-07-observables.ipynb` executes from a clean kernel.
 - The notebook loads smoke and full configurations, displays committed summary
+  values, reports compact argon trajectory RDF/coordination/VACF summary
   values, and regenerates the full-profile diagnostic figure from committed
   result files.
 - The notebook keeps the explanation focused on RDF normalization,
@@ -119,9 +137,13 @@ Open items:
   coordination integrals, VACF interpretation, uncertainty, finite-size
   support, common estimator mistakes, methods reporting, and the planned
   argon/kUPS trajectory extension.
+- Refreshed the hidden page to describe the compact reduced-unit argon
+  trajectory RDF panel and to keep larger GPU kUPS observables as the remaining
+  production blocker.
 - The expanded prose keeps the scope clear: the committed result is a
-  controlled displaced-FCC observable-estimator diagnostic, not a final
-  production argon/kUPS trajectory-observable study.
+  controlled displaced-FCC observable-estimator diagnostic plus a compact
+  reduced-unit trajectory observable check, not a final production GPU kUPS
+  trajectory-observable study.
 - `python3 scripts/validate_kups_pages.py` passes in the website repository.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
@@ -157,7 +179,9 @@ Open items:
 
 - Keep mobile title and table wrapping as final typography-polish items after
   the rest of the articles are expanded.
-- Add argon/kUPS trajectory diagnostics for physical observables before
+- Re-run the page snapshot workflow after the compact argon trajectory
+  observable refresh is deployed, then record desktop and mobile feedback.
+- Add larger GPU kUPS trajectory diagnostics for physical observables before
   treating this post as final.
-- Re-run the page snapshot workflow after the final production-observable
-  figure and citations are added.
+- Re-run the page snapshot workflow again after the final
+  production-observable figures and citations are added.

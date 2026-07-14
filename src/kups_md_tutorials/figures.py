@@ -235,10 +235,16 @@ def generate_post07_figures(
     summary = json.loads((result_dir / "observable_summary.json").read_text())
     rdf_samples = _read_post07_samples(result_dir / "rdf_samples.csv")
     vacf_samples = _read_post07_samples(result_dir / "vacf_samples.csv")
+    argon_rdf_path = result_dir / "argon_trajectory_rdf_samples.csv"
+    argon_rdf_samples = (
+        _read_post07_samples(argon_rdf_path) if argon_rdf_path.exists() else None
+    )
 
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-07"}):
-        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
-        _draw_post07_figure(fig, axes, summary, rdf_samples, vacf_samples)
+        fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.2), constrained_layout=True)
+        _draw_post07_figure(
+            fig, axes.ravel(), summary, rdf_samples, vacf_samples, argon_rdf_samples
+        )
 
         svg_path = figure_dir / f"{name}.svg"
         png_path = figure_dir / f"{name}.png"
@@ -1259,6 +1265,7 @@ def _draw_post07_figure(
     summary: dict,
     rdf_samples: dict[str, np.ndarray],
     vacf_samples: dict[str, np.ndarray],
+    argon_rdf_samples: dict[str, np.ndarray] | None,
 ) -> None:
     fig.patch.set_facecolor("white")
     systems = sorted(summary["systems"], key=lambda system: system["atom_count"])
@@ -1319,6 +1326,48 @@ def _draw_post07_figure(
         fontsize=8.5,
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
     )
+
+    axes[3].set_title("Trajectory RDF is physical")
+    argon_summary = summary.get("argon_trajectory")
+    if argon_rdf_samples is not None and argon_summary is not None:
+        axes[3].plot(
+            argon_rdf_samples["radius"],
+            argon_rdf_samples["argon_trajectory_rdf"],
+            color="#2b8a6e",
+            linewidth=1.5,
+        )
+        axes[3].axhline(1.0, color="#333333", linewidth=0.8, linestyle="--")
+        axes[3].axvline(
+            argon_summary["coordination_cutoff"],
+            color="#5b5b5b",
+            linewidth=0.8,
+            linestyle=":",
+        )
+        axes[3].set_xlabel("radius")
+        axes[3].set_ylabel("g(r)")
+        axes[3].text(
+            0.03,
+            0.95,
+            f"N = {argon_summary['atom_count']}\n"
+            f"coord = {argon_summary['coordination_number']:.2f}",
+            transform=axes[3].transAxes,
+            va="top",
+            ha="left",
+            fontsize=8.5,
+            bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+        )
+    else:
+        axes[3].text(
+            0.5,
+            0.5,
+            "argon trajectory\nnot configured",
+            transform=axes[3].transAxes,
+            va="center",
+            ha="center",
+            fontsize=9,
+        )
+        axes[3].set_xticks([])
+        axes[3].set_yticks([])
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

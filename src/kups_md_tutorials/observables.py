@@ -9,6 +9,10 @@ import kups
 import numpy as np
 
 from kups_md_tutorials.config import ObservableSystemSpec, ObservableTutorialSpec
+from kups_md_tutorials.error_diagnostics import (
+    _initialized_argon_velocities,
+    _lennard_jones_forces,
+)
 from kups_md_tutorials.provenance import provenance
 from kups_md_tutorials.systems import argon_fcc
 
@@ -45,6 +49,25 @@ class ObservableVacfSummary:
 
 
 @dataclass(frozen=True)
+class ArgonTrajectoryObservableSummary:
+    """Observable diagnostics from an actual compact argon trajectory."""
+
+    atom_count: int
+    frame_count: int
+    number_density: float
+    temperature: float
+    rdf_first_peak_radius: float
+    rdf_first_peak_value: float
+    coordination_cutoff: float
+    coordination_number: float
+    coordination_block_standard_error: float
+    coordination_relative_standard_error: float
+    vacf_normalized_integral: float
+    vacf_first_zero_lag: int | None
+    vacf_lag1_autocorrelation: float
+
+
+@dataclass(frozen=True)
 class ObservableExperimentSummary:
     """Summary table for one post/profile observable-estimator experiment."""
 
@@ -59,6 +82,7 @@ class ObservableExperimentSummary:
     config_sha256: str
     systems: list[ObservableSystemSummary]
     vacf: ObservableVacfSummary
+    argon_trajectory: ArgonTrajectoryObservableSummary | None = None
 
 
 def _sample_positions(
@@ -188,6 +212,60 @@ def _simulate_velocities(
     return velocities
 
 
+def _simulate_argon_trajectory(
+    spec: ObservableTutorialSpec,
+) -> tuple[np.ndarray, np.ndarray, float] | None:
+    argon = spec.argon_trajectory
+    if argon is None:
+        return None
+
+    atoms = argon_fcc(argon.repetitions, argon.number_density)
+    positions = atoms.get_positions().astype(float)
+    box = float(atoms.cell.lengths()[0])
+    velocities = _initialized_argon_velocities(
+        atom_count=len(atoms),
+        temperature=argon.temperature,
+        seed=argon.seed,
+    )
+    forces, _ = _lennard_jones_forces(
+        positions,
+        box_length=box,
+        epsilon=argon.epsilon,
+        sigma=argon.sigma,
+        cutoff=argon.cutoff,
+    )
+    c = float(np.exp(-argon.gamma * argon.time_step))
+    sigma_v = float(np.sqrt(argon.temperature * (1.0 - c**2)))
+    rng = np.random.default_rng(argon.seed + 17)
+    frame_positions: list[np.ndarray] = []
+    frame_velocities: list[np.ndarray] = []
+
+    for step in range(1, argon.num_steps + 1):
+        velocities += 0.5 * argon.time_step * forces
+        positions = (positions + 0.5 * argon.time_step * velocities) % box
+        velocities = c * velocities + sigma_v * rng.normal(size=velocities.shape)
+        velocities -= np.mean(velocities, axis=0)
+        positions = (positions + 0.5 * argon.time_step * velocities) % box
+        forces, _ = _lennard_jones_forces(
+            positions,
+            box_length=box,
+            epsilon=argon.epsilon,
+            sigma=argon.sigma,
+            cutoff=argon.cutoff,
+        )
+        velocities += 0.5 * argon.time_step * forces
+
+        if step >= argon.warmup_steps and (step - argon.warmup_steps) % argon.sample_every == 0:
+            frame_positions.append(positions.copy())
+            frame_velocities.append(velocities.copy())
+
+    return (
+        np.asarray(frame_positions, dtype=float),
+        np.asarray(frame_velocities, dtype=float),
+        box,
+    )
+
+
 def estimate_vacf(velocities: np.ndarray, max_lag: int) -> tuple[np.ndarray, np.ndarray]:
     """Estimate a normalized velocity autocorrelation function."""
 
@@ -198,6 +276,66 @@ def estimate_vacf(velocities: np.ndarray, max_lag: int) -> tuple[np.ndarray, np.
         products = np.sum(velocities[: len(velocities) - lag] * velocities[lag:], axis=-1)
         vacf[lag] = float(np.mean(products) / denominator)
     return lags, vacf
+
+
+def _summarize_argon_trajectory(
+    spec: ObservableTutorialSpec,
+) -> tuple[
+    ArgonTrajectoryObservableSummary | None,
+    tuple[np.ndarray, np.ndarray] | None,
+    tuple[np.ndarray, np.ndarray] | None,
+]:
+    argon = spec.argon_trajectory
+    simulated = _simulate_argon_trajectory(spec)
+    if argon is None or simulated is None:
+        return None, None, None
+    frames, velocities, cell_length = simulated
+    radii, rdf = estimate_rdf(
+        frames,
+        cell_length=cell_length,
+        number_density=argon.number_density,
+        max_radius=argon.rdf_max_radius,
+        bin_width=argon.rdf_bin_width,
+    )
+    usable_radius = 0.5 * cell_length
+    rdf = np.where(radii <= usable_radius, rdf, np.nan)
+    coordination = coordination_number(
+        radii,
+        rdf,
+        number_density=argon.number_density,
+        cutoff=argon.coordination_cutoff,
+        bin_width=argon.rdf_bin_width,
+    )
+    block_se = _coordination_block_standard_error(
+        frames,
+        cell_length=cell_length,
+        number_density=argon.number_density,
+        max_radius=argon.rdf_max_radius,
+        bin_width=argon.rdf_bin_width,
+        cutoff=argon.coordination_cutoff,
+    )
+    peak_mask = (radii > 0.5 * argon.rdf_bin_width) & (radii <= usable_radius)
+    peak_idx = int(np.argmax(rdf[peak_mask]))
+    peak_radii = radii[peak_mask]
+    peak_values = rdf[peak_mask]
+    lags, vacf = estimate_vacf(velocities, argon.max_vacf_lag)
+    zero_crossings = np.flatnonzero(vacf <= 0.0)
+    summary = ArgonTrajectoryObservableSummary(
+        atom_count=frames.shape[1],
+        frame_count=frames.shape[0],
+        number_density=argon.number_density,
+        temperature=argon.temperature,
+        rdf_first_peak_radius=float(peak_radii[peak_idx]),
+        rdf_first_peak_value=float(peak_values[peak_idx]),
+        coordination_cutoff=argon.coordination_cutoff,
+        coordination_number=coordination,
+        coordination_block_standard_error=block_se,
+        coordination_relative_standard_error=float(block_se / coordination),
+        vacf_normalized_integral=float(np.trapezoid(vacf, lags)),
+        vacf_first_zero_lag=None if len(zero_crossings) == 0 else int(zero_crossings[0]),
+        vacf_lag1_autocorrelation=float(vacf[1]),
+    )
+    return summary, (radii, rdf), (lags.astype(float), vacf)
 
 
 def _summarize_system(
@@ -268,6 +406,8 @@ def run_observable_experiment(
     ObservableExperimentSummary,
     dict[str, tuple[np.ndarray, np.ndarray]],
     tuple[np.ndarray, np.ndarray],
+    tuple[np.ndarray, np.ndarray] | None,
+    tuple[np.ndarray, np.ndarray] | None,
 ]:
     """Run all configured observable-estimator diagnostics."""
 
@@ -299,6 +439,7 @@ def run_observable_experiment(
         first_zero_lag=None if len(zero_crossings) == 0 else int(zero_crossings[0]),
         lag1_autocorrelation=float(vacf[1]),
     )
+    argon_summary, argon_rdf, argon_vacf = _summarize_argon_trajectory(spec)
     return (
         ObservableExperimentSummary(
             post=spec.post,
@@ -312,9 +453,12 @@ def run_observable_experiment(
             config_sha256=config_sha256,
             systems=summaries,
             vacf=vacf_summary,
+            argon_trajectory=argon_summary,
         ),
         rdf_by_system,
         (lags.astype(float), vacf),
+        argon_rdf,
+        argon_vacf,
     )
 
 
@@ -342,6 +486,14 @@ def _write_vacf_samples(path: Path, lags: np.ndarray, vacf: np.ndarray) -> None:
             writer.writerow([f"{lag:.0f}", f"{value:.12g}"])
 
 
+def _write_argon_rdf_samples(path: Path, radii: np.ndarray, rdf: np.ndarray) -> None:
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["radius", "argon_trajectory_rdf"])
+        for radius, value in zip(radii, rdf, strict=True):
+            writer.writerow([f"{radius:.12g}", f"{value:.12g}"])
+
+
 def write_observable_outputs(
     spec: ObservableTutorialSpec,
     output_root: Path = Path("results"),
@@ -353,23 +505,36 @@ def write_observable_outputs(
     output_dir.mkdir(parents=True, exist_ok=True)
     config_path = config_root / f"post-{spec.post}" / f"{spec.profile}.json"
     prov = provenance(config_path)
-    summary, rdf_by_system, vacf = run_observable_experiment(spec, prov.config_sha256)
+    summary, rdf_by_system, vacf, argon_rdf, argon_vacf = run_observable_experiment(
+        spec, prov.config_sha256
+    )
 
     summary_path = output_dir / "observable_summary.json"
     manifest_path = output_dir / "manifest.json"
     rdf_path = output_dir / "rdf_samples.csv"
     vacf_path = output_dir / "vacf_samples.csv"
+    argon_rdf_path = output_dir / "argon_trajectory_rdf_samples.csv"
+    argon_vacf_path = output_dir / "argon_trajectory_vacf_samples.csv"
     summary_path.write_text(
         json.dumps(asdict(summary), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     _write_rdf_samples(rdf_path, rdf_by_system)
     _write_vacf_samples(vacf_path, *vacf)
+    if argon_rdf is not None and argon_vacf is not None:
+        _write_argon_rdf_samples(argon_rdf_path, *argon_rdf)
+        _write_vacf_samples(argon_vacf_path, *argon_vacf)
     manifest = {
         "config": asdict(spec),
         "summary_file": summary_path.name,
         "rdf_file": rdf_path.name,
         "vacf_file": vacf_path.name,
+        "argon_trajectory_rdf_file": (
+            argon_rdf_path.name if summary.argon_trajectory is not None else None
+        ),
+        "argon_trajectory_vacf_file": (
+            argon_vacf_path.name if summary.argon_trajectory is not None else None
+        ),
         "provenance": asdict(prov),
         "versions": {
             "kups": kups.__version__,
@@ -389,4 +554,12 @@ def load_observable_summary(path: Path) -> ObservableExperimentSummary:
     data = json.loads(path.read_text(encoding="utf-8"))
     systems = [ObservableSystemSummary(**system) for system in data.pop("systems")]
     vacf = ObservableVacfSummary(**data.pop("vacf"))
-    return ObservableExperimentSummary(systems=systems, vacf=vacf, **data)
+    argon_trajectory = data.pop("argon_trajectory", None)
+    if argon_trajectory is not None:
+        argon_trajectory = ArgonTrajectoryObservableSummary(**argon_trajectory)
+    return ObservableExperimentSummary(
+        systems=systems,
+        vacf=vacf,
+        argon_trajectory=argon_trajectory,
+        **data,
+    )

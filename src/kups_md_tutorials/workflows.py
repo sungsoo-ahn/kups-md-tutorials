@@ -484,11 +484,19 @@ def _verify_post07(post: str, profile: str, output_root: Path) -> None:
     manifest_path = output_dir / "manifest.json"
     rdf_path = output_dir / "rdf_samples.csv"
     vacf_path = output_dir / "vacf_samples.csv"
+    argon_rdf_path = output_dir / "argon_trajectory_rdf_samples.csv"
+    argon_vacf_path = output_dir / "argon_trajectory_vacf_samples.csv"
     missing = [
         str(path)
         for path in (summary_path, manifest_path, rdf_path, vacf_path)
         if not path.exists()
     ]
+    if spec.argon_trajectory is not None:
+        missing.extend(
+            str(path)
+            for path in (argon_rdf_path, argon_vacf_path)
+            if not path.exists()
+        )
     if missing:
         msg = "missing expected output files: " + ", ".join(missing)
         raise FileNotFoundError(msg)
@@ -520,6 +528,25 @@ def _verify_post07(post: str, profile: str, output_root: Path) -> None:
     if summary.vacf.normalized_integral <= 0.0:
         msg = "VACF integral should be positive"
         raise ValueError(msg)
+    if spec.argon_trajectory is not None:
+        if summary.argon_trajectory is None:
+            msg = "argon trajectory observable summary is missing"
+            raise ValueError(msg)
+        if summary.argon_trajectory.atom_count <= 0:
+            msg = "argon trajectory observable summary contains no atoms"
+            raise ValueError(msg)
+        if summary.argon_trajectory.frame_count <= spec.argon_trajectory.max_vacf_lag:
+            msg = "argon trajectory observable summary contains too few frames"
+            raise ValueError(msg)
+        if summary.argon_trajectory.rdf_first_peak_value <= 1.0:
+            msg = "argon trajectory RDF first peak should exceed the ideal-gas baseline"
+            raise ValueError(msg)
+        if summary.argon_trajectory.coordination_number <= 0.0:
+            msg = "argon trajectory coordination estimate must be positive"
+            raise ValueError(msg)
+        if summary.argon_trajectory.vacf_lag1_autocorrelation <= 0.0:
+            msg = "argon trajectory VACF lag-1 autocorrelation should be positive"
+            raise ValueError(msg)
 
 
 def _verify_post08(post: str, profile: str, output_root: Path) -> None:

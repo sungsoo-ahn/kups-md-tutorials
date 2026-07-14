@@ -682,3 +682,55 @@ Revision decisions:
   trajectory or hysteresis figures remain final-release blockers until
   implemented and snapshot-reviewed.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 12 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29366249219`.
+- Website commit: `c540d524e37527a8a586175d53cbefc76474492a`.
+- Deploy run for that commit: `29366058404`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post12-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post12-expanded-snapshots/manifest.json`.
+- Capture scope: post 12 only, after expansion to about 3,518 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Changes When the Potential Is a Machine-Learned Interatomic Potential? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post12-expanded-snapshots/post-12-desktop.png`
+- `/tmp/kups-post12-expanded-snapshots/post-12-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-draft note, source links, capstone regime table,
+  provenance table, production-readiness table, full-profile MLIP diagnostic
+  figure, practical checklist, reproduction code block, current-status
+  section, references, and footer present. No blank page, missing figure,
+  obvious text clipping, or broken page chrome was found in the inspected
+  snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, hidden-draft note, tables, figure, caption, code block,
+  current-status section, and references present. The title wraps heavily and
+  the tables are tight, but all remain contained and readable in the inspected
+  snapshot.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 12 hidden draft.
+- Keep mobile title and table wrapping as final typography-polish items after
+  the rest of the articles are expanded.
+- The real MACE/fcc-Al GPU capstone, pinned model artifact hash, final
+  production diagnostics, and regenerated MLIP figure remain final-release
+  blockers until implemented and snapshot-reviewed.
+- The page remains hidden from public navigation and direct-link reachable.

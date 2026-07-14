@@ -5,10 +5,12 @@
 - Post: 12
 - Profiles reviewed: smoke and full
 - Current status: controlled MLIP reliability workflow, compact smoke/full
-  outputs, notebook, full-profile diagnostic figure, figure snapshots, and this
-  self-review artifact are in place; the hidden website draft is in place.
-- Working-tree state: post 12 implementation is uncommitted during this review
-  pass.
+  outputs, notebook, full-profile diagnostic figure, figure snapshots, expanded
+  hidden website draft, rendered page snapshots, and this self-review artifact
+  are in place. The page remains hidden from public navigation.
+- Working-tree state: website expansion committed as
+  `c540d524e37527a8a586175d53cbefc76474492a`; this repository has review
+  updates staged for the current pass.
 - Hidden draft URL:
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/`
 
@@ -33,6 +35,22 @@
 - `curl -L --silent 'https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/?v=3c1b319' | rg ...`
 - `curl -L --silent 'https://sungsoo-ahn.github.io/?v=3c1b319' | rg ...`
 - `curl -L --silent 'https://sungsoo-ahn.github.io/blog/?v=3c1b319' | rg ...`
+- expanded post validation in `../sungsoo-ahn.github.io`:
+  `python3 scripts/validate_kups_pages.py`
+- expanded post validation in `../sungsoo-ahn.github.io`:
+  `python3 scripts/validate_blog.py`
+- expanded post whitespace check in `../sungsoo-ahn.github.io`:
+  `git diff --check`
+- inline math delimiter check in `../sungsoo-ahn.github.io`:
+  `rg -n '\\\\(|\\\\)' _pages/kups-md-post-12-mlip-capstone.md || true`
+- word-count check for the expanded page: `3518` words
+- `gh run watch 29366058404 --exit-status` in `../sungsoo-ahn.github.io`
+- `gh workflow run "Capture kUPS snapshots" --ref main -f posts=12` in
+  `../sungsoo-ahn.github.io`
+- `gh run watch 29366249219 --exit-status` in `../sungsoo-ahn.github.io`
+- `gh run download 29366249219 --name kups-md-page-snapshots --dir /tmp/kups-post12-expanded-snapshots`
+- live hidden-route check with cache buster `?v=c540d52`
+- live homepage/blog listing checks with cache buster `?v=c540d52`
 
 ## Code And Reproducibility Review
 
@@ -53,8 +71,6 @@
 
 Open items:
 
-- Capture rendered desktop and mobile page snapshots after the hidden draft
-  deploys.
 - Replace placeholder model artifact metadata with the final pinned MACE
   revision and verified hash during the GPU/final article pass.
 
@@ -79,11 +95,13 @@ Open items:
 
 Open items:
 
-- The final article should clearly label the current workflow as a deterministic
-  surrogate diagnostic, not a completed MACE/fcc-Al GPU production run.
+- The expanded hidden page now clearly labels the current workflow as a
+  deterministic surrogate diagnostic, not a completed MACE/fcc-Al GPU
+  production run.
 - The final pass must pin an actual MACE artifact revision, verify its hash,
   and record the GPU environment.
-- The final article should connect the MLIP checks to each earlier tutorial:
+- The expanded hidden page now connects the MLIP checks to each earlier
+  tutorial:
   initialization, integrator drift, thermostat/barostat control, observables,
   free energies, and enhanced sampling.
 
@@ -109,10 +127,21 @@ Feedback loop:
 - No label clipping, unreadable ticks, or legend overlap was found in the
   inspected full-profile snapshot.
 
+Rendered page figure check:
+
+- The figure was inspected inside the rendered desktop snapshot
+  `/tmp/kups-post12-expanded-snapshots/post-12-desktop.png` and mobile
+  snapshot `/tmp/kups-post12-expanded-snapshots/post-12-mobile.png`.
+- Desktop: the static-error, dynamics/extrapolation, and
+  uncertainty-calibration panels render below the diagnostic section with axes,
+  legends, and caption readable in the article column. The placeholder
+  artifact caveat is visible in prose and the figure annotation.
+- Mobile: the figure remains legible at 555 px capture width. Panel labels are
+  small but readable enough for the hidden draft, and the caption wraps without
+  overlapping neighboring text.
+
 Open items:
 
-- Recheck figure readability inside the rendered hidden webpage at desktop and
-  mobile widths.
 - Regenerate and re-review after the real MACE artifact metadata and GPU
   production diagnostics are added.
 
@@ -128,6 +157,11 @@ Open items:
 
 - Added a hidden draft page in `../sungsoo-ahn.github.io` at
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/`.
+- Expanded the hidden page to `3518` words with additional sections on static
+  versus deployment validation, extrapolation, drift, ensemble control,
+  neighbor-list risk, uncertainty calibration, observable/free-energy impact,
+  artifact provenance, production-readiness requirements, and how the MLIP
+  capstone closes the series.
 - The page uses the website `post` layout, `nav: false`, the shared
   `kups-md-tutorials` series metadata, and links back to the executable config,
   notebook, smoke/full summaries, full manifest, and review note.
@@ -135,6 +169,7 @@ Open items:
   `assets/img/blog/kups_md_post12_mlip_diagnostics.svg`.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
+- `python3 scripts/validate_kups_pages.py` passes.
 - GitHub Pages deployment `29351644859` completed successfully. The live
   hidden URL returns HTTP 200 and contains the expected title, MLIP capstone
   notebook link, full summary link, current-status section, placeholder MACE
@@ -142,21 +177,56 @@ Open items:
 - The public homepage and blog index did not contain
   `post-12-mlip-capstone` or `kups-md-tutorials` in the deployed HTML checked
   with cache-buster `?v=3c1b319`.
+- Expanded-page GitHub Pages deployment `29366058404` completed successfully
+  for website commit `c540d524e37527a8a586175d53cbefc76474492a`.
+- Snapshot workflow `Capture kUPS snapshots` run `29366249219` completed
+  successfully for post 12. Artifact `kups-md-page-snapshots` was downloaded
+  to `/tmp/kups-post12-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post12-expanded-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/`;
+  both returned HTTP 200 and title
+  `What Changes When the Potential Is a Machine-Learned Interatomic Potential? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post12-expanded-snapshots/post-12-desktop.png` at
+  `1440 x 10796` and `/tmp/kups-post12-expanded-snapshots/post-12-mobile.png`
+  at `555 x 16739`.
+- Desktop feedback: the expanded article renders end to end with sidebar table
+  of contents, hidden-draft note, source links, capstone regime table,
+  provenance table, production-readiness table, MLIP diagnostic figure,
+  practical checklist, reproduction block, current-status section, references,
+  and footer present. No blank page, missing figure, clipped text, or broken
+  page chrome was found in the inspected snapshot.
+- Mobile feedback: the title wraps heavily but remains contained. Tables are
+  tight but readable, the diagnostic figure and caption stay within the page,
+  the reproduction code block is contained, and the footer renders normally.
+- Live hidden-route check with `?v=c540d52` confirmed the expanded section
+  `How Does This Close The Series?`, the figure asset, the non-final note, and
+  the rendered snapshot status phrase. The literal placeholder hash string is
+  not printed in the HTML body, but the placeholder MACE artifact caveat is
+  visible in prose and in the reviewed figure.
+- Live homepage and blog listing checks with `?v=c540d52` confirmed
+  `post-12-mlip-capstone` and `kups-md-tutorials` are not exposed.
 
 Open items:
 
-- Capture and inspect rendered desktop and mobile snapshots for this hidden
-  page.
+- No blocking layout issue was found for the expanded post 12 hidden draft.
+- Keep mobile title/table wrapping as a final typography-polish item after the
+  rest of the articles are expanded.
+- Re-run rendered desktop/mobile snapshots after adding final MACE/fcc-Al GPU
+  diagnostics and pinned artifact metadata.
 
 ## Prose And Style Review
 
-- The planned website draft should follow the blog-native post layout with
+- The expanded website draft follows the blog-native post layout with
   `nav: false`, shared `kups-md-tutorials` series metadata, an author-note
   paragraph, compact reproduction commands, and links to configs, notebook,
   summaries, manifest, figure source, and this review note.
-- The prose should be concept-led for MLIP-aware ML researchers: static
-  validation is not deployment validation; MD exposes extrapolation, drift,
-  ensemble instability, and biased free-energy claims.
+- The prose is concept-led for MLIP-aware ML researchers: static validation is
+  not deployment validation; MD exposes extrapolation, drift, ensemble
+  instability, neighbor-list risk, uncertainty calibration, and biased
+  free-energy claims.
 
 ## Open Items
 
@@ -166,13 +236,16 @@ Blocking items for the current hidden draft:
 
 Non-blocking items accepted until the final article pass:
 
-- Rendered page snapshots are still pending.
-- The draft will remain short and explicitly non-final.
+- The expanded draft remains explicitly non-final.
 - The model artifact metadata is a placeholder in the hidden draft.
+- Mobile title and table wrapping can be polished later if desired, but the
+  captured hidden draft is readable and contained.
 
 Final-release blockers:
 
 - Run and review the real MACE/fcc-Al GPU capstone.
 - Pin the MACE repository revision and verify the downloaded artifact hash.
-- Expand the prose to a full article with citations and production diagnostics.
-- Resolve rendered desktop/mobile page snapshot feedback.
+- Add production diagnostics and regenerate the MLIP figure with final model
+  artifact metadata.
+- Re-run rendered desktop/mobile snapshots after final production diagnostics
+  and figure updates.

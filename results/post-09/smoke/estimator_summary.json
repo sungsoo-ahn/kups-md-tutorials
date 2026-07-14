@@ -1,0 +1,46 @@
+{
+  "cases": [
+    {
+      "bar_delta_f": 0.8040843552704406,
+      "bar_error": 0.004084355270440598,
+      "case": "good_overlap",
+      "forward_fep_delta_f": 0.7931649470111082,
+      "forward_fep_error": -0.006835052988891865,
+      "forward_weight_ess_fraction": 0.7794643245429155,
+      "forward_work_mean": 0.9203394803954029,
+      "forward_work_std": 0.5061725013259097,
+      "mean_shift": 0.5,
+      "overlap_coefficient": 0.8025872114945649,
+      "reverse_fep_delta_f": 0.8086869916734303,
+      "reverse_fep_error": 0.008686991673430233,
+      "reverse_weight_ess_fraction": 0.7893601660428675,
+      "reverse_work_mean": -0.6879954705617122,
+      "reverse_work_std": 0.4935830116979969,
+      "true_delta_f": 0.8
+    },
+    {
+      "bar_delta_f": 0.8008023210981381,
+      "bar_error": 0.000802321098138048,
+      "case": "poor_overlap",
+      "forward_fep_delta_f": 0.7897874945413283,
+      "forward_fep_error": -0.010212505458671695,
+      "forward_weight_ess_fraction": 0.014696154937839385,
+      "forward_work_mean": 3.868522344886119,
+      "forward_work_std": 2.4720304819521424,
+      "mean_shift": 2.5,
+      "overlap_coefficient": 0.21129914015289575,
+      "reverse_fep_delta_f": 0.9521486120290508,
+      "reverse_fep_error": 0.15214861202905072,
+      "reverse_weight_ess_fraction": 0.010178421080801085,
+      "reverse_work_mean": 2.3043399666671487,
+      "reverse_work_std": 2.506440641206997,
+      "true_delta_f": 0.8
+    }
+  ],
+  "config_sha256": "bcc5b310d129879a61d5b31b5e530752f1a2383e18c67538ed486ac4fabf9f3b",
+  "post": "09",
+  "profile": "smoke",
+  "sample_count": 4000,
+  "seed": 2026071409,
+  "temperature": 1.0
+}

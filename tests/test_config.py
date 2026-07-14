@@ -6,6 +6,7 @@ from kups_md_tutorials.config import (
     RunSpec,
     load_barostat_spec,
     load_error_spec,
+    load_estimator_spec,
     load_free_energy_spec,
     load_integrator_spec,
     load_observable_spec,
@@ -90,3 +91,10 @@ def test_load_free_energy_spec() -> None:
     assert spec.experiment.temperature == 1.0
     assert spec.experiment.bin_widths[0] == 0.10
     assert spec.experiment.domain_min < spec.experiment.domain_max
+
+
+def test_load_estimator_spec() -> None:
+    spec = load_estimator_spec("09", "smoke")
+    assert spec.experiment.temperature == 1.0
+    assert spec.experiment.cases[0].name == "good_overlap"
+    assert spec.experiment.cases[-1].mean_shift > spec.experiment.cases[0].mean_shift

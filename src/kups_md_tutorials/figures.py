@@ -260,6 +260,35 @@ def generate_post08_figures(
     return [svg_path, png_path, snapshot_path]
 
 
+def generate_post09_figures(
+    result_dir: Path = Path("results/post-09/smoke"),
+    figure_dir: Path = Path("figures/post-09"),
+    snapshot_dir: Path = Path("snapshots/post-09"),
+    name: str = "estimator_diagnostics",
+) -> list[Path]:
+    """Generate free-energy estimator diagnostic figures."""
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+    summary = json.loads((result_dir / "estimator_summary.json").read_text())
+    samples = _read_post09_samples(result_dir / "work_samples.csv")
+
+    with rc_context({"svg.hashsalt": "kups-md-tutorials-post-09"}):
+        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+        _draw_post09_figure(fig, axes, summary, samples)
+
+        svg_path = figure_dir / f"{name}.svg"
+        png_path = figure_dir / f"{name}.png"
+        snapshot_path = snapshot_dir / f"{name}_snapshot.png"
+        fig.savefig(svg_path, metadata={"Date": None})
+        _strip_trailing_whitespace(svg_path)
+        fig.savefig(png_path, dpi=220)
+        fig.savefig(snapshot_path, dpi=160)
+        plt.close(fig)
+    return [svg_path, png_path, snapshot_path]
+
+
 def _read_post02_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -329,6 +358,16 @@ def _read_post08_curves(path: Path) -> dict[str, np.ndarray]:
         values = [float(row[key]) for row in rows if row[key]]
         curves[key] = np.array(values, dtype=float)
     return curves
+
+
+def _read_post09_samples(path: Path) -> dict[str, np.ndarray]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    return {
+        key: np.array([float(row[key]) for row in rows], dtype=float)
+        for key in reader.fieldnames or []
+    }
 
 
 def _draw_post01_figure(
@@ -1021,6 +1060,102 @@ def _draw_post08_figure(
         fontsize=8.5,
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
     )
+
+    for ax in axes:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(alpha=0.18, linewidth=0.6)
+
+
+def _draw_post09_figure(
+    fig: plt.Figure,
+    axes: np.ndarray,
+    summary: dict,
+    samples: dict[str, np.ndarray],
+) -> None:
+    fig.patch.set_facecolor("white")
+    cases = summary["cases"]
+    labels = [case["case"].replace("_", "\n") for case in cases]
+    x = np.arange(len(cases))
+
+    axes[0].axhline(cases[0]["true_delta_f"], color="#333333", linewidth=0.9)
+    width = 0.24
+    axes[0].bar(
+        x - width,
+        [case["forward_fep_delta_f"] for case in cases],
+        width=width,
+        color="#2f6f9f",
+        label="forward FEP",
+    )
+    axes[0].bar(
+        x,
+        [case["reverse_fep_delta_f"] for case in cases],
+        width=width,
+        color="#d88c3d",
+        label="reverse FEP",
+    )
+    axes[0].bar(
+        x + width,
+        [case["bar_delta_f"] for case in cases],
+        width=width,
+        color="#6a8f4e",
+        label="BAR",
+    )
+    axes[0].set_title("Estimators need overlap")
+    axes[0].set_ylabel("Delta F")
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels(labels, fontsize=8)
+    axes[0].legend(frameon=False, fontsize=8)
+
+    axes[1].plot(
+        x,
+        [case["overlap_coefficient"] for case in cases],
+        marker="o",
+        color="#8c6bb1",
+        linewidth=1.5,
+        label="overlap",
+    )
+    axes[1].plot(
+        x,
+        [case["forward_weight_ess_fraction"] for case in cases],
+        marker="s",
+        color="#d88c3d",
+        linewidth=1.5,
+        label="forward ESS fraction",
+    )
+    axes[1].set_title("ESS collapses before samples do")
+    axes[1].set_ylabel("fraction")
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(labels, fontsize=8)
+    axes[1].legend(frameon=False, fontsize=8)
+
+    good = cases[0]["case"]
+    poor = cases[-1]["case"]
+    bins = np.linspace(
+        min(np.min(samples[f"{good}_forward_work"]), np.min(samples[f"{poor}_forward_work"])),
+        max(np.max(samples[f"{good}_forward_work"]), np.max(samples[f"{poor}_forward_work"])),
+        40,
+    )
+    axes[2].hist(
+        samples[f"{good}_forward_work"],
+        bins=bins,
+        density=True,
+        color="#2f6f9f",
+        alpha=0.55,
+        label=good.replace("_", " "),
+    )
+    axes[2].hist(
+        samples[f"{poor}_forward_work"],
+        bins=bins,
+        density=True,
+        color="#d88c3d",
+        alpha=0.55,
+        label=poor.replace("_", " "),
+    )
+    axes[2].set_title("Work tails drive FEP")
+    axes[2].set_xlabel("forward work")
+    axes[2].set_ylabel("density")
+    axes[2].legend(frameon=False, fontsize=8)
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

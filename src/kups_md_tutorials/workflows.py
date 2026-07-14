@@ -5,6 +5,7 @@ from pathlib import Path
 from kups_md_tutorials.config import (
     load_barostat_spec,
     load_error_spec,
+    load_estimator_spec,
     load_free_energy_spec,
     load_integrator_spec,
     load_observable_spec,
@@ -19,6 +20,10 @@ from kups_md_tutorials.barostats import (
 from kups_md_tutorials.error_diagnostics import (
     load_error_summary,
     write_error_outputs,
+)
+from kups_md_tutorials.estimators import (
+    load_estimator_summary,
+    write_estimator_outputs,
 )
 from kups_md_tutorials.initialization import (
     load_initialization_summary,
@@ -45,7 +50,7 @@ from kups_md_tutorials.trajectory_length import (
     write_trajectory_length_outputs,
 )
 
-SUPPORTED_POSTS = ("01", "02", "03", "04", "05", "06", "07", "08")
+SUPPORTED_POSTS = ("01", "02", "03", "04", "05", "06", "07", "08", "09")
 SUPPORTED_PROFILES = ("smoke", "full")
 
 
@@ -76,6 +81,9 @@ def run_post(post: str, profile: str, output_root: Path = Path("results")) -> Pa
     if post == "08":
         spec = load_free_energy_spec(post, profile)
         return write_free_energy_outputs(spec, output_root=output_root)
+    if post == "09":
+        spec = load_estimator_spec(post, profile)
+        return write_estimator_outputs(spec, output_root=output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -106,6 +114,8 @@ def verify_post(post: str, profile: str, output_root: Path = Path("results")) ->
         _verify_post07(post, profile, output_root)
     elif post == "08":
         _verify_post08(post, profile, output_root)
+    elif post == "09":
+        _verify_post09(post, profile, output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -428,4 +438,44 @@ def _verify_post08(post: str, profile: str, output_root: Path) -> None:
         raise ValueError(msg)
     if summary.rdf_pmf_barrier_height <= 0.0:
         msg = "RDF-derived PMF should have a nonzero barrier height"
+        raise ValueError(msg)
+
+
+def _verify_post09(post: str, profile: str, output_root: Path) -> None:
+    spec = load_estimator_spec(post, profile)
+    output_dir = output_root / spec.result_dir_name
+    summary_path = output_dir / "estimator_summary.json"
+    manifest_path = output_dir / "manifest.json"
+    samples_path = output_dir / "work_samples.csv"
+    missing = [
+        str(path)
+        for path in (summary_path, manifest_path, samples_path)
+        if not path.exists()
+    ]
+    if missing:
+        msg = "missing expected output files: " + ", ".join(missing)
+        raise FileNotFoundError(msg)
+
+    summary = load_estimator_summary(summary_path)
+    if summary.post != post or summary.profile != profile:
+        msg = "summary post/profile does not match requested verification target"
+        raise ValueError(msg)
+    if len(summary.cases) != len(spec.experiment.cases):
+        msg = "summary does not contain the expected estimator cases"
+        raise ValueError(msg)
+    if min(case.overlap_coefficient for case in summary.cases) >= max(
+        case.overlap_coefficient for case in summary.cases
+    ):
+        msg = "estimator cases should span distinct overlap regimes"
+        raise ValueError(msg)
+    if max(abs(case.bar_error) for case in summary.cases) > 0.35:
+        msg = "BAR estimate is outside the review threshold"
+        raise ValueError(msg)
+    poor = min(summary.cases, key=lambda case: case.overlap_coefficient)
+    good = max(summary.cases, key=lambda case: case.overlap_coefficient)
+    if poor.forward_weight_ess_fraction >= good.forward_weight_ess_fraction:
+        msg = "poor-overlap case should have lower forward ESS than good overlap"
+        raise ValueError(msg)
+    if abs(poor.forward_fep_error) <= abs(good.forward_fep_error):
+        msg = "poor-overlap FEP should be less reliable than good-overlap FEP"
         raise ValueError(msg)

@@ -1,0 +1,37 @@
+{
+  "config": {
+    "experiment": {
+      "cases": [
+        {
+          "mean_shift": 0.5,
+          "name": "good_overlap",
+          "true_delta_f": 0.8
+        },
+        {
+          "mean_shift": 2.5,
+          "name": "poor_overlap",
+          "true_delta_f": 0.8
+        }
+      ],
+      "sample_count": 4000,
+      "seed": 2026071409,
+      "temperature": 1.0
+    },
+    "post": "09",
+    "profile": "smoke",
+    "title": "What Do Free-Energy Estimators Assume?"
+  },
+  "provenance": {
+    "config_path": "configs/post-09/smoke.json",
+    "config_sha256": "bcc5b310d129879a61d5b31b5e530752f1a2383e18c67538ed486ac4fabf9f3b",
+    "git_revision": "2d6ec8444959731418a832a5ed5fa2aaf30bf038",
+    "platform": "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",
+    "python_version": "3.13.13"
+  },
+  "samples_file": "work_samples.csv",
+  "summary_file": "estimator_summary.json",
+  "versions": {
+    "kups": "1.0.3",
+    "numpy": "2.5.1"
+  }
+}

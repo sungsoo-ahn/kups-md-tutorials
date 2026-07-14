@@ -556,6 +556,57 @@ class FreeEnergyTutorialSpec:
         return Path(f"post-{self.post}") / self.profile
 
 
+@dataclass(frozen=True)
+class EstimatorCase:
+    """One two-state overlap case for free-energy estimator diagnostics."""
+
+    name: str
+    mean_shift: float
+    true_delta_f: float
+
+
+@dataclass(frozen=True)
+class EstimatorExperimentSpec:
+    """Configuration for FEP/BAR overlap diagnostics."""
+
+    temperature: float
+    sample_count: int
+    seed: int
+    cases: tuple[EstimatorCase, ...]
+
+    def validate(self) -> None:
+        if self.temperature <= 0.0:
+            msg = "temperature must be positive"
+            raise ValueError(msg)
+        if self.sample_count <= 0:
+            msg = "sample_count must be positive"
+            raise ValueError(msg)
+        if not self.cases:
+            msg = "cases must be non-empty"
+            raise ValueError(msg)
+        for case in self.cases:
+            if not case.name:
+                msg = "case names must be non-empty"
+                raise ValueError(msg)
+            if case.mean_shift < 0.0:
+                msg = "mean_shift must be non-negative"
+                raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class EstimatorTutorialSpec:
+    """Configuration for post-09 free-energy estimator experiments."""
+
+    post: str
+    profile: str
+    title: str
+    experiment: EstimatorExperimentSpec
+
+    @property
+    def result_dir_name(self) -> Path:
+        return Path(f"post-{self.post}") / self.profile
+
+
 def _expect_mapping(value: Any, name: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         msg = f"{name} must be an object"
@@ -967,6 +1018,51 @@ def load_free_energy_spec(
             bias_strength=float(experiment["bias_strength"]),
             rdf_peak_radius=float(experiment["rdf_peak_radius"]),
             rdf_peak_width=float(experiment["rdf_peak_width"]),
+        ),
+    )
+    if spec.post != post:
+        msg = f"config post {spec.post!r} does not match requested {post!r}"
+        raise ValueError(msg)
+    if spec.profile != profile:
+        msg = (
+            f"config profile {spec.profile!r} does not match requested {profile!r}"
+        )
+        raise ValueError(msg)
+    spec.experiment.validate()
+    return spec
+
+
+def load_estimator_spec(
+    post: str, profile: str, config_root: Path = Path("configs")
+) -> EstimatorTutorialSpec:
+    """Load a committed JSON configuration for estimator diagnostics."""
+
+    path = config_root / f"post-{post}" / f"{profile}.json"
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    root = _expect_mapping(data, "estimator config")
+    experiment = _expect_mapping(root.get("estimator_experiment"), "estimator_experiment")
+    spec = EstimatorTutorialSpec(
+        post=str(root["post"]),
+        profile=str(root["profile"]),
+        title=str(root["title"]),
+        experiment=EstimatorExperimentSpec(
+            temperature=float(experiment["temperature"]),
+            sample_count=int(experiment["sample_count"]),
+            seed=int(experiment["seed"]),
+            cases=tuple(
+                EstimatorCase(
+                    name=str(_expect_mapping(value, "estimator case")["name"]),
+                    mean_shift=float(
+                        _expect_mapping(value, "estimator case")["mean_shift"]
+                    ),
+                    true_delta_f=float(
+                        _expect_mapping(value, "estimator case")["true_delta_f"]
+                    ),
+                )
+                for value in experiment["cases"]
+            ),
         ),
     )
     if spec.post != post:

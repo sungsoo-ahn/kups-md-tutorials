@@ -27,6 +27,11 @@
 - GitHub Actions deploy run `29360083501` for website commit
   `13ea87083b474465450efdcc503a0fdee06c6e6e`
 - GitHub Actions snapshot run `29360274825`
+- GitHub Actions tutorial verification run `29370738271` for tutorial commit
+  `1e4d7724b5dabdeffab5406156e34bb744f67bff`
+- GitHub Actions deploy run `29370738331` for website commit
+  `943dde4d9094385516588f7c831dbf8512c3919f`
+- GitHub Actions snapshot run `29370897946`
 - `uv run kups-tutorial verify-reviews`
 
 ## Code And Reproducibility Review
@@ -141,10 +146,16 @@ Open items:
 - Website deploy run `29360083501` succeeded for commit
   `13ea87083b474465450efdcc503a0fdee06c6e6e`.
 - Snapshot workflow run `29360274825` captured the expanded hidden page.
+- Snapshot workflow run `29370897946` captured the compact argon cell-response
+  refresh for website commit `943dde4d9094385516588f7c831dbf8512c3919f`.
 - Snapshot artifact `kups-md-page-snapshots` was downloaded to
   `/tmp/kups-post05-expanded-snapshots/`.
+- Refreshed snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post05-argon-cell-snapshots/`.
 - Manifest reviewed:
   `/tmp/kups-post05-expanded-snapshots/manifest.json`.
+- Refreshed manifest reviewed:
+  `/tmp/kups-post05-argon-cell-snapshots/manifest.json`.
 - Manifest coverage: desktop and mobile snapshots were captured for
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`; both
   returned HTTP 200 with page title
@@ -152,6 +163,9 @@ Open items:
 - Rendered snapshots visually inspected:
   `/tmp/kups-post05-expanded-snapshots/post-05-desktop.png` and
   `/tmp/kups-post05-expanded-snapshots/post-05-mobile.png`.
+- Refreshed rendered snapshots visually inspected:
+  `/tmp/kups-post05-argon-cell-snapshots/post-05-desktop.png` and
+  `/tmp/kups-post05-argon-cell-snapshots/post-05-mobile.png`.
 
 Rendered page feedback:
 
@@ -164,13 +178,20 @@ Rendered page feedback:
   title, navigation, author note, tables, figure, code block, current-status
   section, and references present. Tables are tight but readable and are not
   clipped in the inspected snapshot.
+- Refreshed desktop capture renders the compact argon cell-response article
+  end to end with the updated four-panel figure, the argon configuration table,
+  the reproduction command, current-status section, and references visible. No
+  blank page, missing figure, obvious clipping, or broken page chrome was found
+  in the inspected snapshot.
+- Refreshed mobile capture renders the updated page with the four-panel figure
+  present and legible. The narrow left navigation and tables are tight, as in
+  earlier captures, but no blocking clipping or missing asset was found in the
+  inspected snapshot.
 
 Open items:
 
 - Keep mobile table wrapping as a final typography-polish item after the rest
   of the articles are expanded.
-- Re-run the page snapshot workflow after the compact argon cell-response
-  refresh is deployed, then record desktop and mobile feedback.
 - Add the dynamic argon/kUPS NPT diagnostic with moving cell degrees of freedom
   before treating this post as final.
 - Re-run the page snapshot workflow again after the final production-cell

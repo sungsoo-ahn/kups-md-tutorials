@@ -384,6 +384,57 @@ Revision decisions:
   final-release blocker for post 05.
 - The page remains hidden from public navigation and direct-link reachable.
 
+## Post 05 Compact Argon Cell Response Snapshot Refresh
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29370897946`.
+- Website commit: `943dde4d9094385516588f7c831dbf8512c3919f`.
+- Deploy run for that commit: `29370738331`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post05-argon-cell-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-argon-cell-snapshots/manifest.json`.
+- Capture scope: post 05 only, after adding the compact reduced-unit argon
+  cell-response panel and website prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Should Pressure and Cell Degrees of Freedom Be Coupled? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post05-argon-cell-snapshots/post-05-desktop.png`
+- `/tmp/kups-post05-argon-cell-snapshots/post-05-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the updated article end to end with the hidden-draft
+  note, source links, scalar barostat tables, compact argon configuration
+  table, four-panel full-profile figure, reproduction code block, practical
+  checklist, current-status section, references, and footer present. No blank
+  page, missing figure, obvious text clipping, or broken page chrome was found
+  in the inspected snapshot.
+- Mobile capture renders the updated article with the four-panel figure visible
+  and legible. The narrow left navigation and tables are tight, consistent with
+  prior hidden-page captures, but no blocking clipping or missing asset was
+  found in the inspected snapshot.
+
+Revision decisions:
+
+- No blocking layout issue was found for the compact argon cell-response
+  refresh.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- Dynamic argon/kUPS NPT sampling with moving cell degrees of freedom remains a
+  final-release blocker for post 05.
+- The page remains hidden from public navigation and direct-link reachable.
+
 ## Expanded Post 06 Snapshot Capture
 
 - Capture date: 2026-07-14.

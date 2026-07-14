@@ -782,6 +782,15 @@ def _verify_post11(post: str, profile: str, output_root: Path) -> None:
     if abs(summary.pulling.crooks_crossing_delta_f - summary.pulling.true_delta_f) > 0.50:
         msg = "Crooks crossing estimate is outside the review threshold"
         raise ValueError(msg)
+    if (
+        summary.steered_hysteresis.fast_hysteresis_gap
+        <= summary.steered_hysteresis.slow_hysteresis_gap
+    ):
+        msg = "fast steered pulling should show a larger hysteresis gap"
+        raise ValueError(msg)
+    if summary.steered_hysteresis.hysteresis_gap_ratio <= 1.25:
+        msg = "steered-pulling hysteresis ratio is too weak for review"
+        raise ValueError(msg)
 
 
 def _verify_post12(post: str, profile: str, output_root: Path) -> None:

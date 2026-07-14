@@ -392,8 +392,8 @@ def generate_post11_figures(
     curves = _read_post11_curves(result_dir / "enhanced_sampling_curves.csv")
 
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-11"}):
-        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
-        _draw_post11_figure(fig, axes, summary, curves)
+        fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.0), constrained_layout=True)
+        _draw_post11_figure(fig, axes.ravel(), summary, curves)
 
         svg_path = figure_dir / f"{name}.svg"
         png_path = figure_dir / f"{name}.png"
@@ -1829,6 +1829,7 @@ def _draw_post11_figure(
     fig.patch.set_facecolor("white")
     meta = summary["metadynamics"]
     pulling = summary["pulling"]
+    hysteresis = summary["steered_hysteresis"]
 
     axes[0].plot(
         curves["grid"],
@@ -1928,6 +1929,38 @@ def _draw_post11_figure(
     axes[2].set_xlabel("work")
     axes[2].set_ylabel("density")
     axes[2].legend(frameon=False, fontsize=7.4)
+
+    x = np.arange(2)
+    gaps = [
+        hysteresis["fast_hysteresis_gap"],
+        hysteresis["slow_hysteresis_gap"],
+    ]
+    errors = [
+        hysteresis["fast_hysteresis_gap_sem"],
+        hysteresis["slow_hysteresis_gap_sem"],
+    ]
+    colors = ["#b95f30", "#3a7ca5"]
+    axes[3].bar(x, gaps, yerr=errors, color=colors, alpha=0.76, capsize=3)
+    axes[3].set_xticks(x)
+    axes[3].set_xticklabels(
+        [
+            f"fast\n{hysteresis['fast_path_steps']} steps",
+            f"slow\n{hysteresis['slow_path_steps']} steps",
+        ]
+    )
+    axes[3].set_title("Steered trajectories show hysteresis")
+    axes[3].set_ylabel("mean W_F - mean (-W_R)")
+    axes[3].text(
+        0.03,
+        0.95,
+        f"path replicas = {hysteresis['trajectory_path_count']}\n"
+        f"fast/slow gap = {hysteresis['hysteresis_gap_ratio']:.2f}",
+        transform=axes[3].transAxes,
+        va="top",
+        ha="left",
+        fontsize=8.5,
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+    )
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

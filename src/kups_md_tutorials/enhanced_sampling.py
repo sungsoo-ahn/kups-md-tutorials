@@ -55,6 +55,24 @@ class PullingSummary:
 
 
 @dataclass(frozen=True)
+class SteeredHysteresisSummary:
+    """Path-level diagnostics for finite-speed steered pulling."""
+
+    trajectory_path_count: int
+    fast_path_steps: int
+    slow_path_steps: int
+    fast_forward_mean_work: float
+    fast_reverse_mean_work: float
+    slow_forward_mean_work: float
+    slow_reverse_mean_work: float
+    fast_hysteresis_gap: float
+    slow_hysteresis_gap: float
+    fast_hysteresis_gap_sem: float
+    slow_hysteresis_gap_sem: float
+    hysteresis_gap_ratio: float
+
+
+@dataclass(frozen=True)
 class EnhancedSamplingExperimentSummary:
     """Summary table for one post/profile enhanced-sampling experiment."""
 
@@ -67,6 +85,7 @@ class EnhancedSamplingExperimentSummary:
     config_sha256: str
     metadynamics: MetadynamicsSummary
     pulling: PullingSummary
+    steered_hysteresis: SteeredHysteresisSummary
 
 
 def _normalized_probabilities(energies: np.ndarray, temperature: float) -> np.ndarray:
@@ -326,6 +345,98 @@ def _run_pulling(
     return summary, {"forward_work": forward, "reverse_work": reverse}
 
 
+def _hysteresis_gap_sem(forward: np.ndarray, reverse: np.ndarray) -> float:
+    return float(
+        np.sqrt(
+            np.var(forward, ddof=1) / len(forward)
+            + np.var(reverse, ddof=1) / len(reverse)
+        )
+    )
+
+
+def _run_steered_hysteresis(
+    spec: EnhancedSamplingTutorialSpec,
+    grid: np.ndarray,
+) -> tuple[SteeredHysteresisSummary, dict[str, np.ndarray]]:
+    exp = spec.experiment
+    pull = exp.pulling
+    rng = np.random.default_rng(exp.seed + 1700003)
+    trajectory_path_count = min(pull.path_count, 6000)
+    fast_path_steps = max(12, pull.path_steps // 4)
+    slow_path_steps = max(pull.path_steps + 1, pull.path_steps * 2)
+
+    fast_forward = _run_pulling_direction(
+        grid=grid,
+        start_center=pull.start_center,
+        end_center=pull.end_center,
+        force_constant=pull.trap_force_constant,
+        temperature=exp.temperature,
+        path_count=trajectory_path_count,
+        path_steps=fast_path_steps,
+        noise_scale=pull.noise_scale,
+        rng=rng,
+    )
+    fast_reverse = _run_pulling_direction(
+        grid=grid,
+        start_center=pull.end_center,
+        end_center=pull.start_center,
+        force_constant=pull.trap_force_constant,
+        temperature=exp.temperature,
+        path_count=trajectory_path_count,
+        path_steps=fast_path_steps,
+        noise_scale=pull.noise_scale,
+        rng=rng,
+    )
+    slow_forward = _run_pulling_direction(
+        grid=grid,
+        start_center=pull.start_center,
+        end_center=pull.end_center,
+        force_constant=pull.trap_force_constant,
+        temperature=exp.temperature,
+        path_count=trajectory_path_count,
+        path_steps=slow_path_steps,
+        noise_scale=pull.noise_scale,
+        rng=rng,
+    )
+    slow_reverse = _run_pulling_direction(
+        grid=grid,
+        start_center=pull.end_center,
+        end_center=pull.start_center,
+        force_constant=pull.trap_force_constant,
+        temperature=exp.temperature,
+        path_count=trajectory_path_count,
+        path_steps=slow_path_steps,
+        noise_scale=pull.noise_scale,
+        rng=rng,
+    )
+
+    fast_gap = float(np.mean(fast_forward) + np.mean(fast_reverse))
+    slow_gap = float(np.mean(slow_forward) + np.mean(slow_reverse))
+    summary = SteeredHysteresisSummary(
+        trajectory_path_count=trajectory_path_count,
+        fast_path_steps=fast_path_steps,
+        slow_path_steps=slow_path_steps,
+        fast_forward_mean_work=float(np.mean(fast_forward)),
+        fast_reverse_mean_work=float(np.mean(fast_reverse)),
+        slow_forward_mean_work=float(np.mean(slow_forward)),
+        slow_reverse_mean_work=float(np.mean(slow_reverse)),
+        fast_hysteresis_gap=fast_gap,
+        slow_hysteresis_gap=slow_gap,
+        fast_hysteresis_gap_sem=_hysteresis_gap_sem(fast_forward, fast_reverse),
+        slow_hysteresis_gap_sem=_hysteresis_gap_sem(slow_forward, slow_reverse),
+        hysteresis_gap_ratio=float(fast_gap / slow_gap),
+    )
+    return (
+        summary,
+        {
+            "fast_forward_steered_work": fast_forward,
+            "fast_reverse_steered_work": fast_reverse,
+            "slow_forward_steered_work": slow_forward,
+            "slow_reverse_steered_work": slow_reverse,
+        },
+    )
+
+
 def run_enhanced_sampling_experiment(
     spec: EnhancedSamplingTutorialSpec,
     config_sha256: str,
@@ -336,7 +447,8 @@ def run_enhanced_sampling_experiment(
     grid = np.linspace(exp.domain_min, exp.domain_max, exp.grid_points)
     meta_summary, meta_curves = _run_metadynamics(spec, grid)
     pulling_summary, pulling_curves = _run_pulling(spec, grid)
-    curves = {**meta_curves, **pulling_curves}
+    hysteresis_summary, hysteresis_curves = _run_steered_hysteresis(spec, grid)
+    curves = {**meta_curves, **pulling_curves, **hysteresis_curves}
     return (
         EnhancedSamplingExperimentSummary(
             post=spec.post,
@@ -348,6 +460,7 @@ def run_enhanced_sampling_experiment(
             config_sha256=config_sha256,
             metadynamics=meta_summary,
             pulling=pulling_summary,
+            steered_hysteresis=hysteresis_summary,
         ),
         curves,
     )
@@ -359,9 +472,10 @@ def _write_enhanced_curves(path: Path, curves: dict[str, np.ndarray]) -> None:
         len(curves["visits"]),
         len(curves["record_step"]),
         len(curves["forward_work"]),
+        len(curves["fast_forward_steered_work"]),
     )
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(
             [
                 "grid",
@@ -373,6 +487,10 @@ def _write_enhanced_curves(path: Path, curves: dict[str, np.ndarray]) -> None:
                 "record_bias_range",
                 "forward_work",
                 "reverse_work",
+                "fast_forward_steered_work",
+                "fast_reverse_steered_work",
+                "slow_forward_steered_work",
+                "slow_reverse_steered_work",
             ]
         )
         for idx in range(max_len):
@@ -387,6 +505,10 @@ def _write_enhanced_curves(path: Path, curves: dict[str, np.ndarray]) -> None:
                 "record_bias_range",
                 "forward_work",
                 "reverse_work",
+                "fast_forward_steered_work",
+                "fast_reverse_steered_work",
+                "slow_forward_steered_work",
+                "slow_reverse_steered_work",
             ):
                 values = curves[key]
                 row.append(f"{values[idx]:.12g}" if idx < len(values) else "")
@@ -437,8 +559,10 @@ def load_enhanced_sampling_summary(path: Path) -> EnhancedSamplingExperimentSumm
     data = json.loads(path.read_text(encoding="utf-8"))
     metadynamics = MetadynamicsSummary(**data.pop("metadynamics"))
     pulling = PullingSummary(**data.pop("pulling"))
+    steered_hysteresis = SteeredHysteresisSummary(**data.pop("steered_hysteresis"))
     return EnhancedSamplingExperimentSummary(
         metadynamics=metadynamics,
         pulling=pulling,
+        steered_hysteresis=steered_hysteresis,
         **data,
     )

@@ -30,7 +30,7 @@
   "provenance": {
     "config_path": "configs/post-11/smoke.json",
     "config_sha256": "f16a83b18e056f60e0dd275d50abc3528cd78b366ef3786f198524548f5db97f",
-    "git_revision": "ffbf49effecb7ccac823145c58c073e0c8cd731c",
+    "git_revision": "f8b7104b415ffdf71827d6f6f99863d1ff1359e7",
     "lock_path": "uv.lock",
     "lock_sha256": "1e3d7f63e177a6a9a753cdb7a62667b8dc1c9d6bb5563b1deebdd70de4168844",
     "platform": "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",

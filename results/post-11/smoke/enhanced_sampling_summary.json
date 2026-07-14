@@ -38,5 +38,19 @@
     "true_delta_f": 0.0
   },
   "seed": 2026071411,
+  "steered_hysteresis": {
+    "fast_forward_mean_work": 23.651098042618283,
+    "fast_hysteresis_gap": 48.956259953686384,
+    "fast_hysteresis_gap_sem": 0.6142199595927594,
+    "fast_path_steps": 35,
+    "fast_reverse_mean_work": 25.305161911068105,
+    "hysteresis_gap_ratio": 5.048974582238977,
+    "slow_forward_mean_work": 4.965241783181907,
+    "slow_hysteresis_gap": 9.696277760221292,
+    "slow_hysteresis_gap_sem": 0.3360317762299233,
+    "slow_path_steps": 280,
+    "slow_reverse_mean_work": 4.731035977039385,
+    "trajectory_path_count": 1200
+  },
   "temperature": 1.0
 }

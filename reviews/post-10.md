@@ -28,6 +28,11 @@
 - `uv run kups-tutorial verify --profile smoke`
 - `uv run kups-tutorial verify 10 --profile full`
 - `git diff --check` in this repository and `../sungsoo-ahn.github.io`
+- `gh run watch 29349892098 --exit-status` in `../sungsoo-ahn.github.io`
+- `curl -I -L 'https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/?v=7c1d612'`
+- `curl -L --silent 'https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/?v=7c1d612' | rg ...`
+- `curl -L --silent 'https://sungsoo-ahn.github.io/?v=7c1d612' | rg ...`
+- `curl -L --silent 'https://sungsoo-ahn.github.io/blog/?v=7c1d612' | rg ...`
 
 ## Code And Reproducibility Review
 
@@ -122,12 +127,16 @@ Open items:
   `assets/img/blog/kups_md_post10_umbrella_diagnostics.svg`.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
+- GitHub Pages deployment `29349892098` completed successfully. The live
+  hidden URL returns HTTP 200 and contains the expected title, umbrella
+  notebook link, full summary link, current-status section, minimum-overlap
+  table, and `kups_md_post10_umbrella_diagnostics.svg` figure.
+- The public homepage and blog index did not contain
+  `post-10-umbrella-sampling` or `kups-md-tutorials` in the deployed HTML
+  checked with cache-buster `?v=7c1d612`.
 
 Open items:
 
-- Verify the deployed hidden page after the website commit is pushed.
-- Confirm that the page is directly reachable but not linked from public
-  navigation.
 - Capture and inspect rendered desktop and mobile snapshots for this hidden
   page.
 
@@ -145,8 +154,7 @@ Open items:
 
 Blocking items for the current hidden draft:
 
-- Verify the deployed hidden URL after the website commit is pushed.
-- Confirm that public navigation does not link to the hidden page.
+- None.
 
 Non-blocking items accepted until the final article pass:
 

@@ -6,10 +6,12 @@
 - Profiles reviewed: smoke and full
 - Current status: controlled adaptive-bias and nonequilibrium-work workflow,
   compact smoke/full outputs, notebook, full-profile diagnostic figure, figure
-  snapshots, and this self-review artifact are in place; the hidden website
-  draft is in place.
-- Working-tree state: post 11 implementation is uncommitted during this review
-  pass.
+  snapshots, expanded hidden website draft, rendered page snapshots, and this
+  self-review artifact are in place. The page remains hidden from public
+  navigation.
+- Working-tree state: website expansion committed as
+  `38df18dbbe3a785ed1d380d499735b6473dc09d1`; this repository has review
+  updates staged for the current pass.
 - Hidden draft URL:
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`
 
@@ -34,6 +36,22 @@
 - `curl -L --silent 'https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/?v=045f8ba' | rg ...`
 - `curl -L --silent 'https://sungsoo-ahn.github.io/?v=045f8ba' | rg ...`
 - `curl -L --silent 'https://sungsoo-ahn.github.io/blog/?v=045f8ba' | rg ...`
+- expanded post validation in `../sungsoo-ahn.github.io`:
+  `python3 scripts/validate_kups_pages.py`
+- expanded post validation in `../sungsoo-ahn.github.io`:
+  `python3 scripts/validate_blog.py`
+- expanded post whitespace check in `../sungsoo-ahn.github.io`:
+  `git diff --check`
+- inline math delimiter check in `../sungsoo-ahn.github.io`:
+  `rg -n '\\\\(|\\\\)' _pages/kups-md-post-11-enhanced-sampling.md || true`
+- word-count check for the expanded page: `3544` words
+- `gh run watch 29365244839 --exit-status` in `../sungsoo-ahn.github.io`
+- `gh workflow run "Capture kUPS snapshots" --ref main -f posts=11` in
+  `../sungsoo-ahn.github.io`
+- `gh run watch 29365419119 --exit-status` in `../sungsoo-ahn.github.io`
+- `gh run download 29365419119 --name kups-md-page-snapshots --dir /tmp/kups-post11-expanded-snapshots`
+- live hidden-route check with cache buster `?v=38df18d`
+- live homepage/blog listing checks with cache buster `?v=38df18d`
 
 ## Code And Reproducibility Review
 
@@ -56,8 +74,8 @@
 
 Open items:
 
-- Capture rendered desktop and mobile page snapshots after the hidden draft
-  deploys.
+- None for the controlled code/reproducibility slice in the current hidden
+  draft.
 
 ## Scientific Review
 
@@ -80,12 +98,12 @@ Open items:
 
 Open items:
 
-- The final article should state that the pulling work ensemble is controlled
-  for identity diagnostics and is not a full steered-MD integrator.
-- The final article should contrast adaptive-bias samples, unbiased samples,
+- The expanded hidden page now states that the pulling work ensemble is
+  controlled for identity diagnostics and is not a full steered-MD integrator.
+- The expanded hidden page now contrasts adaptive-bias samples, unbiased samples,
   and path-ensemble averages explicitly.
-- The final article should connect nonequilibrium work identities to the path
-  measure language used in the existing blog.
+- The expanded hidden page now connects nonequilibrium work identities to the
+  path-measure language used in the existing blog.
 
 ## Figure Feedback Review
 
@@ -107,12 +125,23 @@ Feedback loop:
 - No label clipping, unreadable ticks, or misleading scale was found in the
   inspected full-profile snapshot.
 
+Rendered page figure check:
+
+- The figure was inspected inside the rendered desktop snapshot
+  `/tmp/kups-post11-expanded-snapshots/post-11-desktop.png` and mobile
+  snapshot `/tmp/kups-post11-expanded-snapshots/post-11-mobile.png`.
+- Desktop: the adaptive PMF/bias, bias-growth, and work-distribution panels
+  render below the diagnostic section, with axes, markers, and caption readable
+  in the article column. No clipping or broken asset was visible.
+- Mobile: the figure remains legible at 390 px capture width. The panel text is
+  small but readable enough for the hidden draft, and the caption wraps without
+  overlapping neighboring text.
+
 Open items:
 
-- Recheck figure readability inside the rendered hidden webpage at desktop and
-  mobile widths.
-- If the final article adds real steered-MD trajectory panels, repeat the same
-  snapshot review for those publication assets.
+- If the final article adds real steered-MD trajectory, uncertainty, or
+  hysteresis panels, repeat the same snapshot review for those publication
+  assets.
 
 ## Notebook Review
 
@@ -126,6 +155,11 @@ Open items:
 
 - Added a hidden draft page in `../sungsoo-ahn.github.io` at
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`.
+- Expanded the hidden page to `3544` words with additional sections on
+  adaptive measure changes, well-tempered bias parameters, adaptive estimator
+  metadata, nonequilibrium path ensembles, exponential averaging fragility,
+  Crooks diagnostics, pulling protocol design, hysteresis, reporting limits,
+  methods reporting, and production MD extension.
 - The page uses the website `post` layout, `nav: false`, the shared
   `kups-md-tutorials` series metadata, and links back to the executable config,
   notebook, smoke/full summaries, full manifest, and review note.
@@ -133,6 +167,7 @@ Open items:
   `assets/img/blog/kups_md_post11_enhanced_sampling_diagnostics.svg`.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
+- `python3 scripts/validate_kups_pages.py` passes.
 - GitHub Pages deployment `29350802100` completed successfully. The live
   hidden URL returns HTTP 200 and contains the expected title,
   enhanced-sampling notebook link, full summary link, current-status section,
@@ -141,22 +176,54 @@ Open items:
 - The public homepage and blog index did not contain
   `post-11-enhanced-sampling` or `kups-md-tutorials` in the deployed HTML
   checked with cache-buster `?v=045f8ba`.
+- Expanded-page GitHub Pages deployment `29365244839` completed successfully
+  for website commit `38df18dbbe3a785ed1d380d499735b6473dc09d1`.
+- Snapshot workflow `Capture kUPS snapshots` run `29365419119` completed
+  successfully for post 11. Artifact `kups-md-page-snapshots` was downloaded
+  to `/tmp/kups-post11-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post11-expanded-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`;
+  both returned HTTP 200 and title
+  `How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post11-expanded-snapshots/post-11-desktop.png` at
+  `1440 x 10685` and `/tmp/kups-post11-expanded-snapshots/post-11-mobile.png`
+  at `390 x 16732`.
+- Desktop feedback: the expanded article renders end to end with sidebar table
+  of contents, hidden-draft note, source links, adaptive-bias and
+  nonequilibrium-work tables, figure, protocol/methods sections, practical
+  checklist, reproduction block, current-status section, references, and
+  footer present. No blank page, missing figure, clipped text, or broken page
+  chrome was found in the inspected snapshot.
+- Mobile feedback: the title wraps heavily but remains contained. Tables are
+  tight but readable, the diagnostic figure and caption stay within the page,
+  the reproduction code block is contained, and the footer renders normally.
+- Live hidden-route check with `?v=38df18d` confirmed the expanded section
+  `What Should Not Be Claimed?`, the figure asset, the non-final note, and the
+  rendered snapshot status phrase.
+- Live homepage and blog listing checks with `?v=38df18d` confirmed
+  `post-11-enhanced-sampling` and `kups-md-tutorials` are not exposed.
 
 Open items:
 
-- Capture and inspect rendered desktop and mobile snapshots for this hidden
-  page.
+- No blocking layout issue was found for the expanded post 11 hidden draft.
+- Keep mobile title/table wrapping as a final typography-polish item after the
+  rest of the articles are expanded.
+- Re-run rendered desktop/mobile snapshots after adding any final production MD
+  or uncertainty figures.
 
 ## Prose And Style Review
 
-- The planned website draft should follow the blog-native post layout with
+- The expanded website draft follows the blog-native post layout with
   `nav: false`, shared `kups-md-tutorials` series metadata, an author-note
   paragraph, compact reproduction commands, and links to configs, notebook,
   summaries, manifest, figure source, and this review note.
-- The prose should be concept-led for MLIP-aware ML researchers: start from
-  modified sampling measures and path ensembles, then explain metadynamics,
-  well-tempered bias, steered work, Jarzynski, and Crooks as corrections to
-  those measures.
+- The prose is concept-led for MLIP-aware ML researchers: it starts from
+  modified sampling measures and path ensembles, then explains metadynamics,
+  well-tempered bias, steered work, Jarzynski, Crooks, ESS, and hysteresis as
+  estimator and protocol diagnostics.
 
 ## Open Items
 
@@ -166,14 +233,15 @@ Blocking items for the current hidden draft:
 
 Non-blocking items accepted until the final article pass:
 
-- Rendered page snapshots are still pending.
-- The draft will remain short and explicitly non-final.
+- The expanded draft remains explicitly non-final.
+- Mobile title and table wrapping can be polished later if desired, but the
+  captured hidden draft is readable and contained.
 
 Final-release blockers:
 
-- Expand the prose to a full article with citations for metadynamics,
-  well-tempered metadynamics, Jarzynski equality, Crooks fluctuation theorem,
-  and steered MD.
 - Add production MD context and any final diagnostics needed for the public
-  article.
-- Resolve rendered desktop/mobile page snapshot feedback.
+  article, including final uncertainty diagnostics.
+- Add any real steered-MD trajectory, uncertainty, or hysteresis figures and
+  snapshot-review them.
+- Re-run rendered desktop/mobile snapshots after any final production MD or
+  figure additions.

@@ -630,3 +630,55 @@ Revision decisions:
   WHAM/MBAR or hysteresis figures remain final-release blockers until
   implemented and snapshot-reviewed.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 11 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29365419119`.
+- Website commit: `38df18dbbe3a785ed1d380d499735b6473dc09d1`.
+- Deploy run for that commit: `29365244839`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post11-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post11-expanded-snapshots/manifest.json`.
+- Capture scope: post 11 only, after expansion to about 3,544 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post11-expanded-snapshots/post-11-desktop.png`
+- `/tmp/kups-post11-expanded-snapshots/post-11-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-draft note, source links, adaptive-bias and
+  nonequilibrium-work tables, full-profile enhanced-sampling figure,
+  protocol/methods sections, practical checklist, reproduction code block,
+  current-status section, references, and footer present. No blank page,
+  missing figure, obvious text clipping, or broken page chrome was found in
+  the inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, hidden-draft note, tables, figure, caption, code block,
+  current-status section, and references present. The title wraps heavily and
+  the tables are tight, but all remain contained and readable in the inspected
+  snapshot.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 11 hidden draft.
+- Keep mobile title and table wrapping as final typography-polish items after
+  the rest of the articles are expanded.
+- Production MD context, final uncertainty diagnostics, and any real steered-MD
+  trajectory or hysteresis figures remain final-release blockers until
+  implemented and snapshot-reviewed.
+- The page remains hidden from public navigation and direct-link reachable.

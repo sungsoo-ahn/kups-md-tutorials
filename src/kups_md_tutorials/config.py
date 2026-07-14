@@ -683,6 +683,98 @@ class UmbrellaTutorialSpec:
         return Path(f"post-{self.post}") / self.profile
 
 
+@dataclass(frozen=True)
+class MetadynamicsSpec:
+    """Configuration for the post-11 adaptive-bias diagnostic."""
+
+    deposit_count: int
+    hill_height: float
+    hill_width: float
+    bias_factor: float
+    record_every: int
+
+
+@dataclass(frozen=True)
+class PullingSpec:
+    """Configuration for the post-11 nonequilibrium-pulling diagnostic."""
+
+    path_count: int
+    path_steps: int
+    trap_force_constant: float
+    start_center: float
+    end_center: float
+    noise_scale: float
+
+
+@dataclass(frozen=True)
+class EnhancedSamplingExperimentSpec:
+    """Configuration for adaptive and nonequilibrium sampling diagnostics."""
+
+    temperature: float
+    domain_min: float
+    domain_max: float
+    grid_points: int
+    seed: int
+    metadynamics: MetadynamicsSpec
+    pulling: PullingSpec
+
+    def validate(self) -> None:
+        if self.temperature <= 0.0:
+            msg = "temperature must be positive"
+            raise ValueError(msg)
+        if self.domain_min >= self.domain_max:
+            msg = "domain_min must be smaller than domain_max"
+            raise ValueError(msg)
+        if self.grid_points < 16:
+            msg = "grid_points must be at least 16"
+            raise ValueError(msg)
+        if self.metadynamics.deposit_count <= 0:
+            msg = "deposit_count must be positive"
+            raise ValueError(msg)
+        if self.metadynamics.hill_height <= 0.0:
+            msg = "hill_height must be positive"
+            raise ValueError(msg)
+        if self.metadynamics.hill_width <= 0.0:
+            msg = "hill_width must be positive"
+            raise ValueError(msg)
+        if self.metadynamics.bias_factor <= 1.0:
+            msg = "bias_factor must exceed one"
+            raise ValueError(msg)
+        if self.metadynamics.record_every <= 0:
+            msg = "record_every must be positive"
+            raise ValueError(msg)
+        if self.pulling.path_count <= 0:
+            msg = "path_count must be positive"
+            raise ValueError(msg)
+        if self.pulling.path_steps <= 1:
+            msg = "path_steps must exceed one"
+            raise ValueError(msg)
+        if self.pulling.trap_force_constant <= 0.0:
+            msg = "trap_force_constant must be positive"
+            raise ValueError(msg)
+        if self.pulling.noise_scale < 0.0:
+            msg = "noise_scale must be non-negative"
+            raise ValueError(msg)
+        for center in (self.pulling.start_center, self.pulling.end_center):
+            if center < self.domain_min or center > self.domain_max:
+                msg = "pulling centers must lie inside the domain"
+                raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class EnhancedSamplingTutorialSpec:
+    """Configuration for post-11 enhanced-sampling experiments."""
+
+    post: str
+    profile: str
+    title: str
+    experiment: EnhancedSamplingExperimentSpec
+
+    @property
+    def result_dir_name(self) -> Path:
+        return Path(f"post-{self.post}") / self.profile
+
+
 def _expect_mapping(value: Any, name: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         msg = f"{name} must be an object"
@@ -1193,6 +1285,61 @@ def load_umbrella_spec(
                     ),
                 )
                 for value in experiment["protocols"]
+            ),
+        ),
+    )
+    if spec.post != post:
+        msg = f"config post {spec.post!r} does not match requested {post!r}"
+        raise ValueError(msg)
+    if spec.profile != profile:
+        msg = (
+            f"config profile {spec.profile!r} does not match requested {profile!r}"
+        )
+        raise ValueError(msg)
+    spec.experiment.validate()
+    return spec
+
+
+def load_enhanced_sampling_spec(
+    post: str, profile: str, config_root: Path = Path("configs")
+) -> EnhancedSamplingTutorialSpec:
+    """Load a committed JSON configuration for enhanced-sampling diagnostics."""
+
+    path = config_root / f"post-{post}" / f"{profile}.json"
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    root = _expect_mapping(data, "enhanced-sampling config")
+    experiment = _expect_mapping(
+        root.get("enhanced_sampling_experiment"),
+        "enhanced_sampling_experiment",
+    )
+    metadynamics = _expect_mapping(experiment.get("metadynamics"), "metadynamics")
+    pulling = _expect_mapping(experiment.get("pulling"), "pulling")
+    spec = EnhancedSamplingTutorialSpec(
+        post=str(root["post"]),
+        profile=str(root["profile"]),
+        title=str(root["title"]),
+        experiment=EnhancedSamplingExperimentSpec(
+            temperature=float(experiment["temperature"]),
+            domain_min=float(experiment["domain_min"]),
+            domain_max=float(experiment["domain_max"]),
+            grid_points=int(experiment["grid_points"]),
+            seed=int(experiment["seed"]),
+            metadynamics=MetadynamicsSpec(
+                deposit_count=int(metadynamics["deposit_count"]),
+                hill_height=float(metadynamics["hill_height"]),
+                hill_width=float(metadynamics["hill_width"]),
+                bias_factor=float(metadynamics["bias_factor"]),
+                record_every=int(metadynamics["record_every"]),
+            ),
+            pulling=PullingSpec(
+                path_count=int(pulling["path_count"]),
+                path_steps=int(pulling["path_steps"]),
+                trap_force_constant=float(pulling["trap_force_constant"]),
+                start_center=float(pulling["start_center"]),
+                end_center=float(pulling["end_center"]),
+                noise_scale=float(pulling["noise_scale"]),
             ),
         ),
     )

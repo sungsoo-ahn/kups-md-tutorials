@@ -319,6 +319,35 @@ def generate_post10_figures(
     return [svg_path, png_path, snapshot_path]
 
 
+def generate_post11_figures(
+    result_dir: Path = Path("results/post-11/smoke"),
+    figure_dir: Path = Path("figures/post-11"),
+    snapshot_dir: Path = Path("snapshots/post-11"),
+    name: str = "enhanced_sampling_diagnostics",
+) -> list[Path]:
+    """Generate adaptive and nonequilibrium enhanced-sampling figures."""
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+    summary = json.loads((result_dir / "enhanced_sampling_summary.json").read_text())
+    curves = _read_post11_curves(result_dir / "enhanced_sampling_curves.csv")
+
+    with rc_context({"svg.hashsalt": "kups-md-tutorials-post-11"}):
+        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+        _draw_post11_figure(fig, axes, summary, curves)
+
+        svg_path = figure_dir / f"{name}.svg"
+        png_path = figure_dir / f"{name}.png"
+        snapshot_path = snapshot_dir / f"{name}_snapshot.png"
+        fig.savefig(svg_path, metadata={"Date": None})
+        _strip_trailing_whitespace(svg_path)
+        fig.savefig(png_path, dpi=220)
+        fig.savefig(snapshot_path, dpi=160)
+        plt.close(fig)
+    return [svg_path, png_path, snapshot_path]
+
+
 def _read_post02_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -420,6 +449,17 @@ def _read_post10_windows(path: Path) -> dict[str, np.ndarray]:
         values = [float(row[key]) for row in rows if row[key]]
         windows[key] = np.array(values, dtype=float)
     return windows
+
+
+def _read_post11_curves(path: Path) -> dict[str, np.ndarray]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    curves: dict[str, np.ndarray] = {}
+    for key in reader.fieldnames or []:
+        values = [float(row[key]) for row in rows if row[key]]
+        curves[key] = np.array(values, dtype=float)
+    return curves
 
 
 def _draw_post01_figure(
@@ -1304,6 +1344,121 @@ def _draw_post10_figure(
         fontsize=8.5,
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
     )
+
+    for ax in axes:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(alpha=0.18, linewidth=0.6)
+
+
+def _draw_post11_figure(
+    fig: plt.Figure,
+    axes: np.ndarray,
+    summary: dict,
+    curves: dict[str, np.ndarray],
+) -> None:
+    fig.patch.set_facecolor("white")
+    meta = summary["metadynamics"]
+    pulling = summary["pulling"]
+
+    axes[0].plot(
+        curves["grid"],
+        curves["true_pmf"],
+        color="#222222",
+        linewidth=1.4,
+        label="true PMF",
+    )
+    axes[0].plot(
+        curves["grid"],
+        curves["reconstructed_pmf"],
+        color="#2f6f9f",
+        linewidth=1.35,
+        label="from final bias",
+    )
+    scaled_bias = curves["bias"] / max(np.nanmax(curves["bias"]), 1.0e-12)
+    scaled_bias *= np.nanmax(curves["true_pmf"]) * 0.55
+    axes[0].plot(
+        curves["grid"],
+        scaled_bias,
+        color="#d88c3d",
+        linewidth=1.0,
+        alpha=0.85,
+        label="scaled bias",
+    )
+    axes[0].set_title("Adaptive bias fills basins")
+    axes[0].set_xlabel("collective variable")
+    axes[0].set_ylabel("shifted F")
+    axes[0].legend(frameon=False, fontsize=8)
+
+    axes[1].plot(
+        curves["record_step"],
+        curves["record_bias_range"],
+        color="#8c6bb1",
+        linewidth=1.5,
+    )
+    axes[1].set_title("Bias growth is history-dependent")
+    axes[1].set_xlabel("hill deposition")
+    axes[1].set_ylabel("bias range")
+    axes[1].text(
+        0.03,
+        0.95,
+        f"left visits = {meta['basin_visit_fraction_left']:.2f}\n"
+        f"right visits = {meta['basin_visit_fraction_right']:.2f}\n"
+        f"barrier visits = {meta['barrier_visit_fraction']:.2f}",
+        transform=axes[1].transAxes,
+        va="top",
+        ha="left",
+        fontsize=8.5,
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+    )
+
+    forward = curves["forward_work"]
+    reverse = curves["reverse_work"]
+    bins = np.linspace(
+        min(float(np.min(forward)), float(np.min(-reverse))),
+        max(float(np.max(forward)), float(np.max(-reverse))),
+        48,
+    )
+    axes[2].hist(
+        forward,
+        bins=bins,
+        density=True,
+        color="#2f6f9f",
+        alpha=0.58,
+        label="forward work",
+    )
+    axes[2].hist(
+        -reverse,
+        bins=bins,
+        density=True,
+        color="#d88c3d",
+        alpha=0.58,
+        label="- reverse work",
+    )
+    axes[2].axvline(
+        pulling["true_delta_f"],
+        color="#222222",
+        linewidth=1.1,
+        label="true Delta F",
+    )
+    axes[2].axvline(
+        pulling["forward_jarzynski_delta_f"],
+        color="#2f6f9f",
+        linewidth=1.0,
+        linestyle="--",
+        label="forward Jarzynski",
+    )
+    axes[2].axvline(
+        pulling["crooks_crossing_delta_f"],
+        color="#6a8f4e",
+        linewidth=1.0,
+        linestyle=":",
+        label="Crooks crossing",
+    )
+    axes[2].set_title("Nonequilibrium work is a path ensemble")
+    axes[2].set_xlabel("work")
+    axes[2].set_ylabel("density")
+    axes[2].legend(frameon=False, fontsize=7.4)
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

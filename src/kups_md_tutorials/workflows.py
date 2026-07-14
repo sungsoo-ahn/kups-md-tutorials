@@ -4,6 +4,7 @@ from pathlib import Path
 
 from kups_md_tutorials.config import (
     load_barostat_spec,
+    load_enhanced_sampling_spec,
     load_error_spec,
     load_estimator_spec,
     load_free_energy_spec,
@@ -21,6 +22,10 @@ from kups_md_tutorials.barostats import (
 from kups_md_tutorials.error_diagnostics import (
     load_error_summary,
     write_error_outputs,
+)
+from kups_md_tutorials.enhanced_sampling import (
+    load_enhanced_sampling_summary,
+    write_enhanced_sampling_outputs,
 )
 from kups_md_tutorials.estimators import (
     load_estimator_summary,
@@ -55,7 +60,19 @@ from kups_md_tutorials.umbrella_sampling import (
     write_umbrella_outputs,
 )
 
-SUPPORTED_POSTS = ("01", "02", "03", "04", "05", "06", "07", "08", "09", "10")
+SUPPORTED_POSTS = (
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+)
 SUPPORTED_PROFILES = ("smoke", "full")
 
 
@@ -92,6 +109,9 @@ def run_post(post: str, profile: str, output_root: Path = Path("results")) -> Pa
     if post == "10":
         spec = load_umbrella_spec(post, profile)
         return write_umbrella_outputs(spec, output_root=output_root)
+    if post == "11":
+        spec = load_enhanced_sampling_spec(post, profile)
+        return write_enhanced_sampling_outputs(spec, output_root=output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -126,6 +146,8 @@ def verify_post(post: str, profile: str, output_root: Path = Path("results")) ->
         _verify_post09(post, profile, output_root)
     elif post == "10":
         _verify_post10(post, profile, output_root)
+    elif post == "11":
+        _verify_post11(post, profile, output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -538,4 +560,52 @@ def _verify_post10(post: str, profile: str, output_root: Path) -> None:
         raise ValueError(msg)
     if dense.forward_reverse_pmf_rmse > 0.35:
         msg = "dense-window replica consistency is outside the review threshold"
+        raise ValueError(msg)
+
+
+def _verify_post11(post: str, profile: str, output_root: Path) -> None:
+    spec = load_enhanced_sampling_spec(post, profile)
+    output_dir = output_root / spec.result_dir_name
+    summary_path = output_dir / "enhanced_sampling_summary.json"
+    manifest_path = output_dir / "manifest.json"
+    curves_path = output_dir / "enhanced_sampling_curves.csv"
+    missing = [
+        str(path)
+        for path in (summary_path, manifest_path, curves_path)
+        if not path.exists()
+    ]
+    if missing:
+        msg = "missing expected output files: " + ", ".join(missing)
+        raise FileNotFoundError(msg)
+
+    summary = load_enhanced_sampling_summary(summary_path)
+    if summary.post != post or summary.profile != profile:
+        msg = "summary post/profile does not match requested verification target"
+        raise ValueError(msg)
+    if summary.metadynamics.final_bias_range <= 0.5:
+        msg = "metadynamics bias did not fill a meaningful free-energy range"
+        raise ValueError(msg)
+    if summary.metadynamics.barrier_visit_fraction <= 0.05:
+        msg = "metadynamics run did not visit the barrier region often enough"
+        raise ValueError(msg)
+    if min(
+        summary.metadynamics.basin_visit_fraction_left,
+        summary.metadynamics.basin_visit_fraction_right,
+    ) <= 0.15:
+        msg = "metadynamics run did not sample both basins"
+        raise ValueError(msg)
+    if summary.pulling.forward_dissipated_work <= 0.0:
+        msg = "forward pulling should show positive dissipated work"
+        raise ValueError(msg)
+    if summary.pulling.reverse_dissipated_work <= 0.0:
+        msg = "reverse pulling should show positive dissipated work"
+        raise ValueError(msg)
+    if abs(summary.pulling.forward_jarzynski_delta_f - summary.pulling.true_delta_f) > 0.45:
+        msg = "forward Jarzynski estimate is outside the review threshold"
+        raise ValueError(msg)
+    if abs(summary.pulling.reverse_jarzynski_delta_f - summary.pulling.true_delta_f) > 0.45:
+        msg = "reverse Jarzynski estimate is outside the review threshold"
+        raise ValueError(msg)
+    if abs(summary.pulling.crooks_crossing_delta_f - summary.pulling.true_delta_f) > 0.50:
+        msg = "Crooks crossing estimate is outside the review threshold"
         raise ValueError(msg)

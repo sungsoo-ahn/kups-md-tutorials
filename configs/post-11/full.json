@@ -1,0 +1,27 @@
+{
+  "post": "11",
+  "profile": "full",
+  "title": "How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work?",
+  "enhanced_sampling_experiment": {
+    "temperature": 1.0,
+    "domain_min": -2.5,
+    "domain_max": 2.5,
+    "grid_points": 2001,
+    "seed": 2026071411,
+    "metadynamics": {
+      "deposit_count": 3000,
+      "hill_height": 0.030,
+      "hill_width": 0.12,
+      "bias_factor": 10.0,
+      "record_every": 25
+    },
+    "pulling": {
+      "path_count": 20000,
+      "path_steps": 260,
+      "trap_force_constant": 18.0,
+      "start_center": -1.1,
+      "end_center": 1.1,
+      "noise_scale": 0.20
+    }
+  }
+}

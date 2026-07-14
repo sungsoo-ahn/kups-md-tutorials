@@ -2,6 +2,7 @@ from pathlib import Path
 
 from kups_md_tutorials.config import (
     load_barostat_spec,
+    load_enhanced_sampling_spec,
     load_error_spec,
     load_estimator_spec,
     load_free_energy_spec,
@@ -25,7 +26,9 @@ from kups_md_tutorials.figures import (
     generate_post08_figures,
     generate_post09_figures,
     generate_post10_figures,
+    generate_post11_figures,
 )
+from kups_md_tutorials.enhanced_sampling import write_enhanced_sampling_outputs
 from kups_md_tutorials.estimators import write_estimator_outputs
 from kups_md_tutorials.free_energies import write_free_energy_outputs
 from kups_md_tutorials.initialization import write_initialization_outputs
@@ -166,6 +169,20 @@ def test_post10_figure_generation(tmp_path: Path) -> None:
     spec = load_umbrella_spec("10", "smoke")
     result_dir = write_umbrella_outputs(spec, output_root=tmp_path / "results")
     outputs = generate_post10_figures(
+        result_dir=result_dir,
+        figure_dir=tmp_path / "figures",
+        snapshot_dir=tmp_path / "snapshots",
+    )
+    assert len(outputs) == 3
+    for path in outputs:
+        assert path.exists()
+        assert path.stat().st_size > 0
+
+
+def test_post11_figure_generation(tmp_path: Path) -> None:
+    spec = load_enhanced_sampling_spec("11", "smoke")
+    result_dir = write_enhanced_sampling_outputs(spec, output_root=tmp_path / "results")
+    outputs = generate_post11_figures(
         result_dir=result_dir,
         figure_dir=tmp_path / "figures",
         snapshot_dir=tmp_path / "snapshots",

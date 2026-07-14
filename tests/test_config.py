@@ -5,6 +5,7 @@ import pytest
 from kups_md_tutorials.config import (
     RunSpec,
     load_barostat_spec,
+    load_enhanced_sampling_spec,
     load_error_spec,
     load_estimator_spec,
     load_free_energy_spec,
@@ -108,3 +109,10 @@ def test_load_umbrella_spec() -> None:
     assert len(spec.experiment.protocols[0].window_centers) > len(
         spec.experiment.protocols[1].window_centers
     )
+
+
+def test_load_enhanced_sampling_spec() -> None:
+    spec = load_enhanced_sampling_spec("11", "smoke")
+    assert spec.experiment.temperature == 1.0
+    assert spec.experiment.metadynamics.bias_factor > 1.0
+    assert spec.experiment.pulling.path_count > 0

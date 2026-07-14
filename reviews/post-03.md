@@ -6,8 +6,8 @@
 - Profiles reviewed: smoke and full
 - Current status: controlled timestep/precision/force-error diagnostic workflow,
   committed smoke/full outputs, notebook, full-profile diagnostic figure,
-  hidden website draft, and self-review artifact are in place; final prose and
-  rendered page snapshots are still pending.
+  expanded hidden website draft, rendered page snapshots, and self-review
+  artifact are in place.
 
 ## Commands
 
@@ -21,6 +21,11 @@
 - `uv run ruff check .`
 - `git diff --check`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
+- `git diff --check` in `../sungsoo-ahn.github.io`
+- GitHub Pages deploy `29358250043` for website commit
+  `ebf717a523ff21f9475abc6e04515db8e98e13e4`.
+- GitHub Actions snapshot workflow `29358450830` for post 03.
 
 ## Code And Reproducibility Review
 
@@ -37,7 +42,6 @@
 
 Open items:
 
-- Add rendered page snapshots after the hidden website draft deploys.
 - Add an argon/kUPS NVE diagnostic before treating this post as final. The
   current oscillator is a controlled microscope for error mechanisms, not yet
   the target production MD experiment described in the plan.
@@ -61,9 +65,8 @@ Open items:
 - The prose must not imply that all MLIP force errors are simple scale errors.
   This diagnostic isolates a readable failure mode; post 12 needs MLIP-specific
   extrapolation and instability checks.
-- The final article should separate bounded energy oscillation, normalized
-  drift, instability, and position/phase error rather than reporting a single
-  scalar.
+- Keep the distinction among bounded energy oscillation, normalized drift,
+  instability, and position/phase error in the final all-post consistency pass.
 
 ## Figure Snapshot Review
 
@@ -85,7 +88,6 @@ Feedback loop:
 
 Open items:
 
-- Recheck mobile rendering after the website draft exists.
 - Consider adding a trajectory-error panel in the final article if phase error
   becomes a major prose claim.
 
@@ -100,25 +102,57 @@ Open items:
 
 Open items:
 
-- Add the full prose article in the website repository.
-- Add citations for timestep stability, backward error analysis, mixed
-  precision, and MLIP force-error diagnostics when writing the website draft.
+- Re-execute the notebook if the final article adds a trajectory-error panel or
+  an argon/kUPS NVE diagnostic figure.
 
 ## Website Draft Review
 
-- Added a hidden draft page in `../sungsoo-ahn.github.io` at
+- Added, expanded, and deployed a hidden draft page in
+  `../sungsoo-ahn.github.io` at
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-03-errors/`.
 - The page uses the website `post` layout, `nav: false`, the shared
   `kups-md-tutorials` series metadata, and links back to the executable config,
   notebook, smoke/full summaries, full manifest, and review note.
 - Copied the reviewed full-profile SVG figure to
   `assets/img/blog/kups_md_post03_error_diagnostics.svg`.
-- `python3 scripts/validate_blog.py` passes with pre-existing unused-image
-  warnings in the website repository.
+- Expanded the article body from about 756 words to about 3,703 words. The
+  expanded draft now separates timestep sensitivity, precision floors, force
+  bias, normalized drift, phase error, NVE error-report interpretation,
+  neighbor-list/cutoff artifacts, MLIP workflow controls, and final-release
+  limitations.
+- `python3 scripts/validate_kups_pages.py` passes in the website repository.
+- `python3 scripts/validate_blog.py` passes in the website repository with
+  pre-existing unused-image warnings.
+- `git diff --check` passes in the website repository.
+- GitHub Pages deploy `29358250043` built and deployed website commit
+  `ebf717a523ff21f9475abc6e04515db8e98e13e4` successfully.
+- The deployed page snapshot manifest from workflow `29358450830` contains
+  desktop and mobile captures for the hidden URL, both HTTP 200, with title
+  `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
+
+Rendered snapshots reviewed:
+
+- `/tmp/kups-post03-expanded-snapshots/post-03-desktop.png`
+- `/tmp/kups-post03-expanded-snapshots/post-03-mobile.png`
+
+Rendered feedback:
+
+- Desktop full-page capture renders the expanded article end to end: sidebar
+  table of contents, mechanism table, diagnostic figure, timestep-choice table,
+  reproduction code block, current-status section, references, and footer are
+  present. No missing asset, blank page, obvious clipped text, or broken page
+  chrome was found in the inspected snapshot. The final-release argon/kUPS NVE
+  limitation is visible in Current Status.
+- Mobile full-page capture renders the title, author note, tables, figure, code
+  block, status, references, and footer. The two tables are tight but readable
+  and not clipped in the inspected screenshot. Keep table wrapping as a final
+  typography-polish item after the remaining articles are expanded.
 
 Open items:
 
-- Capture and inspect deployed desktop and mobile snapshots for this hidden
-  page.
-- Expand the draft into the full 3,500-10,000-word article after rendered page
-  snapshots and the argon/kUPS NVE diagnostic are reviewed.
+- The page remains intentionally hidden from public navigation.
+- Add an argon/kUPS NVE diagnostic before treating this post as final.
+- Perform a final all-post consistency pass after the other articles are
+  expanded.
+- Re-capture rendered desktop and mobile snapshots after that final consistency
+  pass.

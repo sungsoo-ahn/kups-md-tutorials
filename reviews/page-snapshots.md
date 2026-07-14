@@ -239,3 +239,50 @@ Revision decisions:
 - Keep mobile table wrapping as a final typography-polish item after the rest
   of the articles are expanded.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 03 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29358450830`.
+- Website commit: `ebf717a523ff21f9475abc6e04515db8e98e13e4`.
+- Deploy run for that commit: `29358250043`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post03-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post03-expanded-snapshots/manifest.json`.
+- Capture scope: post 03 only, after expansion to about 3,703 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-03-errors/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post03-expanded-snapshots/post-03-desktop.png`
+- `/tmp/kups-post03-expanded-snapshots/post-03-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, mechanism table, diagnostic figure, timestep-choice table,
+  reproduction code block, current-status section, references, and footer
+  present. No blank page, missing figure, obvious text clipping, or broken page
+  chrome was found in the inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, author note, tables, figure, code block, current-status section,
+  references, and footer present. The two tables are tight but readable and are
+  not clipped in the inspected snapshot.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 03 hidden draft.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- The argon/kUPS NVE diagnostic remains a final-release blocker for post 03.
+- The page remains hidden from public navigation and direct-link reachable.

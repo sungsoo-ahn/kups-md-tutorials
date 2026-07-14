@@ -244,6 +244,7 @@ and state whether the page remains hidden or has been made public.
 - `uv run kups-tutorial verify`
 - `uv run kups-tutorial verify-artifacts`
 - `uv run kups-tutorial verify-reviews`
+- `uv run kups-tutorial verify-release-readiness`
 - Execute all notebooks from clean kernels.
 - Reproduce committed summaries from full GPU configurations.
 - Review each post's self-review artifact and confirm every blocking item is
@@ -263,3 +264,6 @@ and state whether the page remains hidden or has been made public.
 - 2026-07-14: Added `/goal` execution expectations for self-review artifacts,
   figure snapshot feedback, and rendered page snapshot review before milestone
   completion.
+- 2026-07-14: Added a `verify-release-readiness` gate that fails while
+  final-release blockers, hidden/non-final website pages, or placeholder
+  post-12 MACE artifact metadata remain.

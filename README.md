@@ -14,6 +14,7 @@ uv run kups-tutorial verify --profile smoke
 uv run kups-tutorial verify-artifacts
 uv run kups-tutorial verify-reviews
 uv run kups-tutorial verify-notebooks
+uv run kups-tutorial verify-release-readiness
 uv run jupyter execute notebooks/post-01-initialization.ipynb --inplace
 uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io --profile full
 ```
@@ -25,3 +26,7 @@ provenance manifests, and publication figures.
 
 See `PLAN.md` for the twelve-post curriculum, scientific requirements,
 progress, and final verification checklist.
+
+`verify-release-readiness` is expected to fail while hidden drafts,
+final-release blockers, or placeholder model artifacts remain. It is the
+publication gate, not a routine development check.

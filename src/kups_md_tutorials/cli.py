@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from kups_md_tutorials.artifact_audit import verify_tracked_artifacts
+from kups_md_tutorials.release_readiness import verify_release_readiness
 from kups_md_tutorials.review_audit import verify_reviews
 from kups_md_tutorials.site_export import export_site_assets
 from kups_md_tutorials.workflows import run_all, run_post, verify_all, verify_post
@@ -37,6 +38,25 @@ def _build_parser() -> argparse.ArgumentParser:
         help="verify post self-review notes contain required evidence",
     )
     review_parser.add_argument("--review-dir", type=Path, default=Path("reviews"))
+
+    release_parser = subparsers.add_parser(
+        "verify-release-readiness",
+        help="verify no final-release blockers remain before public publication",
+    )
+    release_parser.add_argument("--review-dir", type=Path, default=Path("reviews"))
+    release_parser.add_argument("--config-root", type=Path, default=Path("configs"))
+    release_parser.add_argument("--results-root", type=Path, default=Path("results"))
+    release_parser.add_argument(
+        "--site-root",
+        type=Path,
+        default=Path("../sungsoo-ahn.github.io"),
+        help="website repository root; use --skip-site to omit page publication checks",
+    )
+    release_parser.add_argument(
+        "--skip-site",
+        action="store_true",
+        help="skip website hidden/non-final page checks",
+    )
 
     export_site = subparsers.add_parser(
         "export-site", help="export compact assets for the site"
@@ -95,6 +115,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "verify-reviews":
             result = verify_reviews(review_dir=args.review_dir)
             print(f"Review audit passed for {result.reviewed_posts} posts")
+            return 0
+        if args.command == "verify-release-readiness":
+            site_root = None if args.skip_site else args.site_root
+            result = verify_release_readiness(
+                review_dir=args.review_dir,
+                config_root=args.config_root,
+                results_root=args.results_root,
+                site_root=site_root,
+            )
+            print(f"Release readiness audit passed for {result.checked_posts} posts")
             return 0
         if args.command == "export-site":
             posts = None

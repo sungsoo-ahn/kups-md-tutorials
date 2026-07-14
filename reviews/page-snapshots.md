@@ -847,3 +847,55 @@ Revision decisions:
 - A larger GPU kUPS production NVE diagnostic remains a final-release blocker
   before public indexing.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Post 04 Compact Argon Thermostat Snapshot Refresh
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29369851547`.
+- Website commit: `5761fc19fb122c4d381bbdc89da2ec36b8830004`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post04-argon-thermostat-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post04-argon-thermostat-snapshots/manifest.json`.
+- Capture scope: post 04 after adding the compact argon thermostat figure
+  panel, exported compact result files, and updated hidden-page prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-04-thermostats/`.
+- Both captured URLs returned HTTP 200.
+- Page title in both captures:
+  `How Do Thermostats Change Sampling and Dynamics? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post04-argon-thermostat-snapshots/post-04-desktop.png`
+- `/tmp/kups-post04-argon-thermostat-snapshots/post-04-mobile.png`
+
+Feedback:
+
+- Desktop capture at `1440 x 11564` renders the updated hidden draft end to
+  end with sidebar table of contents, source links, equations, multiple
+  tables, revised four-panel diagnostic figure, caption, reproduction block,
+  current-status section, references, and footer present. No missing figure,
+  blank page, obvious clipped text, or broken page chrome was found in the
+  inspected snapshot.
+- Mobile capture at `410 x 18232` renders the title, hidden-draft note,
+  equations, tables, revised four-panel figure, caption, code block,
+  current-status section, references, and footer. The figure is small at mobile
+  width but remains contained; table and code wrapping is tight but not
+  clipped.
+
+Revision decisions:
+
+- No blocking layout issue was found for the updated post 04 hidden draft.
+- The compact argon thermostat figure/prose update is snapshot-reviewed for the
+  hidden draft state.
+- Keep mobile table and title wrapping as final typography-polish items.
+- A larger GPU kUPS production thermostat and NVE-handoff diagnostic remains a
+  final-release blocker before public indexing.
+- The page remains hidden from public navigation and direct-link reachable.

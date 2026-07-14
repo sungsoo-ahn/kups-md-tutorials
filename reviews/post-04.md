@@ -152,14 +152,22 @@ Open items:
 - `git diff --check` passes in the website repository.
 - GitHub Pages deploy `29359119367` built and deployed website commit
   `7aa89addc2ee2fa2e334bdc2f2b9a38fecb22a07` successfully.
+- GitHub Pages deploy `29369669516` built and deployed updated website commit
+  `5761fc19fb122c4d381bbdc89da2ec36b8830004` successfully after adding the
+  compact argon thermostat figure/prose refresh.
 - The deployed page snapshot manifest from workflow `29359320951` contains
   desktop and mobile captures for the hidden URL, both HTTP 200, with title
   `How Do Thermostats Change Sampling and Dynamics? | Sungsoo Ahn`.
+- The deployed page snapshot manifest from workflow `29369851547` contains
+  desktop and mobile captures for the updated hidden URL, both HTTP 200, with
+  title `How Do Thermostats Change Sampling and Dynamics? | Sungsoo Ahn`.
 
 Rendered snapshots reviewed:
 
 - `/tmp/kups-post04-expanded-snapshots/post-04-desktop.png`
 - `/tmp/kups-post04-expanded-snapshots/post-04-mobile.png`
+- `/tmp/kups-post04-argon-thermostat-snapshots/post-04-desktop.png`
+- `/tmp/kups-post04-argon-thermostat-snapshots/post-04-mobile.png`
 
 Rendered feedback:
 
@@ -172,11 +180,19 @@ Rendered feedback:
   figure, code block, status, references, and footer. The tables are narrow but
   readable and not clipped in the inspected screenshot. Keep table wrapping as
   a final typography-polish item after the remaining articles are expanded.
+- Updated desktop full-page capture at `1440 x 11564` renders the revised
+  four-panel thermostat figure, caption, equations, multiple tables,
+  reproduction block, current-status section, references, and footer. No
+  missing figure, blank page, obvious clipped text, or broken page chrome was
+  found in the inspected snapshot.
+- Updated mobile full-page capture at `410 x 18232` renders the long title,
+  hidden-draft note, equations, tables, revised figure, caption, code block,
+  current-status list, references, and footer within the viewport. The
+  four-panel figure is small at mobile width but contained; tables and code are
+  narrow but not clipped.
 
 Open items:
 
 - The page remains intentionally hidden from public navigation.
-- Re-run deployed desktop/mobile page snapshots after the updated figure and
-  prose are committed and deployed.
 - Add a larger GPU kUPS production thermostat and NVE-handoff diagnostic before
   treating this post as final.

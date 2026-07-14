@@ -1,0 +1,76 @@
+# Post 01 Review Notes
+
+## Scope
+
+- Post: 01
+- Profile reviewed: smoke
+- Current status: initialization workflow and first diagnostic figure are in
+  place; notebook, website post, full-run review, and rendered page snapshots
+  are still pending.
+
+## Commands
+
+- `uv run kups-tutorial run 01 --profile smoke`
+- `uv run kups-tutorial verify 01 --profile smoke`
+- `uv run python scripts/generate_post01_figures.py`
+- `uv run pytest -q`
+- `uv run ruff check .`
+- `git diff --check`
+
+## Code And Reproducibility Review
+
+- Configs are committed under `configs/post-01/`.
+- Smoke outputs are committed under `results/post-01/smoke/`.
+- The manifest records config hash, Git revision, Python/platform metadata, and
+  ASE/kUPS/NumPy versions.
+- Velocity initialization uses ASE `thermalize_momenta` with a fixed RNG seed.
+- Center-of-mass momentum removal is enabled and verified from the compact
+  summary.
+
+Open items:
+
+- Add the executable notebook for post 01.
+- Add website draft and rendered page snapshots.
+- Decide whether to commit full-profile initialization outputs after reviewing
+  their size and scientific value.
+
+## Scientific Review
+
+- The smoke initial state has 32 argon atoms at the configured number density.
+- The kinetic temperature is a stochastic Maxwell-Boltzmann draw, not forced to
+  the target temperature. The observed difference between target and sample
+  temperature is expected for this small smoke system and should be explained in
+  the article.
+- The figure should not imply that the smoke histogram is a converged
+  distributional test; it is a diagnostic snapshot of deterministic
+  initialization.
+
+Open items:
+
+- Add a larger full-profile figure or table if a smoother velocity distribution
+  is needed for publication.
+- Add explicit text explaining when exact temperature rescaling is useful and
+  why it changes the sampled distribution.
+
+## Figure Snapshot Review
+
+Snapshot reviewed:
+
+- `snapshots/post-01/initialization_diagnostics_snapshot.png`
+
+Feedback loop:
+
+- First pass found that the residual total momentum panel was dominated by
+  rounded momenta read back from `initial_state.extxyz`, not the exact
+  diagnostics stored in `initialization_summary.json`.
+- Revised the third panel into an initialization checklist driven by the JSON
+  summary. This avoids presenting file-format rounding as a physical residual
+  momentum.
+- Second pass: labels are readable at the generated snapshot size, panels do
+  not overlap, and the figure communicates cell construction, seeded velocity
+  sampling, and provenance checks.
+
+Open items:
+
+- Recheck mobile rendering once the website post exists.
+- Confirm caption wording in the website draft uses `\(...\)` for any math.

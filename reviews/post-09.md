@@ -28,6 +28,12 @@
 - `uv run kups-tutorial verify --profile smoke`
 - `uv run kups-tutorial verify 09 --profile full`
 - `git diff --check` in this repository and `../sungsoo-ahn.github.io`
+- `gh run watch 29348734443 --exit-status` in `../sungsoo-ahn.github.io`
+- `gh run watch 29348976216 --exit-status` in `../sungsoo-ahn.github.io`
+- `curl -I -L 'https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/?v=449ed1b'`
+- `curl -L --silent 'https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/?v=449ed1b' | rg ...`
+- `curl -L --silent 'https://sungsoo-ahn.github.io/?v=449ed1b' | rg ...`
+- `curl -L --silent 'https://sungsoo-ahn.github.io/blog/?v=449ed1b' | rg ...`
 
 ## Code And Reproducibility Review
 
@@ -129,12 +135,16 @@ Open items:
   `assets/img/blog/kups_md_post09_estimator_diagnostics.svg`.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
+- GitHub Pages deployments `29348734443` and correction run `29348976216`
+  completed successfully. The live hidden URL returns HTTP 200 and contains the
+  expected title, estimator notebook link, full summary link, current-status
+  section, and `kups_md_post09_estimator_diagnostics.svg` figure.
+- The public homepage and blog index did not contain `post-09-estimators` or
+  `kups-md-tutorials` in the deployed HTML checked with cache-buster
+  `?v=449ed1b`.
 
 Open items:
 
-- Verify the deployed hidden page after the website commit is pushed.
-- Confirm that the page is directly reachable but not linked from public
-  navigation.
 - Capture and inspect rendered desktop and mobile snapshots for this hidden
   page.
 
@@ -152,8 +162,7 @@ Open items:
 
 Blocking items for the current hidden draft:
 
-- Verify the deployed hidden URL after the website commit is pushed.
-- Confirm that public navigation does not link to the hidden page.
+- None.
 
 Non-blocking items accepted until the final article pass:
 

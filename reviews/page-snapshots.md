@@ -334,3 +334,52 @@ Revision decisions:
 - The argon/kUPS thermostat diagnostic remains a final-release blocker for post
   04.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 05 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29360274825`.
+- Website commit: `13ea87083b474465450efdcc503a0fdee06c6e6e`.
+- Deploy run for that commit: `29360083501`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post05-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-expanded-snapshots/manifest.json`.
+- Capture scope: post 05 only, after expansion to about 3,606 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Should Pressure and Cell Degrees of Freedom Be Coupled? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post05-expanded-snapshots/post-05-desktop.png`
+- `/tmp/kups-post05-expanded-snapshots/post-05-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-draft note, source links, scalar NPT-like diagnostic tables,
+  full-profile barostat figure, reproduction code block, practical checklist,
+  current-status section, references, and footer present. No blank page, missing
+  figure, obvious text clipping, or broken page chrome was found in the
+  inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, navigation, hidden-draft note, tables, figure, code block,
+  current-status section, and references present. The tables are tight but
+  readable and are not clipped in the inspected snapshot.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 05 hidden draft.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- The argon/kUPS NPT diagnostic with actual cell degrees of freedom remains a
+  final-release blocker for post 05.
+- The page remains hidden from public navigation and direct-link reachable.

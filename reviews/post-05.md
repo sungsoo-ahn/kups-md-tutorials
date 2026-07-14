@@ -6,8 +6,8 @@
 - Profiles reviewed: smoke and full
 - Current status: controlled scalar-volume pressure/cell diagnostic workflow,
   committed smoke/full outputs, notebook, full-profile diagnostic figure,
-  hidden website draft, and self-review artifact are in place; final prose and
-  rendered page snapshots are still pending.
+  expanded hidden website draft, rendered page snapshots, and self-review
+  artifact are in place; the final atomistic NPT diagnostic is still pending.
 
 ## Commands
 
@@ -20,7 +20,12 @@
 - `uv run pytest -q`
 - `uv run ruff check .`
 - `git diff --check`
+- `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- GitHub Actions deploy run `29360083501` for website commit
+  `13ea87083b474465450efdcc503a0fdee06c6e6e`
+- GitHub Actions snapshot run `29360274825`
+- `uv run kups-tutorial verify-reviews`
 
 ## Code And Reproducibility Review
 
@@ -36,7 +41,6 @@
 
 Open items:
 
-- Add rendered page snapshots after the hidden website draft deploys.
 - Add an argon/kUPS NPT diagnostic before treating this post as final. The
   current scalar model isolates fluctuation and memory concepts, but it does
   not yet exercise actual MD cell degrees of freedom.
@@ -79,7 +83,6 @@ Feedback loop:
 
 Open items:
 
-- Recheck mobile rendering after the website draft exists.
 - Add a production-cell figure after argon/kUPS NPT diagnostics are implemented.
 
 ## Notebook Review
@@ -93,10 +96,9 @@ Open items:
 
 Open items:
 
-- Add the full prose article in the website repository.
 - Add citations for NPT ensemble fluctuations, compressibility relations,
-  barostat coupling, and finite-size pressure fluctuations when writing the
-  website draft.
+  barostat coupling, and finite-size pressure fluctuations before final
+  publication.
 
 ## Website Draft Review
 
@@ -107,12 +109,50 @@ Open items:
   notebook, smoke/full summaries, full manifest, and review note.
 - Copied the reviewed full-profile SVG figure to
   `assets/img/blog/kups_md_post05_barostat_diagnostics.svg`.
+- Expanded the hidden page from the short draft to about 3,606 words. The
+  expanded prose explains pressure fluctuations, scalar-volume NPT-like
+  diagnostics, barostat relaxation time, effective samples, initialization
+  before NPT, cell-degree choices, thermostat/barostat interaction, and the
+  planned atomistic argon/kUPS extension.
+- The expanded prose keeps the scope clear: the committed result is a
+  controlled scalar diagnostic, not a final production NPT workflow with real
+  cell degrees of freedom.
+- `python3 scripts/validate_kups_pages.py` passes in the website repository.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
+- `git diff --check` passes in the website repository.
+- Website deploy run `29360083501` succeeded for commit
+  `13ea87083b474465450efdcc503a0fdee06c6e6e`.
+- Snapshot workflow run `29360274825` captured the expanded hidden page.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post05-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-expanded-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`; both
+  returned HTTP 200 with page title
+  `How Should Pressure and Cell Degrees of Freedom Be Coupled? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post05-expanded-snapshots/post-05-desktop.png` and
+  `/tmp/kups-post05-expanded-snapshots/post-05-mobile.png`.
+
+Rendered page feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-page note, source links, several tables, full-profile
+  barostat figure, reproduction code block, current-status section, references,
+  and footer present. No blank page, missing figure, obvious clipping, or broken
+  page chrome was found in the inspected snapshot.
+- Mobile capture renders the same content through the mobile layout with the
+  title, navigation, author note, tables, figure, code block, current-status
+  section, and references present. Tables are tight but readable and are not
+  clipped in the inspected snapshot.
 
 Open items:
 
-- Capture and inspect deployed desktop and mobile snapshots for this hidden
-  page.
-- Expand the draft into the full 3,500-10,000-word article after rendered page
-  snapshots and the argon/kUPS NPT diagnostic are reviewed.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- Add the argon/kUPS NPT diagnostic with actual cell degrees of freedom before
+  treating this post as final.
+- Re-run the page snapshot workflow after the final production-cell figure and
+  citations are added.

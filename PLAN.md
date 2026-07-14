@@ -103,18 +103,36 @@ When `/goal` is used to continue this project, every substantial milestone must
 include an explicit self-review and visual-review loop before it can be marked
 complete.
 
-At the start of each `/goal` continuation, inspect the current working tree and
-state the next concrete milestone in terms of reviewable artifacts. Maintain a
-live checklist for that milestone. The checklist must include simulation/config
-work, notebook execution, figure generation, figure snapshot review, website
-draft or post work, rendered page snapshot review, validation commands, and
-commit/push status. A milestone is incomplete if any review artifact is still
-written in future tense, if snapshot feedback has not been recorded, or if the
-final answer does not state which checks passed and which open items remain.
-The checklist must name self-review and figure feedback as their own work
-items, not bury them under implementation or validation. Do not mark those
+At the start of each `/goal` continuation, run a preflight review before
+editing:
+
+- inspect the current working tree in this repository and, when website assets
+  may change, in `../sungsoo-ahn.github.io`;
+- identify the next concrete milestone as one reviewable artifact set, such as
+  "post 03 argon NVE diagnostic plus figure and hidden-page refresh";
+- name the affected post numbers, configs, notebooks, result directories,
+  figures, website pages, and review files;
+- state which review evidence is expected before the milestone can be called
+  complete.
+
+Maintain a live checklist for that milestone. The checklist must include, as
+separate items, simulation/config work, notebook execution, figure generation,
+figure snapshot feedback, website draft or post work, rendered page snapshot
+feedback, self-review ledger updates, validation commands, and commit/push
+status. A milestone is incomplete if any review artifact is still written in
+future tense, if snapshot feedback has not been recorded, if a changed figure
+or page was not inspected in a snapshot, or if the final answer does not state
+which checks passed and which open items remain. Do not hide self-review or
+figure feedback under implementation, "docs", or validation. Do not mark those
 items complete until the relevant `reviews/post-XX.md` entry contains concrete
 inspection notes, snapshot paths, and revision decisions.
+
+Treat self-review as a hard gate. After code, configs, notebooks, figures, or
+website pages change, read the generated artifacts the way a reviewer would:
+compare committed summaries to the prose claims, verify that tables and
+figures can be regenerated from committed inputs, check whether uncertainty and
+failure modes are stated honestly, and record the result in `reviews/`. A
+passing test suite does not replace this self-review.
 
 Every `/goal` continuation that creates or modifies a figure must include a
 snapshot-backed feedback loop in the same continuation whenever capture is
@@ -124,6 +142,22 @@ feedback, revise if needed, regenerate, and record the final decision. If the
 figure appears inside a website page, the rendered desktop/mobile page
 snapshots are a second required loop; a raw figure snapshot alone is not enough
 to call the page ready.
+
+Figure feedback must be based on the rendered image, not the plotting code or
+the author's memory of the data. For each changed figure, `/goal` must record:
+the source data file and figure asset inspected, the snapshot path, the raster
+size or viewport, the intended visual claim, concrete issues found or specific
+failure modes checked, the edit decision, and whether a revised snapshot was
+captured. If a figure is unchanged after review, the review note must still say
+what was checked, such as label fit, tick density, legend placement, caption
+agreement, numerical consistency with summaries, and mobile readability.
+
+Rendered-page feedback is also a hard gate when website prose, front matter,
+assets, CSS-sensitive markup, or linked figures change. Capture both desktop
+and mobile snapshots from the deployed or local Jekyll page, inspect them
+visually, and record the URL, viewport sizes, manifest path or local command,
+and edit decisions. Hidden pages still require direct-link snapshots; hidden
+status only means the page is not exposed through public navigation.
 
 Each `/goal` continuation must leave a review ledger in `reviews/`, either in
 the relevant `reviews/post-XX.md` file or in a shared review file when the work
@@ -224,6 +258,21 @@ The final response for each `/goal` continuation must summarize the review
 status, list the snapshot artifacts inspected, report validation commands run,
 and state whether the page remains hidden or has been made public.
 
+The final response must not claim that a milestone is complete unless all of
+the following are true:
+
+- changed code/configs/results/notebooks have been regenerated or intentionally
+  left unchanged with the reason recorded;
+- every changed figure has snapshot-backed feedback in `reviews/`;
+- every changed website page has desktop and mobile snapshot feedback, or a
+  recorded blocking command and error;
+- validation commands relevant to the changed surface have passed, or failures
+  are named with their exact blocker status;
+- both repositories touched by the milestone are committed or the remaining
+  uncommitted files are listed intentionally;
+- hidden pages remain hidden unless the milestone explicitly includes public
+  release.
+
 ## Scientific Rules
 
 - Reuse the same initial state for controlled comparisons.
@@ -264,6 +313,10 @@ and state whether the page remains hidden or has been made public.
 - 2026-07-14: Added `/goal` execution expectations for self-review artifacts,
   figure snapshot feedback, and rendered page snapshot review before milestone
   completion.
+- 2026-07-14: Tightened `/goal` execution requirements so each continuation
+  starts with a reviewable-artifact preflight, treats self-review and snapshot
+  feedback as hard gates, and reports changed-figure/page snapshot evidence
+  before claiming completion.
 - 2026-07-14: Added a `verify-release-readiness` gate that fails while
   final-release blockers, hidden/non-final website pages, or placeholder
   post-12 MACE artifact metadata remain.

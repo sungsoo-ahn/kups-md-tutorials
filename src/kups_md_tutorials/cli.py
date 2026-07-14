@@ -41,6 +41,18 @@ def _build_parser() -> argparse.ArgumentParser:
         "--posts",
         help="comma-separated post identifiers to export, such as 01,02",
     )
+
+    verify_notebooks = subparsers.add_parser(
+        "verify-notebooks", help="execute tutorial notebooks from clean kernels"
+    )
+    verify_notebooks.add_argument("--notebooks-dir", type=Path, default=Path("notebooks"))
+    verify_notebooks.add_argument("--output-dir", type=Path, default=Path("notebook-runs"))
+    verify_notebooks.add_argument("--kernel-name", default="python3")
+    verify_notebooks.add_argument("--timeout", type=int, default=120)
+    verify_notebooks.add_argument(
+        "--posts",
+        help="comma-separated post identifiers to execute, such as 01,02",
+    )
     return parser
 
 
@@ -76,6 +88,22 @@ def main(argv: Sequence[str] | None = None) -> int:
                 posts=posts,
             )
             print(f"Wrote {manifest_path}")
+            return 0
+        if args.command == "verify-notebooks":
+            from kups_md_tutorials.notebook_execution import execute_notebooks
+
+            posts = None
+            if args.posts:
+                posts = tuple(post.strip().zfill(2) for post in args.posts.split(","))
+            manifest_path = execute_notebooks(
+                notebooks_dir=args.notebooks_dir,
+                output_dir=args.output_dir,
+                posts=posts,
+                kernel_name=args.kernel_name,
+                timeout_seconds=args.timeout,
+                cwd=Path.cwd(),
+            )
+            print(f"Notebook verification passed; wrote {manifest_path}")
             return 0
     except Exception as exc:
         parser.exit(1, f"{exc}\n")

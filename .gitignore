@@ -11,6 +11,7 @@ wheels/
 
 # Generated simulation and notebook artifacts
 runs/
+notebook-runs/
 .ipynb_checkpoints/
 
 # Downloaded model caches

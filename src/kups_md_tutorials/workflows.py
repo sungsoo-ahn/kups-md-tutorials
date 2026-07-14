@@ -246,9 +246,10 @@ def _verify_post03(post: str, profile: str, output_root: Path) -> None:
     summary_path = output_dir / "error_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "error_samples.csv"
+    argon_samples_path = output_dir / "argon_nve_samples.csv"
     missing = [
         str(path)
-        for path in (summary_path, manifest_path, samples_path)
+        for path in (summary_path, manifest_path, samples_path, argon_samples_path)
         if not path.exists()
     ]
     if missing:
@@ -288,6 +289,16 @@ def _verify_post03(post: str, profile: str, output_root: Path) -> None:
     if max(abs(run.normalized_energy_drift) for run in biased_runs) <= 1.0e-6:
         msg = "force-error runs do not show measurable normalized drift"
         raise ValueError(msg)
+    if spec.argon_nve is not None:
+        if len(summary.argon_nve_runs) != len(spec.argon_nve.time_steps):
+            msg = "summary does not contain the expected argon NVE timestep grid"
+            raise ValueError(msg)
+        if any(run.unstable for run in summary.argon_nve_runs):
+            msg = "argon NVE diagnostic contains an unstable run"
+            raise ValueError(msg)
+        if max(run.max_abs_relative_energy_error for run in summary.argon_nve_runs) > 0.02:
+            msg = "argon NVE energy error exceeds review threshold"
+            raise ValueError(msg)
 
 
 def _verify_post04(post: str, profile: str, output_root: Path) -> None:

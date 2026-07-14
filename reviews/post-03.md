@@ -4,10 +4,10 @@
 
 - Post: 03
 - Profiles reviewed: smoke and full
-- Current status: controlled timestep/precision/force-error diagnostic workflow,
-  committed smoke/full outputs, notebook, full-profile diagnostic figure,
-  expanded hidden website draft, rendered page snapshots, and self-review
-  artifact are in place.
+- Current status: controlled timestep/precision/force-error diagnostic workflow
+  plus compact reduced-unit argon NVE diagnostic, committed smoke/full outputs,
+  notebook, full-profile diagnostic figure, expanded hidden website draft,
+  rendered page snapshots, and self-review artifact are in place.
 
 ## Commands
 
@@ -17,9 +17,10 @@
 - `uv run kups-tutorial verify 03 --profile full`
 - `uv run python scripts/generate_post03_figures.py`
 - `uv run jupyter execute notebooks/post-03-errors.ipynb --inplace`
-- `uv run pytest -q`
-- `uv run ruff check .`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py -q`
+- `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/error_diagnostics.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
 - `git diff --check`
+- `uv run kups-tutorial export-site --posts 03 --profile full`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
 - `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
 - `git diff --check` in `../sungsoo-ahn.github.io`
@@ -34,17 +35,23 @@
 - The workflow uses a deterministic velocity-Verlet oscillator with exact
   reference positions, configurable precision models, and deterministic
   force-scale perturbations.
+- The workflow now also includes a deterministic compact argon NVE diagnostic:
+  reduced-unit Lennard-Jones argon FCC cells, seeded velocities with
+  center-of-mass removal and exact target kinetic temperature, vectorized
+  minimum-image forces, velocity Verlet, and downsampled energy traces in
+  `argon_nve_samples.csv`.
 - The manifest records config hash, Git revision, Python/platform metadata, and
-  kUPS/NumPy versions.
+  ASE/kUPS/NumPy versions.
 - `kups-tutorial run`, `verify`, and `run-all` include post 03.
 - The notebook imports reusable logic from `src/kups_md_tutorials/` rather than
   duplicating the diagnostic implementation.
 
 Open items:
 
-- Add an argon/kUPS NVE diagnostic before treating this post as final. The
-  current oscillator is a controlled microscope for error mechanisms, not yet
-  the target production MD experiment described in the plan.
+- Replace or augment the compact reduced-unit argon check with a larger GPU
+  kUPS production NVE diagnostic before treating this post as final. The
+  current argon run is a physical many-body sanity check, not the target
+  production MD experiment described in the plan.
 
 ## Scientific Review
 
@@ -59,6 +66,13 @@ Open items:
 - At `dt = 0.18`, deterministic force scaling changes normalized energy drift.
   The low-force case shows a larger negative drift than the exact-force case,
   while the high-force case changes the sign.
+- The full compact argon NVE diagnostic contains 108 atoms at reduced density
+  `0.65` and temperature `0.70`. Across reduced timesteps `0.0015`, `0.003`,
+  and `0.006`, the maximum relative energy error stays below `2.7e-4`; the
+  largest-timestep normalized drift is about `-8.5e-6`.
+- The argon result supports a bounded-energy sanity check for a many-body
+  system, but it is not a GPU kUPS production benchmark and should not be
+  described as final production evidence.
 
 Open items:
 
@@ -85,11 +99,21 @@ Feedback loop:
 - Second pass: the three panels fit without overlap, the precision story reads
   left to right, and the force-bias panel clearly separates negative,
   near-zero, and positive normalized drift.
+- New compact argon NVE pass: the first four-panel full-profile snapshot at
+  `1728 x 1120` had readable axes and legend, but the "108 Ar atoms" annotation
+  sat on top of the initial NVE traces.
+- Revised the NVE annotation into the legend title and regenerated
+  `snapshots/post-03/error_diagnostics_full_snapshot.png`. The revised pass
+  leaves the trace data unobscured, preserves readable tick labels at the
+  snapshot size, and shows the largest-timestep trace as bounded rather than
+  unstable. The caption and panel title now match the compact argon NVE claim.
 
 Open items:
 
 - Consider adding a trajectory-error panel in the final article if phase error
   becomes a major prose claim.
+- Repeat figure snapshot review after any larger GPU kUPS NVE production panel
+  is added.
 
 ## Notebook Review
 
@@ -103,7 +127,7 @@ Open items:
 Open items:
 
 - Re-execute the notebook if the final article adds a trajectory-error panel or
-  an argon/kUPS NVE diagnostic figure.
+  a larger GPU kUPS NVE diagnostic figure.
 
 ## Website Draft Review
 
@@ -113,13 +137,15 @@ Open items:
 - The page uses the website `post` layout, `nav: false`, the shared
   `kups-md-tutorials` series metadata, and links back to the executable config,
   notebook, smoke/full summaries, full manifest, and review note.
-- Copied the reviewed full-profile SVG figure to
-  `assets/img/blog/kups_md_post03_error_diagnostics.svg`.
+- Copied the reviewed full-profile SVG/PNG figure and compact full-profile
+  result files, including `argon_nve_samples.csv`, to
+  `../sungsoo-ahn.github.io/assets/` via `uv run kups-tutorial export-site
+  --posts 03 --profile full`.
 - Expanded the article body from about 756 words to about 3,703 words. The
   expanded draft now separates timestep sensitivity, precision floors, force
-  bias, normalized drift, phase error, NVE error-report interpretation,
-  neighbor-list/cutoff artifacts, MLIP workflow controls, and final-release
-  limitations.
+  bias, normalized drift, compact argon NVE behavior, phase error,
+  NVE error-report interpretation, neighbor-list/cutoff artifacts, MLIP
+  workflow controls, and final-release limitations.
 - `python3 scripts/validate_kups_pages.py` passes in the website repository.
 - `python3 scripts/validate_blog.py` passes in the website repository with
   pre-existing unused-image warnings.
@@ -151,4 +177,7 @@ Rendered feedback:
 Open items:
 
 - The page remains intentionally hidden from public navigation.
-- Add an argon/kUPS NVE diagnostic before treating this post as final.
+- Re-run deployed desktop/mobile page snapshots after the updated figure and
+  prose are committed and deployed.
+- Add a larger GPU kUPS production NVE diagnostic before treating this post as
+  final.

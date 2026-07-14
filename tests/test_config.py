@@ -59,6 +59,9 @@ def test_load_error_spec() -> None:
     assert spec.system.kind == "harmonic_oscillator"
     assert "float64" in spec.experiment.precisions
     assert spec.experiment.force_cases[0].name == "exact_force"
+    assert spec.argon_nve is not None
+    assert spec.argon_nve.repetitions == 2
+    assert spec.argon_nve.time_steps[-1] == 0.005
 
 
 def test_load_thermostat_spec() -> None:

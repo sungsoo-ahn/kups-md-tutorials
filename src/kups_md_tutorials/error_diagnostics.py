@@ -5,12 +5,14 @@ from pathlib import Path
 import csv
 import json
 
+import ase
 import kups
 import numpy as np
 
 from kups_md_tutorials.config import ErrorTutorialSpec
 from kups_md_tutorials.integrators import exact_harmonic, harmonic_energy
 from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.systems import argon_fcc
 
 
 @dataclass(frozen=True)
@@ -32,6 +34,24 @@ class ErrorRunSummary:
 
 
 @dataclass(frozen=True)
+class ArgonNveRunSummary:
+    """Compact diagnostics for one reduced-unit argon NVE run."""
+
+    time_step: float
+    num_steps: int
+    sample_every: int
+    atom_count: int
+    number_density: float
+    temperature: float
+    initial_energy: float
+    final_energy: float
+    max_abs_relative_energy_error: float
+    normalized_energy_drift: float
+    energy_span: float
+    unstable: bool
+
+
+@dataclass(frozen=True)
 class ErrorExperimentSummary:
     """Summary table for one post/profile simulation-error experiment."""
 
@@ -43,6 +63,7 @@ class ErrorExperimentSummary:
     initial_velocity: float
     config_sha256: str
     runs: list[ErrorRunSummary]
+    argon_nve_runs: list[ArgonNveRunSummary]
 
 
 def _apply_precision(value: float, precision: str) -> float:
@@ -168,7 +189,137 @@ def run_error_experiment(spec: ErrorTutorialSpec, config_sha256: str) -> ErrorEx
         initial_velocity=system.velocity,
         config_sha256=config_sha256,
         runs=runs,
+        argon_nve_runs=run_argon_nve_experiment(spec),
     )
+
+
+def run_argon_nve_experiment(spec: ErrorTutorialSpec) -> list[ArgonNveRunSummary]:
+    """Run optional compact argon NVE energy-drift checks."""
+
+    if spec.argon_nve is None:
+        return []
+    return [
+        summarize_argon_nve_run(spec, time_step=time_step)[0]
+        for time_step in spec.argon_nve.time_steps
+    ]
+
+
+def summarize_argon_nve_run(
+    spec: ErrorTutorialSpec,
+    time_step: float,
+) -> tuple[ArgonNveRunSummary, tuple[np.ndarray, np.ndarray]]:
+    """Integrate a deterministic reduced-unit argon LJ system in NVE."""
+
+    if spec.argon_nve is None:
+        msg = "argon_nve config is required"
+        raise ValueError(msg)
+
+    nve = spec.argon_nve
+    atoms = argon_fcc(nve.repetitions, nve.number_density)
+    positions = atoms.get_positions().astype(float)
+    box = float(atoms.cell.lengths()[0])
+    velocities = _initialized_argon_velocities(
+        atom_count=len(atoms),
+        temperature=nve.temperature,
+        seed=nve.seed,
+    )
+    forces, potential = _lennard_jones_forces(
+        positions,
+        box_length=box,
+        epsilon=nve.epsilon,
+        sigma=nve.sigma,
+        cutoff=nve.cutoff,
+    )
+    times: list[float] = []
+    energies: list[float] = []
+
+    def sample(step: int, potential_energy: float) -> None:
+        kinetic = 0.5 * float(np.sum(velocities**2))
+        times.append(step * time_step)
+        energies.append(kinetic + potential_energy)
+
+    sample(0, potential)
+    for step in range(1, nve.num_steps + 1):
+        velocities += 0.5 * time_step * forces
+        positions = (positions + time_step * velocities) % box
+        forces, potential = _lennard_jones_forces(
+            positions,
+            box_length=box,
+            epsilon=nve.epsilon,
+            sigma=nve.sigma,
+            cutoff=nve.cutoff,
+        )
+        velocities += 0.5 * time_step * forces
+        if step % nve.sample_every == 0 or step == nve.num_steps:
+            sample(step, potential)
+
+    time_array = np.asarray(times, dtype=float)
+    energy_array = np.asarray(energies, dtype=float)
+    initial_energy = float(energy_array[0])
+    relative_error = (energy_array - initial_energy) / abs(initial_energy)
+    final_time = float(time_array[-1])
+    normalized_drift = float((energy_array[-1] - initial_energy) / (abs(initial_energy) * final_time))
+    max_error = float(np.max(np.abs(relative_error)))
+    summary = ArgonNveRunSummary(
+        time_step=float(time_step),
+        num_steps=nve.num_steps,
+        sample_every=nve.sample_every,
+        atom_count=len(atoms),
+        number_density=nve.number_density,
+        temperature=nve.temperature,
+        initial_energy=initial_energy,
+        final_energy=float(energy_array[-1]),
+        max_abs_relative_energy_error=max_error,
+        normalized_energy_drift=normalized_drift,
+        energy_span=float(np.max(energy_array) - np.min(energy_array)),
+        unstable=bool(max_error > 0.05 or not np.isfinite(max_error)),
+    )
+    return summary, (time_array, energy_array)
+
+
+def _initialized_argon_velocities(
+    atom_count: int,
+    temperature: float,
+    seed: int,
+) -> np.ndarray:
+    rng = np.random.default_rng(seed)
+    velocities = rng.normal(0.0, np.sqrt(temperature), size=(atom_count, 3))
+    velocities -= np.mean(velocities, axis=0)
+    target_kinetic = 0.5 * (3 * atom_count - 3) * temperature
+    current_kinetic = 0.5 * float(np.sum(velocities**2))
+    return velocities * np.sqrt(target_kinetic / current_kinetic)
+
+
+def _lennard_jones_forces(
+    positions: np.ndarray,
+    box_length: float,
+    epsilon: float,
+    sigma: float,
+    cutoff: float,
+) -> tuple[np.ndarray, float]:
+    forces = np.zeros_like(positions)
+    pair_i, pair_j = np.triu_indices(len(positions), k=1)
+    rij = positions[pair_i] - positions[pair_j]
+    rij -= box_length * np.rint(rij / box_length)
+    r2 = np.sum(rij**2, axis=1)
+    mask = r2 < cutoff**2
+    if not np.any(mask):
+        return forces, 0.0
+
+    rij = rij[mask]
+    r2 = r2[mask]
+    pair_i = pair_i[mask]
+    pair_j = pair_j[mask]
+    shift = 4.0 * epsilon * ((sigma / cutoff) ** 12 - (sigma / cutoff) ** 6)
+    inv_r2 = sigma**2 / r2
+    inv_r6 = inv_r2**3
+    inv_r12 = inv_r6**2
+    potential = float(np.sum(4.0 * epsilon * (inv_r12 - inv_r6) - shift))
+    coefficients = 24.0 * epsilon * (2.0 * inv_r12 - inv_r6) / r2
+    pair_forces = coefficients[:, None] * rij
+    np.add.at(forces, pair_i, pair_forces)
+    np.add.at(forces, pair_j, -pair_forces)
+    return forces, potential
 
 
 def _write_samples(path: Path, spec: ErrorTutorialSpec, max_rows: int = 700) -> None:
@@ -222,6 +373,37 @@ def _write_samples(path: Path, spec: ErrorTutorialSpec, max_rows: int = 700) -> 
             )
 
 
+def _write_argon_nve_samples(
+    path: Path,
+    spec: ErrorTutorialSpec,
+    max_rows: int = 700,
+) -> None:
+    if spec.argon_nve is None:
+        return
+
+    trajectories = {
+        time_step: summarize_argon_nve_run(spec, time_step=time_step)[1]
+        for time_step in spec.argon_nve.time_steps
+    }
+    longest = max(len(times) for times, _ in trajectories.values())
+    stride = max(1, int(np.ceil(longest / max_rows)))
+
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["time_step", "time", "relative_energy_error"])
+        for time_step, (times, energies) in trajectories.items():
+            initial_energy = float(energies[0])
+            relative = (energies - initial_energy) / abs(initial_energy)
+            for idx in range(0, len(times), stride):
+                writer.writerow(
+                    [
+                        f"{time_step:.12g}",
+                        f"{times[idx]:.12g}",
+                        f"{relative[idx]:.12g}",
+                    ]
+                )
+
+
 def write_error_outputs(
     spec: ErrorTutorialSpec,
     output_root: Path = Path("results"),
@@ -238,18 +420,24 @@ def write_error_outputs(
     summary_path = output_dir / "error_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "error_samples.csv"
+    argon_samples_path = output_dir / "argon_nve_samples.csv"
 
     summary_path.write_text(
         json.dumps(asdict(summary), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     _write_samples(samples_path, spec)
+    _write_argon_nve_samples(argon_samples_path, spec)
     manifest = {
         "config": asdict(spec),
         "summary_file": summary_path.name,
         "samples_file": samples_path.name,
+        "argon_nve_samples_file": (
+            argon_samples_path.name if spec.argon_nve is not None else None
+        ),
         "provenance": asdict(prov),
         "versions": {
+            "ase": ase.__version__,
             "kups": kups.__version__,
             "numpy": np.__version__,
         },
@@ -266,4 +454,7 @@ def load_error_summary(path: Path) -> ErrorExperimentSummary:
 
     data = json.loads(path.read_text(encoding="utf-8"))
     runs = [ErrorRunSummary(**run) for run in data.pop("runs")]
-    return ErrorExperimentSummary(runs=runs, **data)
+    argon_nve_runs = [
+        ArgonNveRunSummary(**run) for run in data.pop("argon_nve_runs", [])
+    ]
+    return ErrorExperimentSummary(runs=runs, argon_nve_runs=argon_nve_runs, **data)

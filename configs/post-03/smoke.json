@@ -17,5 +17,17 @@
       {"name": "exact_force", "force_scale": 1.0},
       {"name": "biased_low_force", "force_scale": 0.98}
     ]
+  },
+  "argon_nve": {
+    "repetitions": 2,
+    "number_density": 0.65,
+    "temperature": 0.70,
+    "seed": 3031,
+    "num_steps": 400,
+    "sample_every": 5,
+    "time_steps": [0.002, 0.005],
+    "epsilon": 1.0,
+    "sigma": 1.0,
+    "cutoff": 2.5
   }
 }

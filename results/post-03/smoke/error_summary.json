@@ -1,5 +1,35 @@
 {
-  "config_sha256": "09b4f4111008c2a49314e6bfd973e72b05f7db70c669835b6c16402c3fd0cbbd",
+  "argon_nve_runs": [
+    {
+      "atom_count": 32,
+      "energy_span": 0.03019623037265262,
+      "final_energy": -99.29479130414404,
+      "initial_energy": -99.26589823886736,
+      "max_abs_relative_energy_error": 0.000304195407570788,
+      "normalized_energy_drift": -0.0003638342294444119,
+      "num_steps": 400,
+      "number_density": 0.65,
+      "sample_every": 5,
+      "temperature": 0.7,
+      "time_step": 0.002,
+      "unstable": false
+    },
+    {
+      "atom_count": 32,
+      "energy_span": 0.08039772831109815,
+      "final_energy": -99.32117571464755,
+      "initial_energy": -99.26589823886736,
+      "max_abs_relative_energy_error": 0.0008099229416897431,
+      "normalized_energy_drift": -0.00027843134833259014,
+      "num_steps": 400,
+      "number_density": 0.65,
+      "sample_every": 5,
+      "temperature": 0.7,
+      "time_step": 0.005,
+      "unstable": false
+    }
+  ],
+  "config_sha256": "0f6c67fe3b184aa8f4a142c949a0ed85e9eeb71a033155da25cc9bf5b67f40d9",
   "initial_position": 1.0,
   "initial_velocity": 0.0,
   "mass": 1.0,

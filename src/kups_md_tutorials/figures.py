@@ -98,10 +98,16 @@ def generate_post03_figures(
 
     summary = json.loads((result_dir / "error_summary.json").read_text())
     samples = _read_post03_samples(result_dir / "error_samples.csv")
+    argon_samples_path = result_dir / "argon_nve_samples.csv"
+    argon_samples = (
+        _read_post03_samples(argon_samples_path)
+        if argon_samples_path.exists()
+        else {}
+    )
 
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-03"}):
-        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
-        _draw_post03_figure(fig, axes, summary, samples)
+        fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.0), constrained_layout=True)
+        _draw_post03_figure(fig, axes, summary, samples, argon_samples)
 
         svg_path = figure_dir / f"{name}.svg"
         png_path = figure_dir / f"{name}.png"
@@ -718,8 +724,10 @@ def _draw_post03_figure(
     axes: np.ndarray,
     summary: dict,
     samples: dict[str, np.ndarray],
+    argon_samples: dict[str, np.ndarray],
 ) -> None:
     fig.patch.set_facecolor("white")
+    flat_axes = np.asarray(axes).ravel()
 
     runs = summary["runs"]
     exact_float64 = sorted(
@@ -730,17 +738,17 @@ def _draw_post03_figure(
         ],
         key=lambda run: run["time_step"],
     )
-    axes[0].plot(
+    flat_axes[0].plot(
         [run["time_step"] for run in exact_float64],
         [run["max_abs_relative_energy_error"] for run in exact_float64],
         marker="o",
         color="#2f6f9f",
         linewidth=1.5,
     )
-    axes[0].set_title("Timestep controls bounded error")
-    axes[0].set_xlabel("time step")
-    axes[0].set_ylabel("max |Delta E| / E0")
-    axes[0].set_yscale("log")
+    flat_axes[0].set_title("Timestep controls bounded error")
+    flat_axes[0].set_xlabel("oscillator time step")
+    flat_axes[0].set_ylabel("max |Delta E| / E0")
+    flat_axes[0].set_yscale("log")
 
     largest_dt = max(run["time_step"] for run in runs)
     exact_largest = [
@@ -749,18 +757,18 @@ def _draw_post03_figure(
         if run["force_case"] == "exact_force" and run["time_step"] == largest_dt
     ]
     exact_largest = sorted(exact_largest, key=lambda run: _precision_sort_key(run["precision"]))
-    axes[1].bar(
+    flat_axes[1].bar(
         np.arange(len(exact_largest)),
         [run["max_abs_relative_energy_error"] for run in exact_largest],
         color="#6a8f4e",
         edgecolor="#2d4721",
         linewidth=0.6,
     )
-    axes[1].set_title("Precision can set an error floor")
-    axes[1].set_ylabel("max |Delta E| / E0")
-    axes[1].set_yscale("log")
-    axes[1].set_xticks(np.arange(len(exact_largest)))
-    axes[1].set_xticklabels(
+    flat_axes[1].set_title("Precision can set an error floor")
+    flat_axes[1].set_ylabel("max |Delta E| / E0")
+    flat_axes[1].set_yscale("log")
+    flat_axes[1].set_xticks(np.arange(len(exact_largest)))
+    flat_axes[1].set_xticklabels(
         [run["precision"].replace("_", "\n") for run in exact_largest],
         fontsize=8,
     )
@@ -773,34 +781,71 @@ def _draw_post03_figure(
         ],
         key=lambda run: run["force_scale"],
     )
-    axes[2].axhline(0.0, color="#333333", linewidth=0.8)
-    axes[2].bar(
+    flat_axes[2].axhline(0.0, color="#333333", linewidth=0.8)
+    flat_axes[2].bar(
         np.arange(len(force_runs)),
         [run["normalized_energy_drift"] for run in force_runs],
         color="#d88c3d",
         edgecolor="#784714",
         linewidth=0.6,
     )
-    axes[2].set_title("Force bias appears as drift")
-    axes[2].set_ylabel("Delta E / (E0 time)")
-    axes[2].set_xticks(np.arange(len(force_runs)))
-    axes[2].set_xticklabels(
+    flat_axes[2].set_title("Force bias appears as drift")
+    flat_axes[2].set_ylabel("Delta E / (E0 time)")
+    flat_axes[2].set_xticks(np.arange(len(force_runs)))
+    flat_axes[2].set_xticklabels(
         [run["force_case"].replace("_", "\n") for run in force_runs],
         fontsize=8,
     )
 
-    axes[0].text(
+    argon_runs = sorted(
+        summary.get("argon_nve_runs", []),
+        key=lambda run: run["time_step"],
+    )
+    if argon_samples:
+        for time_step in sorted(set(argon_samples["time_step"])):
+            mask = argon_samples["time_step"] == time_step
+            flat_axes[3].plot(
+                argon_samples["time"][mask],
+                argon_samples["relative_energy_error"][mask],
+                linewidth=1.2,
+                label=f"dt={time_step:g}",
+            )
+    elif argon_runs:
+        flat_axes[3].plot(
+            [run["time_step"] for run in argon_runs],
+            [run["max_abs_relative_energy_error"] for run in argon_runs],
+            marker="o",
+            color="#7b4f9a",
+            linewidth=1.4,
+        )
+    flat_axes[3].axhline(0.0, color="#333333", linewidth=0.8)
+    flat_axes[3].set_title("Argon NVE drift is bounded")
+    flat_axes[3].set_xlabel("reduced time")
+    flat_axes[3].set_ylabel("Delta E / |E0|")
+    if argon_samples:
+        title = None
+        if argon_runs:
+            title = f"{argon_runs[-1]['atom_count']} Ar atoms, LJ units"
+        flat_axes[3].legend(
+            frameon=False,
+            fontsize=8,
+            loc="lower right",
+            title=title,
+            title_fontsize=8,
+        )
+
+    flat_axes[0].text(
         0.03,
         0.95,
         f"N = {len(runs)} runs\nfull grid: dt, precision, force scale",
-        transform=axes[0].transAxes,
+        transform=flat_axes[0].transAxes,
         va="top",
         ha="left",
         fontsize=8.5,
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
     )
 
-    for ax in axes:
+    for ax in flat_axes:
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         ax.grid(alpha=0.18, linewidth=0.6)

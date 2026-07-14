@@ -189,6 +189,57 @@ class ErrorExperimentSpec:
 
 
 @dataclass(frozen=True)
+class ArgonNveSpec:
+    """Configuration for compact argon NVE energy-drift diagnostics."""
+
+    repetitions: int
+    number_density: float
+    temperature: float
+    seed: int
+    num_steps: int
+    sample_every: int
+    time_steps: tuple[float, ...]
+    epsilon: float
+    sigma: float
+    cutoff: float
+
+    def validate(self) -> None:
+        if self.repetitions <= 0:
+            msg = "argon_nve repetitions must be positive"
+            raise ValueError(msg)
+        if self.number_density <= 0.0:
+            msg = "argon_nve number_density must be positive"
+            raise ValueError(msg)
+        if self.temperature <= 0.0:
+            msg = "argon_nve temperature must be positive"
+            raise ValueError(msg)
+        if self.num_steps <= 0:
+            msg = "argon_nve num_steps must be positive"
+            raise ValueError(msg)
+        if self.sample_every <= 0:
+            msg = "argon_nve sample_every must be positive"
+            raise ValueError(msg)
+        if self.num_steps % self.sample_every != 0:
+            msg = "argon_nve sample_every must evenly divide num_steps"
+            raise ValueError(msg)
+        if not self.time_steps:
+            msg = "argon_nve time_steps must be non-empty"
+            raise ValueError(msg)
+        if any(time_step <= 0.0 for time_step in self.time_steps):
+            msg = "argon_nve time_steps must be positive"
+            raise ValueError(msg)
+        if self.epsilon <= 0.0:
+            msg = "argon_nve epsilon must be positive"
+            raise ValueError(msg)
+        if self.sigma <= 0.0:
+            msg = "argon_nve sigma must be positive"
+            raise ValueError(msg)
+        if self.cutoff <= self.sigma:
+            msg = "argon_nve cutoff must be larger than sigma"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
 class ErrorTutorialSpec:
     """Configuration for post-03 simulation-error diagnostics."""
 
@@ -197,6 +248,7 @@ class ErrorTutorialSpec:
     title: str
     system: HarmonicOscillatorSpec
     experiment: ErrorExperimentSpec
+    argon_nve: ArgonNveSpec | None = None
 
     @property
     def result_dir_name(self) -> Path:
@@ -992,6 +1044,22 @@ def load_error_spec(
     root = _expect_mapping(data, "error config")
     system = _expect_mapping(root.get("system"), "system")
     experiment = _expect_mapping(root.get("error_experiment"), "error_experiment")
+    argon_nve_data = root.get("argon_nve")
+    argon_nve = None
+    if argon_nve_data is not None:
+        argon_nve_root = _expect_mapping(argon_nve_data, "argon_nve")
+        argon_nve = ArgonNveSpec(
+            repetitions=int(argon_nve_root["repetitions"]),
+            number_density=float(argon_nve_root["number_density"]),
+            temperature=float(argon_nve_root["temperature"]),
+            seed=int(argon_nve_root["seed"]),
+            num_steps=int(argon_nve_root["num_steps"]),
+            sample_every=int(argon_nve_root["sample_every"]),
+            time_steps=tuple(float(value) for value in argon_nve_root["time_steps"]),
+            epsilon=float(argon_nve_root["epsilon"]),
+            sigma=float(argon_nve_root["sigma"]),
+            cutoff=float(argon_nve_root["cutoff"]),
+        )
 
     spec = ErrorTutorialSpec(
         post=str(root["post"]),
@@ -1018,6 +1086,7 @@ def load_error_spec(
                 for value in experiment["force_cases"]
             ),
         ),
+        argon_nve=argon_nve,
     )
     if spec.post != post:
         msg = f"config post {spec.post!r} does not match requested {post!r}"
@@ -1037,6 +1106,8 @@ def load_error_spec(
         msg = "harmonic oscillator omega must be positive"
         raise ValueError(msg)
     spec.experiment.validate()
+    if spec.argon_nve is not None:
+        spec.argon_nve.validate()
     return spec
 
 

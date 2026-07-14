@@ -6,8 +6,8 @@
 - Profiles reviewed: smoke and full
 - Current status: harmonic-oscillator integrator diagnostic workflow,
   committed smoke/full outputs, notebook, full-profile diagnostic figure,
-  hidden website draft, and self-review artifact are in place; final prose and
-  rendered page snapshots are still pending.
+  expanded hidden website draft, rendered page snapshots, and self-review
+  artifact are in place.
 
 ## Commands
 
@@ -21,6 +21,11 @@
 - `uv run ruff check .`
 - `git diff --check`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
+- `git diff --check` in `../sungsoo-ahn.github.io`
+- GitHub Pages deploy `29357398623` for website commit
+  `53af3daa4dae1c5508ff143ee9fddf490634e86e`.
+- GitHub Actions snapshot workflow `29357589065` for post 02.
 
 ## Code And Reproducibility Review
 
@@ -37,7 +42,6 @@
 
 Open items:
 
-- Add rendered page snapshots after the hidden website draft deploys.
 - Later kUPS trajectory posts should reuse the same diagnostic language for
   normalized energy drift versus bounded energy oscillation.
 
@@ -56,11 +60,9 @@ Open items:
 
 Open items:
 
-- The website prose should explain that symplectic structure and time
-  reversibility are properties of the discrete map, not generic consequences of
-  writing down Newton's equation.
-- The article should avoid overgeneralizing from the harmonic oscillator to
-  chaotic many-body trajectories; it is a microscope for integrator structure.
+- Keep the harmonic-oscillator limitations explicit in the final all-post
+  consistency pass; the article should not claim that this diagnostic certifies
+  a production many-body timestep.
 
 ## Figure Snapshot Review
 
@@ -82,7 +84,6 @@ Feedback loop:
 
 Open items:
 
-- Recheck mobile rendering after the website draft exists.
 - Consider a second zoomed velocity-Verlet-only energy panel if the prose needs
   a more detailed shadow-energy discussion.
 
@@ -97,24 +98,58 @@ Open items:
 
 Open items:
 
-- Add citations for Verlet, symplectic integration, and shadow Hamiltonian
-  discussion when writing the website draft.
+- Re-execute the notebook if the article requests a second zoomed
+  velocity-Verlet-only energy figure.
 
 ## Website Draft Review
 
-- Added a hidden draft page in `../sungsoo-ahn.github.io` at
+- Added, expanded, and deployed a hidden draft page in
+  `../sungsoo-ahn.github.io` at
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-02-integrators/`.
 - The page uses the website `post` layout, `nav: false`, the shared
   `kups-md-tutorials` series metadata, and links back to the executable config,
   notebook, smoke/full summaries, full manifest, and review note.
 - Copied the reviewed full-profile SVG figure to
   `assets/img/blog/kups_md_post02_integrator_diagnostics.svg`.
-- `python3 scripts/validate_blog.py` passes with pre-existing unused-image
-  warnings in the website repository.
+- Expanded the article body from about 812 words to about 3,633 words. The
+  expanded draft now covers discrete maps, velocity Verlet splitting,
+  symplectic and reversible structure, harmonic-oscillator scope, bounded
+  energy error, explicit Euler as a negative control, reversibility testing,
+  force-evaluation scheduling, timestep practice, limitations, and the
+  connection to timestep, precision, and MLIP force-error diagnostics.
+- `python3 scripts/validate_kups_pages.py` passes in the website repository.
+- `python3 scripts/validate_blog.py` passes in the website repository with
+  pre-existing unused-image warnings.
+- `git diff --check` passes in the website repository.
+- GitHub Pages deploy `29357398623` built and deployed website commit
+  `53af3daa4dae1c5508ff143ee9fddf490634e86e` successfully.
+- The deployed page snapshot manifest from workflow `29357589065` contains
+  desktop and mobile captures for the hidden URL, both HTTP 200, with title
+  `What Does an MD Integrator Actually Approximate? | Sungsoo Ahn`.
+
+Rendered snapshots reviewed:
+
+- `/tmp/kups-post02-expanded-snapshots/post-02-desktop.png`
+- `/tmp/kups-post02-expanded-snapshots/post-02-mobile.png`
+
+Rendered feedback:
+
+- Desktop full-page capture renders the expanded article end to end: sidebar
+  table of contents, display equations, harmonic-oscillator configuration table,
+  diagnostic figure, methods-practice table, reproduction code block,
+  current-status section, references, and footer are present. No missing asset,
+  blank page, obvious clipped text, or broken page chrome was found in the
+  inspected snapshot.
+- Mobile full-page capture renders the title, author note, equations, figure,
+  code block, status, references, and footer. The methods-practice table is
+  tight but readable and not clipped in the inspected screenshot. Keep table
+  wrapping as a final typography-polish item after the remaining articles are
+  expanded.
 
 Open items:
 
-- Capture and inspect deployed desktop and mobile snapshots for this hidden
-  page.
-- Expand the draft into the full 3,500-10,000-word article after rendered page
-  snapshots are reviewed.
+- The page remains intentionally hidden from public navigation.
+- Perform a final all-post consistency pass after the other articles are
+  expanded.
+- Re-capture rendered desktop and mobile snapshots after that final consistency
+  pass.

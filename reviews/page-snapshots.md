@@ -192,3 +192,50 @@ Revision decisions:
 - Keep mobile table wrapping as a final typography-polish item after the rest
   of the articles are expanded.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 02 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29357589065`.
+- Website commit: `53af3daa4dae1c5508ff143ee9fddf490634e86e`.
+- Deploy run for that commit: `29357398623`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post02-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post02-expanded-snapshots/manifest.json`.
+- Capture scope: post 02 only, after expansion to about 3,633 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-02-integrators/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Does an MD Integrator Actually Approximate? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post02-expanded-snapshots/post-02-desktop.png`
+- `/tmp/kups-post02-expanded-snapshots/post-02-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, display equations, harmonic-oscillator configuration table,
+  diagnostic figure, methods-practice table, reproduction code block,
+  current-status section, references, and footer present. No blank page,
+  missing figure, obvious text clipping, or broken page chrome was found in the
+  inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, author note, equations, figure, code block, current-status section,
+  references, and footer present. The methods-practice table is tight but
+  readable and is not clipped in the inspected snapshot.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 02 hidden draft.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- The page remains hidden from public navigation and direct-link reachable.

@@ -1,0 +1,14 @@
+from pathlib import Path
+import shutil
+
+import nbformat
+from nbclient import NotebookClient
+
+
+def test_post01_notebook_executes(tmp_path: Path) -> None:
+    source = Path("notebooks/post-01-initialization.ipynb")
+    notebook_path = tmp_path / source.name
+    shutil.copy(source, notebook_path)
+    notebook = nbformat.read(notebook_path, as_version=4)
+    client = NotebookClient(notebook, timeout=120, kernel_name="python3")
+    client.execute(cwd=Path.cwd())

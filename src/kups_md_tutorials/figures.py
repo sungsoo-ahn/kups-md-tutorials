@@ -17,6 +17,11 @@ def _standardize(values: np.ndarray) -> np.ndarray:
     return centered / scale
 
 
+def _strip_trailing_whitespace(path: Path) -> None:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    path.write_text("\n".join(line.rstrip() for line in lines) + "\n", encoding="utf-8")
+
+
 def generate_post01_figures(
     result_dir: Path = Path("results/post-01/smoke"),
     figure_dir: Path = Path("figures/post-01"),
@@ -158,6 +163,7 @@ def generate_post01_figures(
     png_path = figure_dir / "initialization_diagnostics.png"
     snapshot_path = snapshot_dir / "initialization_diagnostics_snapshot.png"
     fig.savefig(svg_path)
+    _strip_trailing_whitespace(svg_path)
     fig.savefig(png_path, dpi=220)
     fig.savefig(snapshot_path, dpi=160)
     plt.close(fig)

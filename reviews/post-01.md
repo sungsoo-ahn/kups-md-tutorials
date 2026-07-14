@@ -13,6 +13,7 @@
 - `uv run kups-tutorial run 01 --profile smoke`
 - `uv run kups-tutorial verify 01 --profile smoke`
 - `uv run python scripts/generate_post01_figures.py`
+- `uv run jupyter execute notebooks/post-01-initialization.ipynb --inplace`
 - `uv run pytest -q`
 - `uv run ruff check .`
 - `git diff --check`
@@ -29,7 +30,6 @@
 
 Open items:
 
-- Add the executable notebook for post 01.
 - Add website draft and rendered page snapshots.
 - Decide whether to commit full-profile initialization outputs after reviewing
   their size and scientific value.
@@ -74,3 +74,16 @@ Open items:
 
 - Recheck mobile rendering once the website post exists.
 - Confirm caption wording in the website draft uses `\(...\)` for any math.
+
+## Notebook Review
+
+- `notebooks/post-01-initialization.ipynb` executes from a clean kernel.
+- The notebook imports reusable logic from `src/kups_md_tutorials/` rather than
+  duplicating initialization or plotting implementation details.
+- The notebook displays the committed smoke summary and regenerates the
+  diagnostic figure from the committed initial state.
+
+Open items:
+
+- Add the full prose article in the website repository.
+- Re-run the notebook after full-profile outputs are added.

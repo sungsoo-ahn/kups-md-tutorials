@@ -20,6 +20,7 @@ mlff = ["kups[hf]==1.0.3"]
 
 [dependency-groups]
 dev = [
+    "ipykernel>=7.3.0",
     "nbclient>=0.10",
     "nbformat>=5.10",
     "pytest>=8.4",

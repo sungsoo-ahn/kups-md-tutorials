@@ -11,6 +11,7 @@ the adjacent `sungsoo-ahn.github.io` repository.
 uv sync
 uv run kups-tutorial run 01 --profile smoke
 uv run kups-tutorial verify --profile smoke
+uv run jupyter execute notebooks/post-01-initialization.ipynb --inplace
 ```
 
 On an NVIDIA CUDA workstation, install the GPU and model-download extras with

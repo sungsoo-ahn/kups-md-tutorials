@@ -28,6 +28,11 @@
 - `uv run kups-tutorial verify --profile smoke`
 - `uv run kups-tutorial verify 12 --profile full`
 - `git diff --check` in this repository and `../sungsoo-ahn.github.io`
+- `gh run watch 29351644859 --exit-status` in `../sungsoo-ahn.github.io`
+- `curl -I -L 'https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/?v=3c1b319'`
+- `curl -L --silent 'https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/?v=3c1b319' | rg ...`
+- `curl -L --silent 'https://sungsoo-ahn.github.io/?v=3c1b319' | rg ...`
+- `curl -L --silent 'https://sungsoo-ahn.github.io/blog/?v=3c1b319' | rg ...`
 
 ## Code And Reproducibility Review
 
@@ -130,12 +135,16 @@ Open items:
   `assets/img/blog/kups_md_post12_mlip_diagnostics.svg`.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
+- GitHub Pages deployment `29351644859` completed successfully. The live
+  hidden URL returns HTTP 200 and contains the expected title, MLIP capstone
+  notebook link, full summary link, current-status section, placeholder MACE
+  warning, and `kups_md_post12_mlip_diagnostics.svg` figure.
+- The public homepage and blog index did not contain
+  `post-12-mlip-capstone` or `kups-md-tutorials` in the deployed HTML checked
+  with cache-buster `?v=3c1b319`.
 
 Open items:
 
-- Verify the deployed hidden page after the website commit is pushed.
-- Confirm that the page is directly reachable but not linked from public
-  navigation.
 - Capture and inspect rendered desktop and mobile snapshots for this hidden
   page.
 
@@ -153,8 +162,7 @@ Open items:
 
 Blocking items for the current hidden draft:
 
-- Verify the deployed hidden URL after the website commit is pushed.
-- Confirm that public navigation does not link to the hidden page.
+- None.
 
 Non-blocking items accepted until the final article pass:
 

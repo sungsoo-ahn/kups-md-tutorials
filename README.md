@@ -12,6 +12,7 @@ uv sync
 uv run kups-tutorial run 01 --profile smoke
 uv run kups-tutorial verify --profile smoke
 uv run kups-tutorial verify-artifacts
+uv run kups-tutorial verify-reviews
 uv run kups-tutorial verify-notebooks
 uv run jupyter execute notebooks/post-01-initialization.ipynb --inplace
 uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io --profile full

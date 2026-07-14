@@ -195,6 +195,7 @@ and state whether the page remains hidden or has been made public.
 - `uv run kups-tutorial run-all --profile smoke`
 - `uv run kups-tutorial verify`
 - `uv run kups-tutorial verify-artifacts`
+- `uv run kups-tutorial verify-reviews`
 - Execute all notebooks from clean kernels.
 - Reproduce committed summaries from full GPU configurations.
 - Review each post's self-review artifact and confirm every blocking item is

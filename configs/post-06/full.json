@@ -1,0 +1,19 @@
+{
+  "post": "06",
+  "profile": "full",
+  "title": "When Is a Trajectory Long Enough to Trust?",
+  "trajectory_length_experiment": {
+    "true_mean": 0.5,
+    "stationary_variance": 1.0,
+    "correlation_time": 30.0,
+    "equilibration_time": 120.0,
+    "initial_bias": 2.5,
+    "time_step": 1.0,
+    "max_steps": 24000,
+    "warmup_steps": 1000,
+    "sample_every": 4,
+    "replica_count": 6,
+    "seed": 2026071406,
+    "checkpoints": [2000, 6000, 12000, 24000]
+  }
+}

@@ -341,6 +341,76 @@ class BarostatTutorialSpec:
         return Path(f"post-{self.post}") / self.profile
 
 
+@dataclass(frozen=True)
+class TrajectoryLengthExperimentSpec:
+    """Configuration for trajectory-length and uncertainty diagnostics."""
+
+    true_mean: float
+    stationary_variance: float
+    correlation_time: float
+    equilibration_time: float
+    initial_bias: float
+    time_step: float
+    max_steps: int
+    warmup_steps: int
+    sample_every: int
+    replica_count: int
+    seed: int
+    checkpoints: tuple[int, ...]
+
+    def validate(self) -> None:
+        if self.stationary_variance <= 0.0:
+            msg = "stationary_variance must be positive"
+            raise ValueError(msg)
+        if self.correlation_time <= 0.0:
+            msg = "correlation_time must be positive"
+            raise ValueError(msg)
+        if self.equilibration_time <= 0.0:
+            msg = "equilibration_time must be positive"
+            raise ValueError(msg)
+        if self.time_step <= 0.0:
+            msg = "time_step must be positive"
+            raise ValueError(msg)
+        if self.max_steps <= 0:
+            msg = "max_steps must be positive"
+            raise ValueError(msg)
+        if self.warmup_steps < 0 or self.warmup_steps >= self.max_steps:
+            msg = "warmup_steps must be non-negative and smaller than max_steps"
+            raise ValueError(msg)
+        if self.sample_every <= 0:
+            msg = "sample_every must be positive"
+            raise ValueError(msg)
+        if self.replica_count < 2:
+            msg = "replica_count must be at least two"
+            raise ValueError(msg)
+        if not self.checkpoints:
+            msg = "checkpoints must be non-empty"
+            raise ValueError(msg)
+        if any(checkpoint <= self.warmup_steps for checkpoint in self.checkpoints):
+            msg = "checkpoints must exceed warmup_steps"
+            raise ValueError(msg)
+        if max(self.checkpoints) > self.max_steps:
+            msg = "checkpoints cannot exceed max_steps"
+            raise ValueError(msg)
+        if tuple(sorted(self.checkpoints)) != self.checkpoints:
+            msg = "checkpoints must be sorted"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class TrajectoryLengthTutorialSpec:
+    """Configuration for post-06 trajectory-length experiments."""
+
+    post: str
+    profile: str
+    title: str
+    experiment: TrajectoryLengthExperimentSpec
+
+    @property
+    def result_dir_name(self) -> Path:
+        return Path(f"post-{self.post}") / self.profile
+
+
 def _expect_mapping(value: Any, name: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         msg = f"{name} must be an object"
@@ -615,6 +685,52 @@ def load_barostat_spec(
                 )
                 for value in experiment["barostats"]
             ),
+        ),
+    )
+    if spec.post != post:
+        msg = f"config post {spec.post!r} does not match requested {post!r}"
+        raise ValueError(msg)
+    if spec.profile != profile:
+        msg = (
+            f"config profile {spec.profile!r} does not match requested {profile!r}"
+        )
+        raise ValueError(msg)
+    spec.experiment.validate()
+    return spec
+
+
+def load_trajectory_length_spec(
+    post: str, profile: str, config_root: Path = Path("configs")
+) -> TrajectoryLengthTutorialSpec:
+    """Load a committed JSON configuration for trajectory-length diagnostics."""
+
+    path = config_root / f"post-{post}" / f"{profile}.json"
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    root = _expect_mapping(data, "trajectory-length config")
+    experiment = _expect_mapping(
+        root.get("trajectory_length_experiment"),
+        "trajectory_length_experiment",
+    )
+
+    spec = TrajectoryLengthTutorialSpec(
+        post=str(root["post"]),
+        profile=str(root["profile"]),
+        title=str(root["title"]),
+        experiment=TrajectoryLengthExperimentSpec(
+            true_mean=float(experiment["true_mean"]),
+            stationary_variance=float(experiment["stationary_variance"]),
+            correlation_time=float(experiment["correlation_time"]),
+            equilibration_time=float(experiment["equilibration_time"]),
+            initial_bias=float(experiment["initial_bias"]),
+            time_step=float(experiment["time_step"]),
+            max_steps=int(experiment["max_steps"]),
+            warmup_steps=int(experiment["warmup_steps"]),
+            sample_every=int(experiment["sample_every"]),
+            replica_count=int(experiment["replica_count"]),
+            seed=int(experiment["seed"]),
+            checkpoints=tuple(int(value) for value in experiment["checkpoints"]),
         ),
     )
     if spec.post != post:

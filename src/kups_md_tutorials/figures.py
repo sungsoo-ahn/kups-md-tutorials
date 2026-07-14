@@ -172,6 +172,35 @@ def generate_post05_figures(
     return [svg_path, png_path, snapshot_path]
 
 
+def generate_post06_figures(
+    result_dir: Path = Path("results/post-06/smoke"),
+    figure_dir: Path = Path("figures/post-06"),
+    snapshot_dir: Path = Path("snapshots/post-06"),
+    name: str = "trajectory_length_diagnostics",
+) -> list[Path]:
+    """Generate trajectory length and uncertainty diagnostic figures."""
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+    summary = json.loads((result_dir / "trajectory_length_summary.json").read_text())
+    samples = _read_post06_samples(result_dir / "trajectory_length_samples.csv")
+
+    with rc_context({"svg.hashsalt": "kups-md-tutorials-post-06"}):
+        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+        _draw_post06_figure(fig, axes, summary, samples)
+
+        svg_path = figure_dir / f"{name}.svg"
+        png_path = figure_dir / f"{name}.png"
+        snapshot_path = snapshot_dir / f"{name}_snapshot.png"
+        fig.savefig(svg_path, metadata={"Date": None})
+        _strip_trailing_whitespace(svg_path)
+        fig.savefig(png_path, dpi=220)
+        fig.savefig(snapshot_path, dpi=160)
+        plt.close(fig)
+    return [svg_path, png_path, snapshot_path]
+
+
 def _read_post02_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -203,6 +232,16 @@ def _read_post04_samples(path: Path) -> dict[str, np.ndarray]:
 
 
 def _read_post05_samples(path: Path) -> dict[str, np.ndarray]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    return {
+        key: np.array([float(row[key]) for row in rows], dtype=float)
+        for key in reader.fieldnames or []
+    }
+
+
+def _read_post06_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         rows = list(reader)
@@ -657,6 +696,83 @@ def _draw_post05_figure(
         0.95,
         f"kappa = {summary['compressibility']:.3g}\n"
         f"V0 = {summary['equilibrium_volume']:.0f}",
+        transform=axes[2].transAxes,
+        va="top",
+        ha="left",
+        fontsize=8.5,
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+    )
+
+    for ax in axes:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(alpha=0.18, linewidth=0.6)
+
+
+def _draw_post06_figure(
+    fig: plt.Figure,
+    axes: np.ndarray,
+    summary: dict,
+    samples: dict[str, np.ndarray],
+) -> None:
+    fig.patch.set_facecolor("white")
+    checkpoints = summary["checkpoints"]
+    checkpoint_steps = np.array(
+        [checkpoint["checkpoint_steps"] for checkpoint in checkpoints],
+        dtype=float,
+    )
+    x = np.arange(len(checkpoints))
+
+    axes[0].axhline(summary["true_mean"], color="#333333", linewidth=0.9, label="true mean")
+    time = samples["time"]
+    replica_keys = sorted(key for key in samples if key.startswith("replica_"))
+    for key in replica_keys:
+        running = np.cumsum(samples[key]) / np.arange(1, len(samples[key]) + 1)
+        axes[0].plot(time, running, linewidth=1.0, alpha=0.72, label=key.replace("_", " "))
+    axes[0].set_title("Running means are sticky")
+    axes[0].set_xlabel("time")
+    axes[0].set_ylabel("running mean")
+    axes[0].legend(frameon=False, fontsize=7, ncol=2)
+
+    axes[1].bar(
+        x - 0.18,
+        [checkpoint["naive_standard_error"] for checkpoint in checkpoints],
+        width=0.36,
+        color="#2f6f9f",
+        edgecolor="#18384f",
+        linewidth=0.6,
+        label="naive",
+    )
+    axes[1].bar(
+        x + 0.18,
+        [checkpoint["conservative_standard_error"] for checkpoint in checkpoints],
+        width=0.36,
+        color="#d88c3d",
+        edgecolor="#784714",
+        linewidth=0.6,
+        label="block/replica-aware",
+    )
+    axes[1].set_title("Correlation inflates uncertainty")
+    axes[1].set_ylabel("standard error")
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels([f"{int(step)}" for step in checkpoint_steps], fontsize=8)
+    axes[1].legend(frameon=False, fontsize=8)
+
+    axes[2].plot(
+        checkpoint_steps,
+        [checkpoint["effective_samples"] for checkpoint in checkpoints],
+        marker="o",
+        color="#6a8f4e",
+        linewidth=1.5,
+    )
+    axes[2].set_title("ESS, not frames, controls trust")
+    axes[2].set_xlabel("trajectory steps")
+    axes[2].set_ylabel("effective samples")
+    axes[2].text(
+        0.03,
+        0.95,
+        f"tau target = {summary['correlation_time']:.0f}\n"
+        f"replicas = {summary['replica_count']}",
         transform=axes[2].transAxes,
         va="top",
         ha="left",

@@ -27,6 +27,7 @@ def generate_post01_figures(
     result_dir: Path = Path("results/post-01/smoke"),
     figure_dir: Path = Path("figures/post-01"),
     snapshot_dir: Path = Path("snapshots/post-01"),
+    name: str = "initialization_diagnostics",
 ) -> list[Path]:
     """Generate initialization diagnostic figures and review snapshots."""
 
@@ -43,9 +44,9 @@ def generate_post01_figures(
         fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
         _draw_post01_figure(fig, axes, atoms, summary, positions, standardized_velocities)
 
-        svg_path = figure_dir / "initialization_diagnostics.svg"
-        png_path = figure_dir / "initialization_diagnostics.png"
-        snapshot_path = snapshot_dir / "initialization_diagnostics_snapshot.png"
+        svg_path = figure_dir / f"{name}.svg"
+        png_path = figure_dir / f"{name}.png"
+        snapshot_path = snapshot_dir / f"{name}_snapshot.png"
         fig.savefig(svg_path, metadata={"Date": None})
         _strip_trailing_whitespace(svg_path)
         fig.savefig(png_path, dpi=220)

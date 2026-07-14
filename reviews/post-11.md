@@ -239,9 +239,135 @@ Non-blocking items accepted until the final article pass:
 
 Final-release blockers:
 
-- Add production MD context and any final diagnostics needed for the public
-  article, including final uncertainty diagnostics.
-- Add any real steered-MD trajectory, uncertainty, or hysteresis figures and
-  snapshot-review them.
+- Add production MD context with real atomistic steered trajectories and any
+  final diagnostics needed for the public article, including final uncertainty
+  diagnostics.
 - Re-run rendered desktop/mobile snapshots after any final production MD or
   figure additions.
+
+## Update 2026-07-14: Steered-Trajectory Hysteresis Diagnostic
+
+- Tutorial commit reviewed:
+  `cc48b6e98842111e8bba2882545d19a21e4d0bcd`.
+- Tutorial verification run:
+  `29377110812`.
+- Website commits reviewed:
+  `8e7dfec3f3a3f56fb346d85fb99a6b7a11cce2de` and
+  `ba3944c7bd14b1b8966d6676b88a8af9fc662d40`.
+- Website deployment runs:
+  `29377110434` and final deploy `29377412704`.
+- Snapshot workflow runs:
+  first pass `29377264543` and final pass `29377552573`.
+- Final snapshot artifact: `kups-md-page-snapshots`.
+- Downloaded final review copy:
+  `/tmp/kups-post11-final-hysteresis-snapshots/`.
+
+Commands added in this pass:
+
+- `uv run kups-tutorial run 11 --profile smoke`
+- `uv run kups-tutorial verify 11 --profile smoke`
+- `uv run kups-tutorial run 11 --profile full`
+- `uv run kups-tutorial verify 11 --profile full`
+- `uv run python scripts/generate_post11_figures.py`
+- `uv run jupyter execute notebooks/post-11-enhanced-sampling.ipynb --inplace`
+- `uv run ruff check src/kups_md_tutorials/enhanced_sampling.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `uv run kups-tutorial verify-reviews`
+- `python3 scripts/validate_kups_pages.py` in
+  `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `gh workflow run "Capture kUPS snapshots" --ref main -f posts=11`
+- `gh run download 29377552573 --name kups-md-page-snapshots --dir /tmp/kups-post11-final-hysteresis-snapshots`
+
+Code and reproducibility review:
+
+- `EnhancedSamplingExperimentSummary` now includes a
+  `steered_hysteresis` block derived from the path-level pulling simulator,
+  separate from the controlled Gaussian Jarzynski/Crooks work ensemble.
+- The full profile compares a fast 65-step steered protocol to a slow 520-step
+  protocol with 6000 path replicas.
+- `enhanced_sampling_curves.csv` now exports fast/slow forward/reverse
+  steered-work arrays in addition to the adaptive-bias and Gaussian work
+  curves.
+- Post 11 verification now requires the fast steered protocol to have a larger
+  hysteresis gap than the slow protocol and requires the fast/slow gap ratio to
+  exceed `1.25`.
+- CSV writing for Post 11 curves now uses explicit LF line endings; whitespace
+  checks passed.
+
+Scientific review:
+
+- The controlled Gaussian work ensemble remains the identity check for
+  Jarzynski/Crooks: forward Jarzynski `0.0011`, reverse Jarzynski `-0.0090`,
+  Crooks crossing `-0.0007`, and true \(\Delta F\) approximately zero.
+- The new path-level steered diagnostic is a protocol hysteresis check, not a
+  free-energy estimator. It intentionally remains separate from the
+  Jarzynski/Crooks identity panel.
+- Full-profile fast steered hysteresis gap is `33.7415 +/- 0.2534`.
+- Full-profile slow steered hysteresis gap is `5.5457 +/- 0.1116`.
+- The fast/slow hysteresis-gap ratio is `6.08`, supporting the prose claim
+  that faster pulling increases forward/reverse hysteresis in this controlled
+  path model.
+- The page now states that a final public article should replace this
+  controlled path model with real atomistic steered trajectories rather than
+  overclaiming the hidden draft as production MD.
+
+Figure feedback:
+
+- Figure source data inspected:
+  `results/post-11/full/enhanced_sampling_summary.json` and
+  `results/post-11/full/enhanced_sampling_curves.csv`.
+- Figure asset inspected:
+  `figures/post-11/enhanced_sampling_diagnostics_full.svg`.
+- Snapshot inspected:
+  `snapshots/post-11/enhanced_sampling_diagnostics_full_snapshot.png`.
+- Intended visual claim: adaptive bias modifies the sampled measure,
+  nonequilibrium work is a path ensemble rather than mean work, and faster
+  steered pulling produces a larger forward/reverse hysteresis loop than slower
+  pulling.
+- Feedback: the new fourth panel makes the fast/slow hysteresis ordering
+  obvious; the fast bar dominates, the slow bar and uncertainty marker remain
+  visible, and the annotation reports `path replicas = 6000` and `fast/slow
+  gap = 6.08`. The y-axis label, x-tick labels, panel title, and neighboring
+  panels fit without clipping. The fast uncertainty bar is visually small
+  because the path-replica standard error is small relative to the gap; this is
+  accepted for the hidden draft because the exact value is printed in the
+  summary and notebook.
+- Revision decision: no additional figure edit was needed after inspecting the
+  four-panel snapshot.
+
+Notebook review:
+
+- The notebook now prints fast/slow protocol step counts, hysteresis gaps with
+  standard errors, and the fast/slow gap ratio.
+- Executed notebook output records fast gap `33.7415 +/- 0.2534`, slow gap
+  `5.5457 +/- 0.1116`, and ratio `6.08`.
+- `uv run jupyter execute notebooks/post-11-enhanced-sampling.ipynb --inplace`
+  completed successfully.
+
+Website and rendered-page review:
+
+- The hidden page now describes the fourth steered-trajectory hysteresis panel
+  and distinguishes it from the Gaussian Jarzynski/Crooks identity check.
+- The Current Status section now lists rendered desktop/mobile snapshots for
+  the latest four-panel figure as implemented while keeping production
+  atomistic steered trajectories as a missing final-release item.
+- Final snapshot manifest reviewed:
+  `/tmp/kups-post11-final-hysteresis-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`;
+  both returned HTTP 200 and title
+  `How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work? | Sungsoo Ahn`.
+- Final snapshots visually inspected:
+  `/tmp/kups-post11-final-hysteresis-snapshots/post-11-desktop.png` and
+  `/tmp/kups-post11-final-hysteresis-snapshots/post-11-mobile.png`.
+- Desktop feedback: the long hidden article renders end to end with sidebar,
+  source links, diagnostic tables, updated four-panel figure, caption,
+  reproduction block, Current Status section, references, and footer present.
+  No broken figure, blank page, clipped text, or page chrome issue was found.
+- Mobile feedback: the title wraps heavily but remains contained; tables and
+  code blocks are tight but readable; the four-panel figure scales inside the
+  article column; the hysteresis panel is small but still legible enough for
+  the hidden draft; the status section now reflects that snapshots were
+  captured.

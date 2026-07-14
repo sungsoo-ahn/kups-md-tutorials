@@ -1242,3 +1242,69 @@ Revision decisions:
   indexing change.
 - The page series remains hidden from public navigation and direct-link
   reachable.
+
+## Post 11 Steered-Trajectory Hysteresis Snapshot Refresh
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- Final GitHub Actions run: `29377552573`.
+- First-pass snapshot run after figure/prose refresh: `29377264543`.
+- Website commits:
+  `8e7dfec3f3a3f56fb346d85fb99a6b7a11cce2de` and final status correction
+  `ba3944c7bd14b1b8966d6676b88a8af9fc662d40`.
+- Deploy runs:
+  `29377110434` and final deploy `29377412704`.
+- Tutorial commit reviewed:
+  `cc48b6e98842111e8bba2882545d19a21e4d0bcd`.
+- Tutorial verify run for that commit: `29377110812`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded final review copy:
+  `/tmp/kups-post11-final-hysteresis-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post11-final-hysteresis-snapshots/manifest.json`.
+- Capture scope: post 11 after adding the path-level fast/slow steered
+  hysteresis diagnostic, refreshed four-panel figure, exported compact result
+  files, updated notebook output, and hidden-page prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post11-final-hysteresis-snapshots/post-11-desktop.png`
+- `/tmp/kups-post11-final-hysteresis-snapshots/post-11-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the refreshed hidden draft end to end with source
+  links, adaptive-bias and nonequilibrium-work tables, the updated four-panel
+  diagnostic figure, protocol-design prose, Current Status, references, and
+  footer present.
+- The fourth figure panel is visible in the article column and shows the fast
+  protocol's hysteresis gap much larger than the slow protocol's gap. The
+  caption matches the figure's claim.
+- Mobile capture keeps the long title, tables, figure, caption, reproduction
+  block, Current Status, references, and footer contained. The four-panel
+  figure is small at mobile width but remains readable enough for the hidden
+  draft.
+- The page remains hidden from public navigation and direct-link reachable.
+
+Revision decisions:
+
+- No blocking layout issue was found for the refreshed post 11 hidden draft.
+- The fast/slow steered hysteresis figure/prose update is snapshot-reviewed
+  for the hidden draft state.
+- The first-pass snapshots showed the page was layout-safe; a final second
+  pass was captured after moving rendered snapshots from the missing list to
+  implemented status.
+- Keep mobile title/table/figure density as final typography-polish items.
+- Replace the controlled path model with real atomistic steered trajectories
+  before public indexing.
+- Re-run rendered snapshots after any final production MD or public-indexing
+  change.

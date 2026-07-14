@@ -3,10 +3,15 @@
 from pathlib import Path
 
 from kups_md_tutorials.config import (
+    load_barostat_spec,
     load_error_spec,
     load_integrator_spec,
     load_thermostat_spec,
     load_tutorial_spec,
+)
+from kups_md_tutorials.barostats import (
+    load_barostat_summary,
+    write_barostat_outputs,
 )
 from kups_md_tutorials.error_diagnostics import (
     load_error_summary,
@@ -25,7 +30,7 @@ from kups_md_tutorials.thermostats import (
     write_thermostat_outputs,
 )
 
-SUPPORTED_POSTS = ("01", "02", "03", "04")
+SUPPORTED_POSTS = ("01", "02", "03", "04", "05")
 SUPPORTED_PROFILES = ("smoke", "full")
 
 
@@ -44,6 +49,9 @@ def run_post(post: str, profile: str, output_root: Path = Path("results")) -> Pa
     if post == "04":
         spec = load_thermostat_spec(post, profile)
         return write_thermostat_outputs(spec, output_root=output_root)
+    if post == "05":
+        spec = load_barostat_spec(post, profile)
+        return write_barostat_outputs(spec, output_root=output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -66,6 +74,8 @@ def verify_post(post: str, profile: str, output_root: Path = Path("results")) ->
         _verify_post03(post, profile, output_root)
     elif post == "04":
         _verify_post04(post, profile, output_root)
+    elif post == "05":
+        _verify_post05(post, profile, output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -227,4 +237,40 @@ def _verify_post04(post: str, profile: str, output_root: Path) -> None:
         raise ValueError(msg)
     if min(run.position_effective_samples for run in summary.runs) <= 5.0:
         msg = "thermostat effective sample count is too small"
+        raise ValueError(msg)
+
+
+def _verify_post05(post: str, profile: str, output_root: Path) -> None:
+    spec = load_barostat_spec(post, profile)
+    output_dir = output_root / spec.result_dir_name
+    summary_path = output_dir / "barostat_summary.json"
+    manifest_path = output_dir / "manifest.json"
+    samples_path = output_dir / "barostat_samples.csv"
+    missing = [
+        str(path)
+        for path in (summary_path, manifest_path, samples_path)
+        if not path.exists()
+    ]
+    if missing:
+        msg = "missing expected output files: " + ", ".join(missing)
+        raise FileNotFoundError(msg)
+
+    summary = load_barostat_summary(summary_path)
+    if summary.post != post or summary.profile != profile:
+        msg = "summary post/profile does not match requested verification target"
+        raise ValueError(msg)
+    if len(summary.runs) != len(spec.experiment.barostats):
+        msg = "summary does not contain the expected barostat cases"
+        raise ValueError(msg)
+    if min(run.samples for run in summary.runs) <= 0:
+        msg = "barostat summary contains no samples"
+        raise ValueError(msg)
+    if max(abs(run.volume_variance_relative_error) for run in summary.runs) > 0.60:
+        msg = "volume variance is outside the review threshold"
+        raise ValueError(msg)
+    if max(abs(run.pressure_variance_relative_error) for run in summary.runs) > 0.60:
+        msg = "pressure variance is outside the review threshold"
+        raise ValueError(msg)
+    if min(run.volume_effective_samples for run in summary.runs) <= 5.0:
+        msg = "barostat effective sample count is too small"
         raise ValueError(msg)

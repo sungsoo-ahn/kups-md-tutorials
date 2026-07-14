@@ -103,33 +103,44 @@ When `/goal` is used to continue this project, every substantial milestone must
 include an explicit self-review and visual-review loop before it can be marked
 complete.
 
-- Maintain a running review note for each post under a committed review artifact
-  such as `reviews/post-XX.md`. Record the current commit, commands run, data
-  products inspected, figure snapshots reviewed, issues found, and follow-up
-  fixes.
-- Perform a code and reproducibility self-review before writing the final prose:
-  check config determinism, seed handling, unit assumptions, output paths,
-  manifest contents, test coverage, and whether generated tables can be
-  reproduced from committed code.
-- Perform a scientific self-review before publishing numerical claims: check
-  whether diagnostics support the claim, whether uncertainty is reported, and
-  whether failures or ambiguous results are described rather than hidden.
-- Perform a prose self-review against the website style contract: confirm the
-  post is concept-led, ML-facing, citation-complete, and not merely a notebook
-  transcript.
-- For figures, generate snapshot PNGs from the exact SVG/PNG assets that will
-  be published. Review them at desktop and mobile-relevant sizes for legibility,
-  label overlap, color contrast, caption consistency, and whether the visual
-  supports the intended claim.
-- For website pages, capture rendered desktop and mobile snapshots from a local
-  or deployed Jekyll build. Review equations, figures, captions, code blocks,
-  tables, navigation, and overflow before marking the post ready.
-- Treat snapshot feedback as required work, not optional polish. If a figure or
-  page snapshot reveals unclear labels, broken math, bad cropping, misleading
-  encodings, or layout problems, revise and capture a new snapshot.
-- Preserve final snapshots or review references in a lightweight committed form
-  when practical; do not commit large browser caches, raw trajectories, or bulky
-  intermediate render outputs.
+For each post, `/goal` must create or update `reviews/post-XX.md` with these
+sections before the post can be called done:
+
+1. **Scope and provenance.** Record the post number, profiles reviewed, current
+   Git commit or working-tree state, commands run, generated files inspected,
+   and any hidden website draft URL.
+2. **Code and reproducibility review.** Check config determinism, seed handling,
+   unit assumptions, output paths, manifest contents, dependency versions, test
+   coverage, notebook execution from a clean kernel, and whether every table or
+   figure can be regenerated from committed code and compact committed outputs.
+3. **Scientific review.** For each numerical claim, record the diagnostic that
+   supports it, the uncertainty or effective-sample-size evidence, comparison
+   controls, failure modes, and whether any ambiguous or negative result should
+   be stated in the prose instead of hidden.
+4. **Figure feedback review.** Generate snapshot PNGs from the exact SVG/PNG
+   assets intended for publication. Inspect desktop and mobile-relevant sizes
+   for label overlap, clipped text, unreadable tick labels, color contrast,
+   misleading scales, caption mismatch, and whether the figure actually
+   supports the stated mechanism. Record concrete feedback and the revision
+   made; if any blocking issue is found, regenerate the figure and capture a
+   new snapshot.
+5. **Website page review.** Capture rendered desktop and mobile snapshots from
+   a local or deployed Jekyll build. Inspect equations, figures, captions, code
+   blocks, tables, navigation state, link targets, overflow, and small-screen
+   readability. Record the snapshot source and feedback before marking the page
+   ready.
+6. **Prose and style review.** Check the post against the website style
+   contract: concept-led, ML-facing, citation-complete, blog-native front
+   matter, restrained code snippets, final figure assets under
+   `assets/img/blog/`, and no notebook-transcript structure.
+7. **Open items.** Separate blocking issues from accepted limitations. A hidden
+   draft may have open items; a final post may not have unresolved blocking
+   items in code, science, figure readability, page rendering, or citations.
+
+Snapshot feedback is required work, not optional polish. Preserve final figure
+snapshots under `snapshots/post-XX/` or record equivalent lightweight snapshot
+references in the review note. Do not commit large browser caches, raw
+trajectories, model archives, or bulky intermediate render outputs.
 
 ## Scientific Rules
 

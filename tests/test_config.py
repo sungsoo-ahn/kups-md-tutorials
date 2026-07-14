@@ -4,6 +4,7 @@ import pytest
 
 from kups_md_tutorials.config import (
     RunSpec,
+    load_barostat_spec,
     load_error_spec,
     load_integrator_spec,
     load_thermostat_spec,
@@ -58,3 +59,10 @@ def test_load_thermostat_spec() -> None:
     assert spec.system.kind == "harmonic_oscillator"
     assert spec.experiment.temperature == 1.0
     assert spec.experiment.thermostats[0].method == "baoab_langevin"
+
+
+def test_load_barostat_spec() -> None:
+    spec = load_barostat_spec("05", "smoke")
+    assert spec.experiment.equilibrium_volume == 1000.0
+    assert spec.experiment.compressibility == 0.01
+    assert spec.experiment.barostats[0].name == "fast_barostat"

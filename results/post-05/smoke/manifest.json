@@ -1,0 +1,41 @@
+{
+  "config": {
+    "experiment": {
+      "barostats": [
+        {
+          "name": "fast_barostat",
+          "relaxation_time": 0.5
+        },
+        {
+          "name": "slow_barostat",
+          "relaxation_time": 5.0
+        }
+      ],
+      "compressibility": 0.01,
+      "equilibrium_volume": 1000.0,
+      "num_steps": 3000,
+      "sample_every": 5,
+      "seed": 2026071405,
+      "target_pressure": 1.0,
+      "temperature": 1.0,
+      "time_step": 0.05,
+      "warmup_steps": 500
+    },
+    "post": "05",
+    "profile": "smoke",
+    "title": "How Should Pressure and Cell Degrees of Freedom Be Coupled?"
+  },
+  "provenance": {
+    "config_path": "configs/post-05/smoke.json",
+    "config_sha256": "7f1771c98f86d3616a1beedc67897259d25cb6a0459848f2dba0af8147fb9679",
+    "git_revision": "aa488210738d716175ac57662c68f1b167ffe25e",
+    "platform": "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",
+    "python_version": "3.13.13"
+  },
+  "samples_file": "barostat_samples.csv",
+  "summary_file": "barostat_summary.json",
+  "versions": {
+    "kups": "1.0.3",
+    "numpy": "2.5.1"
+  }
+}

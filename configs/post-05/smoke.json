@@ -1,0 +1,20 @@
+{
+  "post": "05",
+  "profile": "smoke",
+  "title": "How Should Pressure and Cell Degrees of Freedom Be Coupled?",
+  "barostat_experiment": {
+    "temperature": 1.0,
+    "target_pressure": 1.0,
+    "equilibrium_volume": 1000.0,
+    "compressibility": 0.01,
+    "time_step": 0.05,
+    "num_steps": 3000,
+    "warmup_steps": 500,
+    "sample_every": 5,
+    "seed": 2026071405,
+    "barostats": [
+      {"name": "fast_barostat", "relaxation_time": 0.5},
+      {"name": "slow_barostat", "relaxation_time": 5.0}
+    ]
+  }
+}

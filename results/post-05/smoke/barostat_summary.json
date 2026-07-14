@@ -1,0 +1,50 @@
+{
+  "compressibility": 0.01,
+  "config_sha256": "7f1771c98f86d3616a1beedc67897259d25cb6a0459848f2dba0af8147fb9679",
+  "equilibrium_volume": 1000.0,
+  "post": "05",
+  "profile": "smoke",
+  "runs": [
+    {
+      "barostat": "fast_barostat",
+      "expected_pressure_mean": 1.0,
+      "expected_pressure_variance": 0.1,
+      "expected_volume_mean": 1000.0,
+      "expected_volume_variance": 10.0,
+      "pressure_mean": 0.9896193178285247,
+      "pressure_variance": 0.0928152629944245,
+      "pressure_variance_relative_error": -0.07184737005575503,
+      "relaxation_time": 0.5,
+      "samples": 500,
+      "volume_effective_samples": 126.93949621880884,
+      "volume_integrated_autocorrelation_time": 3.938884388970138,
+      "volume_lag1_autocorrelation": 0.6229829364011028,
+      "volume_mean": 1000.1038068217148,
+      "volume_variance": 9.281526299442449,
+      "volume_variance_relative_error": -0.07184737005575514
+    },
+    {
+      "barostat": "slow_barostat",
+      "expected_pressure_mean": 1.0,
+      "expected_pressure_variance": 0.1,
+      "expected_volume_mean": 1000.0,
+      "expected_volume_variance": 10.0,
+      "pressure_mean": 0.9906750123452254,
+      "pressure_variance": 0.05639710260878295,
+      "pressure_variance_relative_error": -0.43602897391217055,
+      "relaxation_time": 5.0,
+      "samples": 500,
+      "volume_effective_samples": 43.98488530164275,
+      "volume_integrated_autocorrelation_time": 11.367541294493861,
+      "volume_lag1_autocorrelation": 0.9019333371977393,
+      "volume_mean": 1000.0932498765478,
+      "volume_variance": 5.639710260878295,
+      "volume_variance_relative_error": -0.43602897391217055
+    }
+  ],
+  "sample_every": 5,
+  "seed": 2026071405,
+  "target_pressure": 1.0,
+  "temperature": 1.0,
+  "time_step": 0.05
+}

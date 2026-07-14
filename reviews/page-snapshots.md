@@ -484,6 +484,56 @@ Revision decisions:
   final-release blocker for post 06.
 - The page remains hidden from public navigation and direct-link reachable.
 
+## Post 06 Compact Argon Observable Snapshot Refresh
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29372062650`.
+- Website commit: `9260ea3910a111ff76adbd8b837fa7938b9314b6`.
+- Deploy run for that commit: `29371909883`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post06-argon-observable-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post06-argon-observable-snapshots/manifest.json`.
+- Capture scope: post 06 only, after adding the compact reduced-unit argon
+  potential-energy-per-atom panel and website prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `When Is a Trajectory Long Enough to Trust? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post06-argon-observable-snapshots/post-06-desktop.png`
+- `/tmp/kups-post06-argon-observable-snapshots/post-06-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the updated article end to end with the hidden-draft
+  note, source links, controlled and argon diagnostic tables, four-panel
+  full-profile figure, reproduction code block, practical checklist,
+  current-status section, references, and footer present. No blank page,
+  missing figure, obvious text clipping, or broken page chrome was found in the
+  inspected snapshot.
+- Mobile capture renders the updated article with the four-panel figure visible
+  and the argon panel present. The narrow left navigation and tables are tight,
+  consistent with prior hidden-page captures, but no blocking clipping or
+  missing asset was found in the inspected snapshot.
+
+Revision decisions:
+
+- No blocking layout issue was found for the compact argon observable refresh.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- Larger GPU kUPS trajectory-length diagnostics for physical observables remain
+  a final-release blocker for post 06.
+- The page remains hidden from public navigation and direct-link reachable.
+
 ## Expanded Post 07 Snapshot Capture
 
 - Capture date: 2026-07-14.

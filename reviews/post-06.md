@@ -28,6 +28,11 @@
 - GitHub Actions deploy run `29360919260` for website commit
   `aac0e52f2cbfc388afc884073e36172cd26e4c9e`
 - GitHub Actions snapshot run `29361099780`
+- GitHub Actions tutorial verification run `29371910390` for tutorial commit
+  `0993f2f940f66501fd2e4318bd7b9a8663edbfec`
+- GitHub Actions deploy run `29371909883` for website commit
+  `9260ea3910a111ff76adbd8b837fa7938b9314b6`
+- GitHub Actions snapshot run `29372062650`
 - `uv run kups-tutorial verify-reviews`
 
 ## Code And Reproducibility Review
@@ -154,10 +159,16 @@ Open items:
 - Website deploy run `29360919260` succeeded for commit
   `aac0e52f2cbfc388afc884073e36172cd26e4c9e`.
 - Snapshot workflow run `29361099780` captured the expanded hidden page.
+- Snapshot workflow run `29372062650` captured the compact argon observable
+  refresh for website commit `9260ea3910a111ff76adbd8b837fa7938b9314b6`.
 - Snapshot artifact `kups-md-page-snapshots` was downloaded to
   `/tmp/kups-post06-expanded-snapshots/`.
+- Refreshed snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post06-argon-observable-snapshots/`.
 - Manifest reviewed:
   `/tmp/kups-post06-expanded-snapshots/manifest.json`.
+- Refreshed manifest reviewed:
+  `/tmp/kups-post06-argon-observable-snapshots/manifest.json`.
 - Manifest coverage: desktop and mobile snapshots were captured for
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`;
   both returned HTTP 200 with page title
@@ -165,6 +176,9 @@ Open items:
 - Rendered snapshots visually inspected:
   `/tmp/kups-post06-expanded-snapshots/post-06-desktop.png` and
   `/tmp/kups-post06-expanded-snapshots/post-06-mobile.png`.
+- Refreshed rendered snapshots visually inspected:
+  `/tmp/kups-post06-argon-observable-snapshots/post-06-desktop.png` and
+  `/tmp/kups-post06-argon-observable-snapshots/post-06-mobile.png`.
 
 Rendered page feedback:
 
@@ -178,13 +192,21 @@ Rendered page feedback:
   navigation, author note, tables, equation, figure, code block,
   current-status section, and references present. Tables are narrow but readable
   and are not clipped in the inspected snapshot.
+- Refreshed desktop capture renders the compact argon observable article end
+  to end with the updated source links, controlled and argon diagnostic tables,
+  four-panel figure, reproduction code block, practical checklist,
+  current-status section, references, and footer visible. No blank page,
+  missing figure, obvious clipping, or broken page chrome was found in the
+  inspected snapshot.
+- Refreshed mobile capture renders the updated page with the four-panel figure
+  visible and the argon panel present. The narrow left navigation and tables
+  remain tight, consistent with prior hidden-page captures, but no blocking
+  clipping or missing asset was found in the inspected snapshot.
 
 Open items:
 
 - Keep mobile table wrapping as a final typography-polish item after the rest
   of the articles are expanded.
-- Re-run the page snapshot workflow after the compact argon observable refresh
-  is deployed, then record desktop and mobile feedback.
 - Add larger GPU kUPS trajectory-length diagnostics for physical observables
   before treating this post as final.
 - Re-run the page snapshot workflow again after the final production

@@ -142,3 +142,53 @@ Revision decisions:
   in place.
 - Final article polish item: recheck mobile table/code wrapping after posts are
   expanded to full length.
+
+## Expanded Post 01 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29356548516`.
+- Website commit: `6534a212ddd9baa6403c57558b19c9b6daab8d15`.
+- Deploy run for that commit: `29356354203`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post01-final-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post01-final-snapshots/manifest.json`.
+- Capture scope: post 01 only, after expansion to about 3,765 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-01-initialization/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do You Initialize an MD Simulation Without Biasing the Result? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post01-final-snapshots/post-01-desktop.png`
+- `/tmp/kups-post01-final-snapshots/post-01-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, equations, two tables, figure, reproduction code blocks,
+  current-status section, references, and footer present. No blank page,
+  missing figure, obvious text clipping, or broken page chrome was found in the
+  inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, author note, section headings, equations, figure, code blocks,
+  current-status section, references, and footer present. The initialization
+  and minimization/warmup tables are narrow but remain readable and are not
+  clipped in the inspected snapshot.
+- The final capture was taken after replacing inline `\(...\)` notation with
+  plain notation in prose where the deployed Jekyll stack rendered inline math
+  delimiters as ordinary parentheses.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 01 hidden draft.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- The page remains hidden from public navigation and direct-link reachable.

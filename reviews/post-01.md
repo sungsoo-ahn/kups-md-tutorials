@@ -5,9 +5,8 @@
 - Post: 01
 - Profiles reviewed: smoke and full
 - Current status: initialization workflow, committed smoke/full outputs,
-  notebook, full-profile diagnostic figure, hidden website draft, and
-  self-review artifacts are in place; rendered page snapshots are still
-  pending.
+  notebook, full-profile diagnostic figure, expanded hidden website draft,
+  rendered page snapshots, and self-review artifacts are in place.
 
 ## Commands
 
@@ -21,10 +20,15 @@
 - `uv run ruff check .`
 - `git diff --check`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
+- `git diff --check` in `../sungsoo-ahn.github.io`
 - `curl -I -L https://sungsoo-ahn.github.io/kups-md-tutorials/post-01-initialization/`
 - attempted `npx --yes playwright@latest screenshot ...` for desktop/mobile
   snapshots; blocked because the local Node.js is 12.22.9 and Playwright
   requires Node.js 18 or higher.
+- GitHub Pages deploy `29356354203` for website commit
+  `6534a212ddd9baa6403c57558b19c9b6daab8d15`.
+- GitHub Actions snapshot workflow `29356548516` for post 01.
 
 ## Code And Reproducibility Review
 
@@ -39,7 +43,7 @@
 
 Open items:
 
-- Add rendered page snapshots after the hidden website draft deploys.
+- Keep the compact summary in sync if the initialization workflow changes.
 
 ## Scientific Review
 
@@ -57,8 +61,8 @@ Open items:
 
 Open items:
 
-- Add explicit text explaining when exact temperature rescaling is useful and
-  why it changes the sampled distribution.
+- Recheck the exact-temperature explanation after the integrator and thermostat
+  articles are expanded, so the terminology is consistent across posts.
 
 ## Figure Snapshot Review
 
@@ -84,8 +88,7 @@ Feedback loop:
 
 Open items:
 
-- Recheck mobile rendering once the website post exists.
-- Confirm caption wording in the website draft uses `\(...\)` for any math.
+- Recheck figure placement after the final all-post typography pass.
 
 ## Notebook Review
 
@@ -98,26 +101,60 @@ Open items:
 
 Open items:
 
-- Add the full prose article in the website repository.
+- Re-execute the notebook if the article requests any new numerical table or
+  figure beyond the current initialization diagnostics.
 
 ## Website Draft Review
 
-- Added and deployed a hidden draft page in `../sungsoo-ahn.github.io` at
+- Added, expanded, and deployed a hidden draft page in
+  `../sungsoo-ahn.github.io` at
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-01-initialization/`.
 - The page uses the website `post` layout, `nav: false`, the shared
   `kups-md-tutorials` series metadata, and links back to the executable config,
   notebook, smoke/full summaries, full manifest, and review note.
 - Copied the reviewed full-profile SVG figure to
   `assets/img/blog/kups_md_post01_initialization_diagnostics.svg`.
-- `python3 scripts/validate_blog.py` passes with pre-existing unused-image
-  warnings in the website repository.
-- The deployed page returns HTTP 200.
+- Expanded the article body from about 766 words to about 3,765 words. The
+  expanded draft now covers the initialization contract, density/cell
+  construction, finite-system velocity sampling, exact-temperature rescaling,
+  center-of-mass removal, minimization and warmup boundaries, provenance,
+  methods reporting, controlled replicas, and connections to the later
+  integrator, thermostat, free-energy, and MLIP posts.
+- Replaced inline `\(...\)` notation in the expanded prose with plain notation
+  where this Jekyll stack rendered inline math delimiters as ordinary
+  parentheses. Display equations remain in display-math form.
+- `python3 scripts/validate_kups_pages.py` passes in the website repository.
+- `python3 scripts/validate_blog.py` passes in the website repository with
+  pre-existing unused-image warnings.
+- `git diff --check` passes in the website repository.
+- GitHub Pages deploy `29356354203` built and deployed website commit
+  `6534a212ddd9baa6403c57558b19c9b6daab8d15` successfully.
+- The deployed page snapshot manifest from workflow `29356548516` contains
+  desktop and mobile captures for the hidden URL, both HTTP 200, with title
+  `How Do You Initialize an MD Simulation Without Biasing the Result? | Sungsoo Ahn`.
+
+Rendered snapshots reviewed:
+
+- `/tmp/kups-post01-final-snapshots/post-01-desktop.png`
+- `/tmp/kups-post01-final-snapshots/post-01-mobile.png`
+
+Rendered feedback:
+
+- Desktop full-page capture renders the expanded article end to end: sidebar
+  table of contents, equations, initialization table, density equation, figure,
+  minimization/warmup table, reproduction commands, current-status section,
+  references, and footer are present. No missing figure, blank page, obvious
+  clipped text, or broken page chrome was found in the inspected snapshot.
+- Mobile full-page capture renders the title, author note, article sections,
+  equations, figure, code blocks, status, references, and footer. The two
+  tables are narrow but remain readable and are not clipped in the inspected
+  screenshot. Keep table wrapping as a final typography-polish item when the
+  rest of the series reaches full article length.
 
 Open items:
 
-- Capture and inspect deployed desktop and mobile snapshots for this hidden
-  page. The current local environment lacks a browser-capable screenshot path:
-  `bundle` is unavailable, no Chromium/Firefox binary is installed, and
-  Playwright CLI is blocked by Node.js 12.22.9.
-- Expand the draft into the full 3,500-10,000-word article after rendered page
-  snapshots are reviewed.
+- The page remains intentionally hidden from public navigation.
+- Perform a final all-post consistency pass after the other eleven articles are
+  expanded.
+- Re-capture rendered desktop and mobile snapshots after that final consistency
+  pass.

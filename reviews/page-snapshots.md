@@ -734,3 +734,66 @@ Revision decisions:
   production diagnostics, and regenerated MLIP figure remain final-release
   blockers until implemented and snapshot-reviewed.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## All Expanded Drafts Consistency Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29367230234`.
+- Website commit: `c540d524e37527a8a586175d53cbefc76474492a`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-all-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-all-expanded-snapshots/manifest.json`.
+- Capture scope: posts 01-12 after all hidden drafts had expanded article
+  prose and individual snapshot reviews.
+
+Manifest coverage:
+
+- 24 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for posts 01-12.
+- All captured URLs returned HTTP 200.
+- Desktop captures are present for posts:
+  `01,02,03,04,05,06,07,08,09,10,11,12`.
+- Mobile captures are present for posts:
+  `01,02,03,04,05,06,07,08,09,10,11,12`.
+
+Snapshots visually inspected in this pass:
+
+- Contact sheet:
+  `/tmp/kups-all-expanded-snapshots/contact-sheets/desktop-contact.png`.
+- Contact sheet:
+  `/tmp/kups-all-expanded-snapshots/contact-sheets/mobile-contact.png`.
+- Narrow/mobile spot checks:
+  `/tmp/kups-all-expanded-snapshots/post-03-mobile.png`,
+  `/tmp/kups-all-expanded-snapshots/post-11-mobile.png`, and
+  `/tmp/kups-all-expanded-snapshots/post-05-mobile.png`.
+
+Feedback:
+
+- Desktop contact-sheet inspection shows all twelve expanded hidden pages
+  render end to end with sidebar table of contents, hidden-draft note, source
+  links, article sections, at least one diagnostic figure, reproduction block,
+  current-status section, references, and footer present. No blank page, missing
+  figure, or broken page chrome was visible in the inspected contact sheet.
+- Mobile contact-sheet inspection shows all twelve pages reach references and
+  footer. Titles wrap heavily on the longest posts, but no title overlap or
+  page breakage was visible in the contact sheet.
+- Narrow/mobile spot checks confirm table-heavy and long-title pages remain
+  contained. Post 03 at 390 px, post 11 at 390 px, and post 05 at 616 px all
+  render titles, hidden notes, tables, figures, code blocks, current-status
+  sections, references, and footer without clipping or overlap.
+
+Revision decisions:
+
+- No blocking layout issue was found in the all-expanded-drafts consistency
+  pass.
+- Keep mobile title and table wrapping as final typography-polish items when
+  pages are made public.
+- This pass resolves the older "recapture after all other articles are
+  expanded" review item for posts 01-04.
+- The pages remain hidden from public navigation and direct-link reachable.
+- Final-release scientific blockers remain: argon/kUPS production diagnostics,
+  final estimator/enhanced-sampling figures where applicable, real MACE/fcc-Al
+  GPU diagnostics, pinned model artifact metadata, and another rendered
+  snapshot pass after final figure/publication changes.

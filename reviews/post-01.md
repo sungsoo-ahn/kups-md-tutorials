@@ -154,7 +154,3 @@ Rendered feedback:
 Open items:
 
 - The page remains intentionally hidden from public navigation.
-- Perform a final all-post consistency pass after the other eleven articles are
-  expanded.
-- Re-capture rendered desktop and mobile snapshots after that final consistency
-  pass.

@@ -1,0 +1,58 @@
+name: Verify tutorials
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Ruff
+        run: uv run ruff check .
+
+      - name: Pytest
+        run: uv run pytest -q
+
+      - name: Reproduce smoke outputs
+        run: uv run kups-tutorial run-all --profile smoke --output-dir /tmp/kups-md-smoke
+
+      - name: Verify smoke outputs
+        run: uv run kups-tutorial verify --profile smoke --output-dir /tmp/kups-md-smoke
+
+      - name: Verify committed full outputs
+        run: uv run kups-tutorial verify --profile full
+
+      - name: Audit tracked artifacts
+        run: uv run kups-tutorial verify-artifacts
+
+      - name: Audit review notes
+        run: uv run kups-tutorial verify-reviews
+
+      - name: Execute notebooks
+        run: uv run kups-tutorial verify-notebooks --output-dir /tmp/kups-md-notebooks
+
+      - name: Whitespace check
+        run: git diff --check

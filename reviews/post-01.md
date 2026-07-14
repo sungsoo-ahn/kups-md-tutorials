@@ -17,6 +17,7 @@
 - `uv run pytest -q`
 - `uv run ruff check .`
 - `git diff --check`
+- `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
 
 ## Code And Reproducibility Review
 
@@ -30,7 +31,7 @@
 
 Open items:
 
-- Add website draft and rendered page snapshots.
+- Add rendered page snapshots after the hidden website draft deploys.
 - Decide whether to commit full-profile initialization outputs after reviewing
   their size and scientific value.
 
@@ -87,3 +88,22 @@ Open items:
 
 - Add the full prose article in the website repository.
 - Re-run the notebook after full-profile outputs are added.
+
+## Website Draft Review
+
+- Added a hidden draft page in `../sungsoo-ahn.github.io` at
+  `/kups-md-tutorials/post-01-initialization/`.
+- The page uses the website `post` layout, `nav: false`, the shared
+  `kups-md-tutorials` series metadata, and links back to the executable config,
+  notebook, smoke summary, manifest, and review note.
+- Copied the reviewed SVG figure to
+  `assets/img/blog/kups_md_post01_initialization_diagnostics.svg`.
+- `python3 scripts/validate_blog.py` passes with pre-existing unused-image
+  warnings in the website repository.
+
+Open items:
+
+- Capture and inspect deployed desktop and mobile snapshots for this hidden
+  page.
+- Expand the draft into the full 3,500-10,000-word article after full-profile
+  outputs and final figures are reviewed.

@@ -5,6 +5,7 @@ import json
 
 from ase.io import read
 import matplotlib.pyplot as plt
+from matplotlib import rc_context
 import numpy as np
 
 
@@ -38,7 +39,29 @@ def generate_post01_figures(
     velocities = atoms.get_velocities()
     standardized_velocities = _standardize(velocities.reshape(-1))
 
-    fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+    with rc_context({"svg.hashsalt": "kups-md-tutorials-post-01"}):
+        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+        _draw_post01_figure(fig, axes, atoms, summary, positions, standardized_velocities)
+
+        svg_path = figure_dir / "initialization_diagnostics.svg"
+        png_path = figure_dir / "initialization_diagnostics.png"
+        snapshot_path = snapshot_dir / "initialization_diagnostics_snapshot.png"
+        fig.savefig(svg_path, metadata={"Date": None})
+        _strip_trailing_whitespace(svg_path)
+        fig.savefig(png_path, dpi=220)
+        fig.savefig(snapshot_path, dpi=160)
+        plt.close(fig)
+    return [svg_path, png_path, snapshot_path]
+
+
+def _draw_post01_figure(
+    fig: plt.Figure,
+    axes: np.ndarray,
+    atoms,
+    summary: dict,
+    positions: np.ndarray,
+    standardized_velocities: np.ndarray,
+) -> None:
     fig.patch.set_facecolor("white")
 
     axes[0].scatter(
@@ -158,13 +181,3 @@ def generate_post01_figures(
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         ax.grid(alpha=0.18, linewidth=0.6)
-
-    svg_path = figure_dir / "initialization_diagnostics.svg"
-    png_path = figure_dir / "initialization_diagnostics.png"
-    snapshot_path = snapshot_dir / "initialization_diagnostics_snapshot.png"
-    fig.savefig(svg_path)
-    _strip_trailing_whitespace(svg_path)
-    fig.savefig(png_path, dpi=220)
-    fig.savefig(snapshot_path, dpi=160)
-    plt.close(fig)
-    return [svg_path, png_path, snapshot_path]

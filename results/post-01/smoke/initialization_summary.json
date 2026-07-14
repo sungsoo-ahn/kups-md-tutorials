@@ -1,0 +1,14 @@
+{
+  "atom_count": 32,
+  "center_of_mass_speed": 7.045623056532181e-19,
+  "chemical_formula": "Ar32",
+  "config_sha256": "0d654a2a2097eac2e54cd3a59f9d2cc77f18641618f3bcdcc0e045deea52a848",
+  "instantaneous_temperature_k": 103.23132783754575,
+  "kinetic_energy_ev": 0.42699765750033536,
+  "number_density": 0.021300000000000017,
+  "post": "01",
+  "profile": "smoke",
+  "seed": 2026071401,
+  "target_temperature_k": 94.4,
+  "volume": 1502.3474178403744
+}

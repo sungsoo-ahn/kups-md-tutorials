@@ -4,13 +4,13 @@
 
 - Post: 09
 - Profiles reviewed: smoke and full
-- Current status: controlled free-energy estimator workflow, compact smoke/full
-  outputs, notebook, full-profile diagnostic figure, figure snapshots, expanded
-  hidden website draft, rendered page snapshots, and this self-review artifact
-  are in place.
-- Working-tree state: website expansion committed as
-  `4c32e635190a3aa15f270c6c04cfb3c8dc06bdb0`; review update committed after
-  this pass.
+- Current status: controlled free-energy estimator workflow, multi-state
+  bridge diagnostic, compact smoke/full outputs, notebook, full-profile
+  four-panel diagnostic figure, figure snapshots, refreshed hidden website
+  draft, rendered page snapshots, and this self-review artifact are in place.
+- Working-tree state: multi-state bridge diagnostic committed as
+  `dabe886cc2021f96badc89c6d8d98605f4b0ac90`; hidden website refresh
+  committed as `d0144d9f96023e9c5fa57a44dcd9d3a729f0603b`.
 - Hidden draft URL:
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`
 
@@ -40,6 +40,14 @@
 - GitHub Actions deploy run `29363423337` for website commit
   `4c32e635190a3aa15f270c6c04cfb3c8dc06bdb0`
 - GitHub Actions snapshot run `29363609573`
+- `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/estimators.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py tests/test_config.py`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- GitHub Actions tutorial verify run `29375269908` for tutorial commit
+  `dabe886cc2021f96badc89c6d8d98605f4b0ac90`
+- GitHub Actions deploy run `29375280052` for website commit
+  `d0144d9f96023e9c5fa57a44dcd9d3a729f0603b`
+- GitHub Actions snapshot run `29375440197`
 - `uv run kups-tutorial verify-reviews`
 
 ## Code And Reproducibility Review
@@ -52,6 +60,11 @@
 - The summary records forward FEP, reverse FEP, BAR, estimator errors, overlap
   coefficient, forward/reverse effective-sample-size fractions, and work
   distribution moments for each overlap regime.
+- The workflow now also records a multi-state bridge diagnostic under
+  `multistate_protocols`, plus `multistate_curves.csv` and
+  `multistate_windows.csv`. The diagnostic compares a connected dense bridge
+  against an endpoint-only sparse bridge for a known Gaussian target with
+  harmonic biased windows.
 - The manifest records the loaded config, compact output filenames, config
   hash, Git revision, Python/platform metadata, and kUPS/NumPy versions.
 - `kups-tutorial run`, `verify`, and `run-all` include post 09.
@@ -74,16 +87,26 @@
   `0.00274`, reverse ESS fraction `0.00182`, and BAR error `0.0326`. Forward
   FEP error rises to `0.0472`, showing the expected overlap failure before BAR
   becomes catastrophically wrong.
+- The full-profile dense multi-state bridge uses 7 harmonic windows, minimum
+  adjacent overlap about `0.184`, and no disconnected adjacent edges.
+- The sparse bridge uses only endpoint windows, has minimum adjacent overlap
+  `0.0`, and has one disconnected edge. Its support-aware PMF RMSE is higher
+  than the dense bridge because unsupported bins are penalized as protocol
+  failures rather than silently removed from the error calculation.
 - The verification rule checks that overlap regimes are distinct, BAR remains
   close to the answer key, forward ESS collapses from good to poor overlap, and
   poor-overlap forward FEP is worse than good-overlap forward FEP.
+- The verification rule also checks that the dense bridge has better adjacent
+  overlap than the sparse bridge, that the dense bridge has no disconnected
+  edges, that the sparse bridge exposes a broken overlap-network edge, and
+  that the dense bridge has lower support-aware PMF RMSE.
 
 Open items:
 
 - The final article should explain that a small FEP error in one finite run
   does not prove reliability when ESS and overlap are poor.
-- Any final WHAM/MBAR production figure should be added only with its own
-  snapshot review.
+- If a later public article adds a chemistry-specific WHAM/MBAR or alchemical
+  production example, add that figure only with its own snapshot review.
 
 ## Figure Feedback Review
 
@@ -104,19 +127,30 @@ Feedback loop:
 - The work-distribution panel shows why the exponential average becomes fragile:
   good-overlap work values sit near the free-energy line, while poor-overlap
   work values rely on rare low-work tail samples.
-- No label clipping, legend overlap, unreadable ticks, or misleading scale was
-  found in the inspected full-profile snapshot.
+- First multi-state bridge pass: the dense bridge line tracks the true PMF
+  through the central high-probability region, while the sparse endpoint-only
+  bridge has a visible missing middle. This supports the intended WHAM/MBAR
+  lesson that a broken overlap network is a protocol failure.
+- The snapshot review caught an earlier reconstruction bug: the PMF panel was
+  flattened because the biased-window normalization constants were omitted.
+  The reconstruction now applies the analytic harmonic-window bridge constant,
+  and support-aware RMSE penalizes unsupported bins.
+- The final full-profile snapshot has readable labels, ticks, legends, and the
+  dense/sparse bridge annotation. The dense curve has edge-tail noise near the
+  low-support ends, which is accepted for the hidden draft because it visibly
+  illustrates tail sensitivity and does not obscure the central bridge claim.
 
 Open items:
 
-- If the final article adds MBAR/WHAM figures, repeat the same snapshot review
-  for those publication assets.
+- Repeat figure snapshot review if a later public article adds a
+  chemistry-specific production WHAM/MBAR or alchemical figure.
 
 ## Notebook Review
 
 - `notebooks/post-09-estimators.ipynb` loads smoke and full configurations,
-  prints committed full-summary diagnostics, and regenerates the full-profile
-  estimator figure from committed result files.
+  prints committed full-summary diagnostics including the dense/sparse
+  multi-state bridge metrics, and regenerates the full-profile estimator
+  figure from committed result files.
 - `uv run jupyter execute notebooks/post-09-estimators.ipynb --inplace` passes
   and saves executed outputs. Jupyter emitted a non-blocking
   `MissingIDFieldWarning` while normalizing cell IDs.
@@ -162,6 +196,24 @@ Open items:
 - Rendered snapshots visually inspected:
   `/tmp/kups-post09-expanded-snapshots/post-09-desktop.png` and
   `/tmp/kups-post09-expanded-snapshots/post-09-mobile.png`.
+- Refreshed hidden page and exported assets deployed in website commit
+  `d0144d9f96023e9c5fa57a44dcd9d3a729f0603b`; deploy run
+  `29375280052` succeeded.
+- Tutorial commit `dabe886cc2021f96badc89c6d8d98605f4b0ac90` passed verify
+  run `29375269908`.
+- Snapshot workflow run `29375440197` captured the refreshed hidden post 09
+  page after deployment.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post09-bridge-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post09-bridge-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`; both
+  returned HTTP 200 with page title
+  `What Do Free-Energy Estimators Assume? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post09-bridge-snapshots/post-09-desktop.png` and
+  `/tmp/kups-post09-bridge-snapshots/post-09-mobile.png`.
 
 Rendered page feedback:
 
@@ -174,13 +226,20 @@ Rendered page feedback:
   navigation, author note, tables, figure, code block, current-status section,
   and references present. Tables are tight but contained, and the figure remains
   readable.
+- Refreshed desktop capture renders the new four-panel diagnostic figure, the
+  updated WHAM/MBAR bridge prose, current-status section, references, and
+  footer. No blank page, missing figure, obvious clipping, or broken page
+  chrome was found.
+- Refreshed mobile capture keeps the four-panel figure inside the article
+  column. Long title and tables remain tight but contained, and the bridge
+  panel remains legible enough for the hidden draft state.
 
 Open items:
 
 - Keep mobile table wrapping as a final typography-polish item after the rest
   of the articles are expanded.
-- Add any final MBAR/WHAM production figures and snapshot-review them before
-  treating this post as final.
+- Repeat rendered snapshots if publication indexing changes or if a later
+  public article adds a chemistry-specific estimator figure.
 
 ## Prose And Style Review
 
@@ -204,6 +263,5 @@ Non-blocking items accepted until the final article pass:
 
 Final-release blockers:
 
-- Add any final MBAR/WHAM production figures and snapshot-review them.
-- Re-run rendered desktop/mobile snapshots after any final estimator figures,
-  citation changes, or publication indexing changes.
+- Re-run rendered desktop/mobile snapshots after publication indexing changes
+  or any later chemistry-specific estimator figure additions.

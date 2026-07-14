@@ -1119,3 +1119,61 @@ Revision decisions:
   final citations remain final-release blockers for post 08.
 - The page series remains hidden from public navigation and direct-link
   reachable.
+
+## Post 09 Multi-State Estimator Bridge Snapshot Refresh
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29375440197`.
+- Website commit: `d0144d9f96023e9c5fa57a44dcd9d3a729f0603b`.
+- Deploy run for that commit: `29375280052`.
+- Tutorial commit reviewed:
+  `dabe886cc2021f96badc89c6d8d98605f4b0ac90`.
+- Tutorial verify run for that commit: `29375269908`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post09-bridge-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post09-bridge-snapshots/manifest.json`.
+- Capture scope: post 09 after adding the dense-vs-sparse multi-state
+  estimator bridge diagnostic, exported compact result files, refreshed
+  four-panel figure, and updated hidden-page prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Do Free-Energy Estimators Assume? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post09-bridge-snapshots/post-09-desktop.png`
+- `/tmp/kups-post09-bridge-snapshots/post-09-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the refreshed long article end to end with sidebar
+  table of contents, hidden-draft note, source links, estimator tables,
+  updated WHAM/MBAR bridge prose, four-panel diagnostic figure, reproduction
+  block, current-status section, references, and footer present. No missing
+  figure, blank page, obvious clipped text, or broken page chrome was found in
+  the inspected snapshot.
+- Mobile capture renders the title, hidden-draft note, tables, four-panel
+  figure, code block, current-status section, references, and footer. The long
+  title and tables are tight, but they remain contained; the figure scales
+  inside the article column.
+- The bridge panel remains legible in both viewports. The sparse endpoint-only
+  curve has a visible missing middle, matching the prose claim that a broken
+  adjacent-overlap network is a protocol failure.
+
+Revision decisions:
+
+- No blocking layout issue was found for the updated post 09 hidden draft.
+- The multi-state estimator bridge figure/prose update is snapshot-reviewed
+  for the hidden draft state.
+- Keep mobile title and table wrapping as final typography-polish items.
+- Re-run rendered snapshots if publication indexing changes or if a later
+  public article adds a chemistry-specific estimator figure.
+- The page remains hidden from public navigation and direct-link reachable.

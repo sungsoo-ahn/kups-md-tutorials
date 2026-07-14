@@ -530,3 +530,52 @@ Revision decisions:
 - The argon/kUPS RDF-derived PMF diagnostic linked back to post 07 remains a
   final-release blocker for post 08.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 09 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29363609573`.
+- Website commit: `4c32e635190a3aa15f270c6c04cfb3c8dc06bdb0`.
+- Deploy run for that commit: `29363423337`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post09-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post09-expanded-snapshots/manifest.json`.
+- Capture scope: post 09 only, after expansion to about 3,503 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Do Free-Energy Estimators Assume? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post09-expanded-snapshots/post-09-desktop.png`
+- `/tmp/kups-post09-expanded-snapshots/post-09-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-draft note, source links, estimator/ESS tables,
+  full-profile estimator figure, reproduction code block, practical checklist,
+  current-status section, references, and footer present. No blank page, missing
+  figure, obvious text clipping, or broken page chrome was found in the
+  inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, navigation, hidden-draft note, tables, figure, code block,
+  current-status section, and references present. The tables are tight but
+  contained, and the figure remains readable.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 09 hidden draft.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- Any final MBAR/WHAM production figure remains a final-release blocker for
+  post 09 until implemented and snapshot-reviewed.
+- The page remains hidden from public navigation and direct-link reachable.

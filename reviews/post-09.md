@@ -5,10 +5,12 @@
 - Post: 09
 - Profiles reviewed: smoke and full
 - Current status: controlled free-energy estimator workflow, compact smoke/full
-  outputs, notebook, full-profile diagnostic figure, figure snapshots, and this
-  self-review artifact are in place; the hidden website draft is in place.
-- Working-tree state: post 09 implementation is uncommitted during this review
-  pass.
+  outputs, notebook, full-profile diagnostic figure, figure snapshots, expanded
+  hidden website draft, rendered page snapshots, and this self-review artifact
+  are in place.
+- Working-tree state: website expansion committed as
+  `4c32e635190a3aa15f270c6c04cfb3c8dc06bdb0`; review update committed after
+  this pass.
 - Hidden draft URL:
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`
 
@@ -22,6 +24,7 @@
 - `uv run ruff check src tests scripts`
 - `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py -q`
 - `uv run jupyter execute notebooks/post-09-estimators.ipynb --inplace`
+- `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
 - `uv run pytest -q`
 - `uv run ruff check .`
@@ -34,6 +37,10 @@
 - `curl -L --silent 'https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/?v=449ed1b' | rg ...`
 - `curl -L --silent 'https://sungsoo-ahn.github.io/?v=449ed1b' | rg ...`
 - `curl -L --silent 'https://sungsoo-ahn.github.io/blog/?v=449ed1b' | rg ...`
+- GitHub Actions deploy run `29363423337` for website commit
+  `4c32e635190a3aa15f270c6c04cfb3c8dc06bdb0`
+- GitHub Actions snapshot run `29363609573`
+- `uv run kups-tutorial verify-reviews`
 
 ## Code And Reproducibility Review
 
@@ -50,11 +57,6 @@
 - `kups-tutorial run`, `verify`, and `run-all` include post 09.
 - The notebook imports reusable logic from `src/kups_md_tutorials/` rather
   than reimplementing the estimator or plotting code.
-
-Open items:
-
-- Capture rendered desktop and mobile page snapshots after the hidden draft
-  deploys.
 
 ## Scientific Review
 
@@ -78,13 +80,10 @@ Open items:
 
 Open items:
 
-- The final article should state that this is an exactly solvable estimator
-  diagnostic, not a production alchemical workflow.
 - The final article should explain that a small FEP error in one finite run
   does not prove reliability when ESS and overlap are poor.
-- WHAM/MBAR should be introduced conceptually in prose after the two-state
-  BAR/FEP diagnostic, with references and a clear statement of what additional
-  overlap structure they assume.
+- Any final WHAM/MBAR production figure should be added only with its own
+  snapshot review.
 
 ## Figure Feedback Review
 
@@ -110,8 +109,6 @@ Feedback loop:
 
 Open items:
 
-- Recheck figure readability inside the rendered hidden webpage at desktop and
-  mobile widths.
 - If the final article adds MBAR/WHAM figures, repeat the same snapshot review
   for those publication assets.
 
@@ -133,8 +130,17 @@ Open items:
   notebook, smoke/full summaries, full manifest, and review note.
 - Copied the reviewed full-profile SVG figure to
   `assets/img/blog/kups_md_post09_estimator_diagnostics.svg`.
+- Expanded the hidden page from the short draft to about 3,503 words. The
+  expanded prose explains FEP assumptions, reverse FEP, BAR, ESS, WHAM/MBAR
+  overlap networks, estimator failure symptoms, intermediate-state design,
+  MLIP-specific risks, reporting mistakes, methods reporting, and practical
+  estimator diagnostics.
+- The expanded prose keeps the scope clear: the committed result is an exactly
+  solvable Gaussian estimator diagnostic, not a production alchemical workflow.
+- `python3 scripts/validate_kups_pages.py` passes in the website repository.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
+- `git diff --check` passes in the website repository.
 - GitHub Pages deployments `29348734443` and correction run `29348976216`
   completed successfully. The live hidden URL returns HTTP 200 and contains the
   expected title, estimator notebook link, full summary link, current-status
@@ -142,11 +148,39 @@ Open items:
 - The public homepage and blog index did not contain `post-09-estimators` or
   `kups-md-tutorials` in the deployed HTML checked with cache-buster
   `?v=449ed1b`.
+- Website deploy run `29363423337` succeeded for the expanded page commit
+  `4c32e635190a3aa15f270c6c04cfb3c8dc06bdb0`.
+- Snapshot workflow run `29363609573` captured the expanded hidden page.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post09-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post09-expanded-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`; both
+  returned HTTP 200 with page title
+  `What Do Free-Energy Estimators Assume? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post09-expanded-snapshots/post-09-desktop.png` and
+  `/tmp/kups-post09-expanded-snapshots/post-09-mobile.png`.
+
+Rendered page feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-page note, source links, estimator/ESS tables, full-profile
+  estimator figure, reproduction code block, current-status section,
+  references, and footer present. No blank page, missing figure, obvious
+  clipping, or broken page chrome was found in the inspected snapshot.
+- Mobile capture renders the same content through the mobile layout with title,
+  navigation, author note, tables, figure, code block, current-status section,
+  and references present. Tables are tight but contained, and the figure remains
+  readable.
 
 Open items:
 
-- Capture and inspect rendered desktop and mobile snapshots for this hidden
-  page.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- Add any final MBAR/WHAM production figures and snapshot-review them before
+  treating this post as final.
 
 ## Prose And Style Review
 
@@ -166,12 +200,10 @@ Blocking items for the current hidden draft:
 
 Non-blocking items accepted until the final article pass:
 
-- Rendered page snapshots are still pending.
-- The draft will remain short and explicitly non-final.
+- The page remains hidden and explicitly non-final.
 
 Final-release blockers:
 
-- Expand the prose to a full article with citations for FEP, BAR, WHAM, MBAR,
-  overlap, and effective sample size.
 - Add any final MBAR/WHAM production figures and snapshot-review them.
-- Resolve rendered desktop/mobile page snapshot feedback.
+- Re-run rendered desktop/mobile snapshots after any final estimator figures,
+  citation changes, or publication indexing changes.

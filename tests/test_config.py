@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from kups_md_tutorials.config import RunSpec, load_integrator_spec
+from kups_md_tutorials.config import RunSpec, load_error_spec, load_integrator_spec
 
 
 def test_run_spec_validates_sampling_interval() -> None:
@@ -39,3 +39,10 @@ def test_load_integrator_spec() -> None:
     assert spec.system.kind == "harmonic_oscillator"
     assert spec.experiment.reference_integrator == "velocity_verlet"
     assert "explicit_euler" in spec.experiment.integrators
+
+
+def test_load_error_spec() -> None:
+    spec = load_error_spec("03", "smoke")
+    assert spec.system.kind == "harmonic_oscillator"
+    assert "float64" in spec.experiment.precisions
+    assert spec.experiment.force_cases[0].name == "exact_force"

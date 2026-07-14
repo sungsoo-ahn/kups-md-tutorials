@@ -1,0 +1,22 @@
+{
+  "post": "03",
+  "profile": "full",
+  "title": "How Do Timestep, Precision, and Force Error Become Simulation Error?",
+  "system": {
+    "kind": "harmonic_oscillator",
+    "mass": 1.0,
+    "omega": 1.0,
+    "position": 1.0,
+    "velocity": 0.0
+  },
+  "error_experiment": {
+    "num_steps": 3000,
+    "time_steps": [0.02, 0.05, 0.1, 0.18],
+    "precisions": ["float64", "float32", "rounded_1e-4", "rounded_1e-3"],
+    "force_cases": [
+      {"name": "exact_force", "force_scale": 1.0},
+      {"name": "biased_low_force", "force_scale": 0.98},
+      {"name": "biased_high_force", "force_scale": 1.02}
+    ]
+  }
+}

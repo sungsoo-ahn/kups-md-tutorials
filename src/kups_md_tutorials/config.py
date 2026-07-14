@@ -147,6 +147,62 @@ class IntegratorTutorialSpec:
         return Path(f"post-{self.post}") / self.profile
 
 
+@dataclass(frozen=True)
+class ForceErrorCase:
+    """One deterministic force model perturbation for post-03 diagnostics."""
+
+    name: str
+    force_scale: float
+
+
+@dataclass(frozen=True)
+class ErrorExperimentSpec:
+    """Configuration for timestep, precision, and force-error diagnostics."""
+
+    num_steps: int
+    time_steps: tuple[float, ...]
+    precisions: tuple[str, ...]
+    force_cases: tuple[ForceErrorCase, ...]
+
+    def validate(self) -> None:
+        if self.num_steps <= 0:
+            msg = "num_steps must be positive"
+            raise ValueError(msg)
+        if not self.time_steps:
+            msg = "time_steps must be non-empty"
+            raise ValueError(msg)
+        if any(time_step <= 0.0 for time_step in self.time_steps):
+            msg = "time_steps must be positive"
+            raise ValueError(msg)
+        if not self.precisions:
+            msg = "precisions must be non-empty"
+            raise ValueError(msg)
+        if not self.force_cases:
+            msg = "force_cases must be non-empty"
+            raise ValueError(msg)
+        if any(not case.name for case in self.force_cases):
+            msg = "force case names must be non-empty"
+            raise ValueError(msg)
+        if any(case.force_scale <= 0.0 for case in self.force_cases):
+            msg = "force_scale must be positive"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class ErrorTutorialSpec:
+    """Configuration for post-03 simulation-error diagnostics."""
+
+    post: str
+    profile: str
+    title: str
+    system: HarmonicOscillatorSpec
+    experiment: ErrorExperimentSpec
+
+    @property
+    def result_dir_name(self) -> Path:
+        return Path(f"post-{self.post}") / self.profile
+
+
 def _expect_mapping(value: Any, name: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         msg = f"{name} must be an object"
@@ -250,6 +306,66 @@ def load_integrator_spec(
         raise ValueError(msg)
     if spec.system.kind != "harmonic_oscillator":
         msg = f"unsupported integrator system kind: {spec.system.kind}"
+        raise ValueError(msg)
+    if spec.system.mass <= 0.0:
+        msg = "harmonic oscillator mass must be positive"
+        raise ValueError(msg)
+    if spec.system.omega <= 0.0:
+        msg = "harmonic oscillator omega must be positive"
+        raise ValueError(msg)
+    spec.experiment.validate()
+    return spec
+
+
+def load_error_spec(
+    post: str, profile: str, config_root: Path = Path("configs")
+) -> ErrorTutorialSpec:
+    """Load a committed JSON configuration for simulation-error diagnostics."""
+
+    path = config_root / f"post-{post}" / f"{profile}.json"
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    root = _expect_mapping(data, "error config")
+    system = _expect_mapping(root.get("system"), "system")
+    experiment = _expect_mapping(root.get("error_experiment"), "error_experiment")
+
+    spec = ErrorTutorialSpec(
+        post=str(root["post"]),
+        profile=str(root["profile"]),
+        title=str(root["title"]),
+        system=HarmonicOscillatorSpec(
+            kind=str(system["kind"]),
+            mass=float(system["mass"]),
+            omega=float(system["omega"]),
+            position=float(system["position"]),
+            velocity=float(system["velocity"]),
+        ),
+        experiment=ErrorExperimentSpec(
+            num_steps=int(experiment["num_steps"]),
+            time_steps=tuple(float(value) for value in experiment["time_steps"]),
+            precisions=tuple(str(value) for value in experiment["precisions"]),
+            force_cases=tuple(
+                ForceErrorCase(
+                    name=str(_expect_mapping(value, "force case")["name"]),
+                    force_scale=float(
+                        _expect_mapping(value, "force case")["force_scale"]
+                    ),
+                )
+                for value in experiment["force_cases"]
+            ),
+        ),
+    )
+    if spec.post != post:
+        msg = f"config post {spec.post!r} does not match requested {post!r}"
+        raise ValueError(msg)
+    if spec.profile != profile:
+        msg = (
+            f"config profile {spec.profile!r} does not match requested {profile!r}"
+        )
+        raise ValueError(msg)
+    if spec.system.kind != "harmonic_oscillator":
+        msg = f"unsupported error system kind: {spec.system.kind}"
         raise ValueError(msg)
     if spec.system.mass <= 0.0:
         msg = "harmonic oscillator mass must be positive"

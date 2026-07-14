@@ -85,7 +85,46 @@ def generate_post02_figures(
     return [svg_path, png_path, snapshot_path]
 
 
+def generate_post03_figures(
+    result_dir: Path = Path("results/post-03/smoke"),
+    figure_dir: Path = Path("figures/post-03"),
+    snapshot_dir: Path = Path("snapshots/post-03"),
+    name: str = "error_diagnostics",
+) -> list[Path]:
+    """Generate timestep, precision, and force-error diagnostic figures."""
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+    summary = json.loads((result_dir / "error_summary.json").read_text())
+    samples = _read_post03_samples(result_dir / "error_samples.csv")
+
+    with rc_context({"svg.hashsalt": "kups-md-tutorials-post-03"}):
+        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+        _draw_post03_figure(fig, axes, summary, samples)
+
+        svg_path = figure_dir / f"{name}.svg"
+        png_path = figure_dir / f"{name}.png"
+        snapshot_path = snapshot_dir / f"{name}_snapshot.png"
+        fig.savefig(svg_path, metadata={"Date": None})
+        _strip_trailing_whitespace(svg_path)
+        fig.savefig(png_path, dpi=220)
+        fig.savefig(snapshot_path, dpi=160)
+        plt.close(fig)
+    return [svg_path, png_path, snapshot_path]
+
+
 def _read_post02_samples(path: Path) -> dict[str, np.ndarray]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    return {
+        key: np.array([float(row[key]) for row in rows], dtype=float)
+        for key in reader.fieldnames or []
+    }
+
+
+def _read_post03_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         rows = list(reader)
@@ -305,3 +344,106 @@ def _draw_post02_figure(
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         ax.grid(alpha=0.18, linewidth=0.6)
+
+
+def _draw_post03_figure(
+    fig: plt.Figure,
+    axes: np.ndarray,
+    summary: dict,
+    samples: dict[str, np.ndarray],
+) -> None:
+    fig.patch.set_facecolor("white")
+
+    runs = summary["runs"]
+    exact_float64 = sorted(
+        [
+            run
+            for run in runs
+            if run["force_case"] == "exact_force" and run["precision"] == "float64"
+        ],
+        key=lambda run: run["time_step"],
+    )
+    axes[0].plot(
+        [run["time_step"] for run in exact_float64],
+        [run["max_abs_relative_energy_error"] for run in exact_float64],
+        marker="o",
+        color="#2f6f9f",
+        linewidth=1.5,
+    )
+    axes[0].set_title("Timestep controls bounded error")
+    axes[0].set_xlabel("time step")
+    axes[0].set_ylabel("max |Delta E| / E0")
+    axes[0].set_yscale("log")
+
+    largest_dt = max(run["time_step"] for run in runs)
+    exact_largest = [
+        run
+        for run in runs
+        if run["force_case"] == "exact_force" and run["time_step"] == largest_dt
+    ]
+    exact_largest = sorted(exact_largest, key=lambda run: _precision_sort_key(run["precision"]))
+    axes[1].bar(
+        np.arange(len(exact_largest)),
+        [run["max_abs_relative_energy_error"] for run in exact_largest],
+        color="#6a8f4e",
+        edgecolor="#2d4721",
+        linewidth=0.6,
+    )
+    axes[1].set_title("Precision can set an error floor")
+    axes[1].set_ylabel("max |Delta E| / E0")
+    axes[1].set_yscale("log")
+    axes[1].set_xticks(np.arange(len(exact_largest)))
+    axes[1].set_xticklabels(
+        [run["precision"].replace("_", "\n") for run in exact_largest],
+        fontsize=8,
+    )
+
+    force_runs = sorted(
+        [
+            run
+            for run in runs
+            if run["precision"] == "float64" and run["time_step"] == largest_dt
+        ],
+        key=lambda run: run["force_scale"],
+    )
+    axes[2].axhline(0.0, color="#333333", linewidth=0.8)
+    axes[2].bar(
+        np.arange(len(force_runs)),
+        [run["normalized_energy_drift"] for run in force_runs],
+        color="#d88c3d",
+        edgecolor="#784714",
+        linewidth=0.6,
+    )
+    axes[2].set_title("Force bias appears as drift")
+    axes[2].set_ylabel("Delta E / (E0 time)")
+    axes[2].set_xticks(np.arange(len(force_runs)))
+    axes[2].set_xticklabels(
+        [run["force_case"].replace("_", "\n") for run in force_runs],
+        fontsize=8,
+    )
+
+    axes[0].text(
+        0.03,
+        0.95,
+        f"N = {len(runs)} runs\nfull grid: dt, precision, force scale",
+        transform=axes[0].transAxes,
+        va="top",
+        ha="left",
+        fontsize=8.5,
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+    )
+
+    for ax in axes:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(alpha=0.18, linewidth=0.6)
+
+
+def _precision_sort_key(precision: str) -> tuple[int, float]:
+    if precision == "float64":
+        return (0, 0.0)
+    if precision == "float32":
+        return (1, 0.0)
+    if precision.startswith("rounded_"):
+        return (2, float(precision.removeprefix("rounded_")))
+    return (3, 0.0)

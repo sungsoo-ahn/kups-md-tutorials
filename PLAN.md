@@ -103,13 +103,14 @@ When `/goal` is used to continue this project, every substantial milestone must
 include an explicit self-review and visual-review loop before it can be marked
 complete.
 
-Before implementing or finalizing a post, `/goal` must maintain a live checklist
-for the current milestone. The checklist must include simulation/config work,
-notebook execution, figure generation, figure snapshot review, website draft or
-post work, rendered page snapshot review, validation commands, and commit/push
-status. A milestone is incomplete if any review artifact is still written in
-future tense, if snapshot feedback has not been recorded, or if the final answer
-does not state which checks passed and which open items remain.
+At the start of each `/goal` continuation, inspect the current working tree and
+state the next concrete milestone in terms of reviewable artifacts. Maintain a
+live checklist for that milestone. The checklist must include simulation/config
+work, notebook execution, figure generation, figure snapshot review, website
+draft or post work, rendered page snapshot review, validation commands, and
+commit/push status. A milestone is incomplete if any review artifact is still
+written in future tense, if snapshot feedback has not been recorded, or if the
+final answer does not state which checks passed and which open items remain.
 
 For each post, `/goal` must create or update `reviews/post-XX.md` with these
 sections before the post can be called done:
@@ -133,12 +134,19 @@ sections before the post can be called done:
    made; if any blocking issue is found, regenerate the figure and capture a
    new snapshot. Record the exact snapshot file path, the inspected figure file
    path, the viewport or raster size if applicable, and whether the inspected
-   snapshot is the first pass or a revised pass.
+   snapshot is the first pass or a revised pass. The feedback must be specific
+   enough to drive an edit, for example "x tick labels collide at 390 px" or
+   "caption claims drift but the panel only shows instantaneous energy"; generic
+   statements such as "looks fine" are not sufficient without naming what was
+   inspected.
 5. **Website page review.** Capture rendered desktop and mobile snapshots from
    a local or deployed Jekyll build. Inspect equations, figures, captions, code
    blocks, tables, navigation state, link targets, overflow, and small-screen
    readability. Record the snapshot source, URL or local build path, viewport
-   sizes, feedback, and revisions before marking the page ready.
+   sizes, feedback, and revisions before marking the page ready. For hidden
+   drafts, direct-link snapshots are still required even though the pages are
+   not indexed from the blog listing. Use the shared website capture script when
+   possible and preserve the manifest or command output with the review note.
 6. **Prose and style review.** Check the post against the website style
    contract: concept-led, ML-facing, citation-complete, blog-native front
    matter, restrained code snippets, final figure assets under
@@ -151,6 +159,11 @@ Snapshot feedback is required work, not optional polish. Preserve final figure
 snapshots under `snapshots/post-XX/` or record equivalent lightweight snapshot
 references in the review note. Do not commit large browser caches, raw
 trajectories, model archives, or bulky intermediate render outputs.
+
+If browser or rendering dependencies prevent snapshot capture, `/goal` must not
+silently pass the milestone. Record the exact command, error, missing dependency,
+and next command needed to unblock capture. That blocked snapshot review remains
+a final-release blocker until snapshots are captured and feedback is resolved.
 
 When a hidden draft is intentionally not final, the review note must say so
 explicitly and split open items into:

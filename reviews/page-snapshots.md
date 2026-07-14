@@ -1052,3 +1052,70 @@ Revision decisions:
 - A larger GPU kUPS production thermostat and NVE-handoff diagnostic remains a
   final-release blocker before public indexing.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Hidden Index And Post 08 RDF-PMF Snapshot Refresh
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29374285478`.
+- Website commit: `c049640dc27e3ce763b6b744358fe34dde491cf1`.
+- Deploy run for that commit: `29374143464`.
+- Tutorial commit reviewed:
+  `535c48586c6fe30ad14887b2343887d74ae53be8`.
+- Tutorial verify run for that commit: `29374144064`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post08-index-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post08-index-snapshots/manifest.json`.
+- Capture scope: hidden tutorial index plus post 08 after adding the compact
+  argon trajectory RDF-derived PMF panel, exported result files, refreshed
+  prose, and blog-style hidden index.
+
+Manifest coverage:
+
+- 4 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/`.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`.
+- All captured URLs returned HTTP 200.
+- Page titles:
+  `kUPS MD Tutorials | Sungsoo Ahn` and
+  `How Do Equilibrium Samples Become Free Energies? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post08-index-snapshots/post-index-desktop.png`
+- `/tmp/kups-post08-index-snapshots/post-index-mobile.png`
+- `/tmp/kups-post08-index-snapshots/post-08-desktop.png`
+- `/tmp/kups-post08-index-snapshots/post-08-mobile.png`
+
+Feedback:
+
+- Desktop index capture renders the hidden tutorial series in the existing
+  blog-list style, with all twelve draft posts linked from the direct-link
+  index and no kUPS link added to the public navigation.
+- Mobile index capture renders the full list, hidden/direct-link status, and
+  repository block. The clone command wraps tightly, but remains readable and
+  contained in the inspected snapshot.
+- Desktop post 08 capture renders the refreshed long article end to end with
+  the four-panel diagnostic figure, including the compact argon RDF-PMF panel,
+  current-status section, references, and footer present.
+- Mobile post 08 capture keeps the diagnostic figure inside the article column
+  and shows no obvious overlap with surrounding text. Tables and title wrapping
+  remain tight but readable.
+
+Revision decisions:
+
+- No blocking layout issue was found for the hidden index or refreshed post 08
+  hidden draft.
+- The compact argon RDF-PMF page refresh is snapshot-reviewed for the hidden
+  draft state.
+- The index can serve as the blog-style entry point while remaining
+  direct-link reachable only.
+- Keep mobile title, table, and command wrapping as final typography-polish
+  items before public indexing.
+- Larger GPU kUPS RDF-derived PMF diagnostics, block/replica uncertainty, and
+  final citations remain final-release blockers for post 08.
+- The page series remains hidden from public navigation and direct-link
+  reachable.

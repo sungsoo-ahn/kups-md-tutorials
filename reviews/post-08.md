@@ -28,6 +28,11 @@
 - GitHub Actions deploy run `29362569505` for website commit
   `80f1adec082720e3db395ff0c078c166fe3113f7`
 - GitHub Actions snapshot run `29362752198`
+- GitHub Actions tutorial verify run `29374144064` for tutorial commit
+  `535c48586c6fe30ad14887b2343887d74ae53be8`
+- GitHub Actions deploy run `29374143464` for website commit
+  `c049640dc27e3ce763b6b744358fe34dde491cf1`
+- GitHub Actions snapshot run `29374285478`
 - `uv run kups-tutorial verify-reviews`
 
 ## Code And Reproducibility Review
@@ -164,6 +169,26 @@ Open items:
 - Rendered snapshots visually inspected:
   `/tmp/kups-post08-expanded-snapshots/post-08-desktop.png` and
   `/tmp/kups-post08-expanded-snapshots/post-08-mobile.png`.
+- Refreshed hidden page and hidden index deployed in website commit
+  `c049640dc27e3ce763b6b744358fe34dde491cf1`; deploy run
+  `29374143464` succeeded.
+- Tutorial commit `535c48586c6fe30ad14887b2343887d74ae53be8` passed verify
+  run `29374144064`.
+- Snapshot workflow run `29374285478` captured the hidden index and refreshed
+  post 08 page after deployment.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post08-index-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post08-index-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/` and
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`;
+  all four requests returned HTTP 200.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post08-index-snapshots/post-index-desktop.png`,
+  `/tmp/kups-post08-index-snapshots/post-index-mobile.png`,
+  `/tmp/kups-post08-index-snapshots/post-08-desktop.png`, and
+  `/tmp/kups-post08-index-snapshots/post-08-mobile.png`.
 
 Rendered page feedback:
 
@@ -177,13 +202,22 @@ Rendered page feedback:
   navigation, author note, tables, display equations, figure, code block,
   current-status section, and references present. The title wraps but remains
   readable; tables are tight but contained.
+- Refreshed desktop post 08 capture renders the updated four-panel diagnostic
+  figure and article flow without missing assets, blank regions, or broken
+  page chrome.
+- Refreshed mobile post 08 capture scales the diagnostic figure into the column
+  without overlapping neighboring text.
+- Hidden index desktop capture matches the existing blog-list style and keeps
+  kUPS content out of public navigation; only the existing public blog and
+  publications links appear in the header.
+- Hidden index mobile capture is readable and direct-link reachable. The
+  repository command block wraps tightly around the clone URL, but it remains
+  contained and acceptable for the hidden draft state.
 
 Open items:
 
 - Keep mobile title and table wrapping as final typography-polish items after
   the rest of the articles are expanded.
-- Re-run the page snapshot workflow after the compact argon RDF-PMF refresh is
-  deployed, then record desktop and mobile feedback.
 - Add larger GPU kUPS RDF-derived PMF diagnostics, block/replica uncertainty,
   and final citations before treating this post as final.
 - Re-run the page snapshot workflow again after the final production

@@ -579,3 +579,54 @@ Revision decisions:
 - Any final MBAR/WHAM production figure remains a final-release blocker for
   post 09 until implemented and snapshot-reviewed.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 10 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29364628807`.
+- Website commit: `82e9508717fe8a8e826eaae040949e3fa8b18fe7`.
+- Deploy run for that commit: `29364446798`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post10-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post10-expanded-snapshots/manifest.json`.
+- Capture scope: post 10 only, after expansion to about 3,602 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Does Umbrella Sampling Actually Sample? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post10-expanded-snapshots/post-10-desktop.png`
+- `/tmp/kups-post10-expanded-snapshots/post-10-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-draft note, source links, dense/sparse umbrella table,
+  full-profile umbrella diagnostics figure, methods/protocol sections,
+  practical checklist, reproduction code block, current-status section,
+  references, and footer present. No blank page, missing figure, obvious text
+  clipping, or broken page chrome was found in the inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, hidden-draft note, tables, figure, caption, code block,
+  current-status section, and references present. The title wraps across
+  multiple lines and the tables are tight, but both remain contained and
+  readable in the inspected snapshot.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 10 hidden draft.
+- Keep mobile title and table wrapping as final typography-polish items after
+  the rest of the articles are expanded.
+- Production MD context, final uncertainty diagnostics, and any added
+  WHAM/MBAR or hysteresis figures remain final-release blockers until
+  implemented and snapshot-reviewed.
+- The page remains hidden from public navigation and direct-link reachable.

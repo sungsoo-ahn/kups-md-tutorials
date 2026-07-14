@@ -111,6 +111,19 @@ draft or post work, rendered page snapshot review, validation commands, and
 commit/push status. A milestone is incomplete if any review artifact is still
 written in future tense, if snapshot feedback has not been recorded, or if the
 final answer does not state which checks passed and which open items remain.
+The checklist must name self-review and figure feedback as their own work
+items, not bury them under implementation or validation. Do not mark those
+items complete until the relevant `reviews/post-XX.md` entry contains concrete
+inspection notes, snapshot paths, and revision decisions.
+
+Every `/goal` continuation that creates or modifies a figure must include a
+snapshot-backed feedback loop in the same continuation whenever capture is
+technically possible. The loop is: generate the figure, capture the exact
+publication asset as a PNG snapshot, inspect the snapshot, write edit-oriented
+feedback, revise if needed, regenerate, and record the final decision. If the
+figure appears inside a website page, the rendered desktop/mobile page
+snapshots are a second required loop; a raw figure snapshot alone is not enough
+to call the page ready.
 
 Each `/goal` continuation must leave a review ledger in `reviews/`, either in
 the relevant `reviews/post-XX.md` file or in a shared review file when the work

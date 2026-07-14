@@ -15,5 +15,23 @@
     "bias_strength": 2.0,
     "rdf_peak_radius": 1.2,
     "rdf_peak_width": 0.16
+  },
+  "argon_rdf_pmf": {
+    "repetitions": 2,
+    "number_density": 0.85,
+    "temperature": 0.70,
+    "gamma": 1.0,
+    "time_step": 0.002,
+    "num_steps": 3000,
+    "warmup_steps": 500,
+    "sample_every": 20,
+    "seed": 2026071808,
+    "rdf_max_radius": 3.0,
+    "rdf_bin_width": 0.04,
+    "coordination_cutoff": 1.45,
+    "max_vacf_lag": 50,
+    "epsilon": 1.0,
+    "sigma": 1.0,
+    "cutoff": 2.5
   }
 }

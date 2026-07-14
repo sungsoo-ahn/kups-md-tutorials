@@ -8,7 +8,11 @@ import json
 import kups
 import numpy as np
 
-from kups_md_tutorials.config import FreeEnergyTutorialSpec
+from kups_md_tutorials.config import (
+    ArgonObservableTrajectorySpec,
+    FreeEnergyTutorialSpec,
+)
+from kups_md_tutorials.observables import _summarize_argon_trajectory
 from kups_md_tutorials.provenance import provenance
 
 
@@ -23,6 +27,23 @@ class FreeEnergyBinSummary:
     barrier_error: float
     rmse_vs_true: float
     bootstrap_barrier_standard_error: float
+
+
+@dataclass(frozen=True)
+class ArgonRdfPmfSummary:
+    """RDF-derived PMF diagnostics from a compact argon trajectory."""
+
+    atom_count: int
+    frame_count: int
+    number_density: float
+    temperature: float
+    rdf_first_peak_radius: float
+    rdf_first_peak_value: float
+    pmf_minimum_radius: float
+    pmf_minimum_value: float
+    pmf_barrier_height: float
+    finite_pmf_bins: int
+    masked_low_rdf_bins: int
 
 
 @dataclass(frozen=True)
@@ -44,6 +65,7 @@ class FreeEnergyExperimentSummary:
     reweighted_barrier_error: float
     rdf_pmf_minimum_radius: float
     rdf_pmf_barrier_height: float
+    argon_rdf_pmf: ArgonRdfPmfSummary | None
     bins: list[FreeEnergyBinSummary]
 
 
@@ -156,6 +178,58 @@ def _synthetic_rdf_pmf(
     return rdf, pmf
 
 
+@dataclass(frozen=True)
+class _ArgonTrajectoryContainer:
+    argon_trajectory: ArgonObservableTrajectorySpec | None
+
+
+def _rdf_to_shifted_pmf(
+    rdf: np.ndarray,
+    *,
+    temperature: float,
+    minimum_rdf: float = 0.05,
+) -> tuple[np.ndarray, np.ndarray]:
+    valid = np.isfinite(rdf) & (rdf >= minimum_rdf)
+    pmf = np.full_like(rdf, np.nan, dtype=float)
+    with np.errstate(divide="ignore"):
+        pmf[valid] = -temperature * np.log(rdf[valid])
+    if np.any(np.isfinite(pmf)):
+        pmf -= np.nanmin(pmf)
+    return pmf, valid
+
+
+def _argon_rdf_pmf(
+    spec: ArgonObservableTrajectorySpec | None,
+) -> tuple[ArgonRdfPmfSummary | None, tuple[np.ndarray, np.ndarray] | None, tuple[np.ndarray, np.ndarray] | None]:
+    if spec is None:
+        return None, None, None
+
+    trajectory_summary, rdf_curve, _ = _summarize_argon_trajectory(
+        _ArgonTrajectoryContainer(spec)
+    )
+    if trajectory_summary is None or rdf_curve is None:
+        return None, None, None
+
+    radii, rdf = rdf_curve
+    pmf, valid = _rdf_to_shifted_pmf(rdf, temperature=spec.temperature)
+    finite = np.isfinite(pmf)
+    minimum_idx = int(np.nanargmin(pmf))
+    summary = ArgonRdfPmfSummary(
+        atom_count=trajectory_summary.atom_count,
+        frame_count=trajectory_summary.frame_count,
+        number_density=trajectory_summary.number_density,
+        temperature=trajectory_summary.temperature,
+        rdf_first_peak_radius=trajectory_summary.rdf_first_peak_radius,
+        rdf_first_peak_value=trajectory_summary.rdf_first_peak_value,
+        pmf_minimum_radius=float(radii[minimum_idx]),
+        pmf_minimum_value=float(pmf[minimum_idx]),
+        pmf_barrier_height=float(np.nanmax(pmf[finite]) - np.nanmin(pmf[finite])),
+        finite_pmf_bins=int(np.count_nonzero(finite)),
+        masked_low_rdf_bins=int(np.count_nonzero(np.isfinite(rdf) & ~valid)),
+    )
+    return summary, (radii, rdf), (radii, pmf)
+
+
 def run_free_energy_experiment(
     spec: FreeEnergyTutorialSpec,
     config_sha256: str,
@@ -236,6 +310,10 @@ def run_free_energy_experiment(
     )
     curves["rdf"] = (radii, rdf)
     curves["rdf_pmf"] = (radii, rdf_pmf)
+    argon_summary, argon_rdf, argon_pmf = _argon_rdf_pmf(spec.argon_rdf_pmf)
+    if argon_rdf is not None and argon_pmf is not None:
+        curves["argon_rdf"] = argon_rdf
+        curves["argon_rdf_pmf"] = argon_pmf
 
     return (
         FreeEnergyExperimentSummary(
@@ -254,6 +332,7 @@ def run_free_energy_experiment(
             reweighted_barrier_error=float(reweighted_barrier - true_barrier),
             rdf_pmf_minimum_radius=float(radii[int(np.nanargmin(rdf_pmf))]),
             rdf_pmf_barrier_height=float(np.nanmax(rdf_pmf) - np.nanmin(rdf_pmf)),
+            argon_rdf_pmf=argon_summary,
             bins=bin_summaries,
         ),
         curves,
@@ -264,7 +343,7 @@ def _write_curves(path: Path, curves: dict[str, tuple[np.ndarray, np.ndarray]]) 
     names = list(curves)
     max_len = max(len(values[0]) for values in curves.values())
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         header = []
         for name in names:
             header.extend([f"{name}_x", f"{name}_y"])
@@ -323,4 +402,11 @@ def load_free_energy_summary(path: Path) -> FreeEnergyExperimentSummary:
 
     data = json.loads(path.read_text(encoding="utf-8"))
     bins = [FreeEnergyBinSummary(**item) for item in data.pop("bins")]
-    return FreeEnergyExperimentSummary(bins=bins, **data)
+    argon_rdf_pmf = data.pop("argon_rdf_pmf", None)
+    if argon_rdf_pmf is not None:
+        argon_rdf_pmf = ArgonRdfPmfSummary(**argon_rdf_pmf)
+    return FreeEnergyExperimentSummary(
+        bins=bins,
+        argon_rdf_pmf=argon_rdf_pmf,
+        **data,
+    )

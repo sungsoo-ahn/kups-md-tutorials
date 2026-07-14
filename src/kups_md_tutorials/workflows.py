@@ -586,6 +586,25 @@ def _verify_post08(post: str, profile: str, output_root: Path) -> None:
     if summary.rdf_pmf_barrier_height <= 0.0:
         msg = "RDF-derived PMF should have a nonzero barrier height"
         raise ValueError(msg)
+    if spec.argon_rdf_pmf is not None:
+        if summary.argon_rdf_pmf is None:
+            msg = "argon RDF-derived PMF summary is missing"
+            raise ValueError(msg)
+        if summary.argon_rdf_pmf.atom_count <= 0:
+            msg = "argon RDF-derived PMF should record atoms"
+            raise ValueError(msg)
+        if summary.argon_rdf_pmf.frame_count <= spec.argon_rdf_pmf.max_vacf_lag:
+            msg = "argon RDF-derived PMF should have enough sampled frames"
+            raise ValueError(msg)
+        if summary.argon_rdf_pmf.rdf_first_peak_value <= 1.0:
+            msg = "argon RDF first peak should exceed ideal-gas baseline"
+            raise ValueError(msg)
+        if summary.argon_rdf_pmf.pmf_barrier_height <= 0.0:
+            msg = "argon RDF-derived PMF should have a nonzero range"
+            raise ValueError(msg)
+        if summary.argon_rdf_pmf.finite_pmf_bins <= 2:
+            msg = "argon RDF-derived PMF should retain finite bins"
+            raise ValueError(msg)
 
 
 def _verify_post09(post: str, profile: str, output_root: Path) -> None:

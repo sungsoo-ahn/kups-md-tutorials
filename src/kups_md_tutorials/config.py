@@ -855,6 +855,7 @@ class FreeEnergyTutorialSpec:
     profile: str
     title: str
     experiment: FreeEnergyExperimentSpec
+    argon_rdf_pmf: ArgonObservableTrajectorySpec | None = None
 
     @property
     def result_dir_name(self) -> Path:
@@ -1759,6 +1760,28 @@ def load_free_energy_spec(
 
     root = _expect_mapping(data, "free-energy config")
     experiment = _expect_mapping(root.get("free_energy_experiment"), "free_energy_experiment")
+    argon_rdf_pmf = root.get("argon_rdf_pmf")
+    parsed_argon_rdf_pmf = None
+    if argon_rdf_pmf is not None:
+        argon = _expect_mapping(argon_rdf_pmf, "argon_rdf_pmf")
+        parsed_argon_rdf_pmf = ArgonObservableTrajectorySpec(
+            repetitions=int(argon["repetitions"]),
+            number_density=float(argon["number_density"]),
+            temperature=float(argon["temperature"]),
+            gamma=float(argon["gamma"]),
+            time_step=float(argon["time_step"]),
+            num_steps=int(argon["num_steps"]),
+            warmup_steps=int(argon["warmup_steps"]),
+            sample_every=int(argon["sample_every"]),
+            seed=int(argon["seed"]),
+            rdf_max_radius=float(argon["rdf_max_radius"]),
+            rdf_bin_width=float(argon["rdf_bin_width"]),
+            coordination_cutoff=float(argon["coordination_cutoff"]),
+            max_vacf_lag=int(argon["max_vacf_lag"]),
+            epsilon=float(argon.get("epsilon", 1.0)),
+            sigma=float(argon.get("sigma", 1.0)),
+            cutoff=float(argon.get("cutoff", 2.5)),
+        )
     spec = FreeEnergyTutorialSpec(
         post=str(root["post"]),
         profile=str(root["profile"]),
@@ -1777,6 +1800,7 @@ def load_free_energy_spec(
             rdf_peak_radius=float(experiment["rdf_peak_radius"]),
             rdf_peak_width=float(experiment["rdf_peak_width"]),
         ),
+        argon_rdf_pmf=parsed_argon_rdf_pmf,
     )
     if spec.post != post:
         msg = f"config post {spec.post!r} does not match requested {post!r}"
@@ -1787,6 +1811,8 @@ def load_free_energy_spec(
         )
         raise ValueError(msg)
     spec.experiment.validate()
+    if spec.argon_rdf_pmf is not None:
+        spec.argon_rdf_pmf.validate()
     return spec
 
 

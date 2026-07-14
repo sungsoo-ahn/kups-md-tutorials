@@ -271,9 +271,16 @@ def generate_post08_figures(
     summary = json.loads((result_dir / "free_energy_summary.json").read_text())
     curves = _read_post08_curves(result_dir / "free_energy_curves.csv")
 
+    has_argon = "argon_rdf_pmf_x" in curves and "argon_rdf_pmf_y" in curves
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-08"}):
-        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
-        _draw_post08_figure(fig, axes, summary, curves)
+        if has_argon:
+            fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.2), constrained_layout=True)
+            draw_axes = axes.ravel()
+        else:
+            fig, draw_axes = plt.subplots(
+                1, 3, figsize=(12.2, 3.6), constrained_layout=True
+            )
+        _draw_post08_figure(fig, draw_axes, summary, curves)
 
         svg_path = figure_dir / f"{name}.svg"
         png_path = figure_dir / f"{name}.png"
@@ -1457,6 +1464,51 @@ def _draw_post08_figure(
         fontsize=8.5,
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
     )
+
+    if len(axes) > 3 and summary.get("argon_rdf_pmf") is not None:
+        argon = summary["argon_rdf_pmf"]
+        axes[3].plot(
+            curves["argon_rdf_pmf_x"],
+            curves["argon_rdf_pmf_y"],
+            color="#3f8f8a",
+            linewidth=1.5,
+            label="-kT log g(r)",
+        )
+        finite_pmf = curves["argon_rdf_pmf_y"][np.isfinite(curves["argon_rdf_pmf_y"])]
+        pmf_scale = float(np.nanmax(finite_pmf)) if finite_pmf.size else 1.0
+        rdf_scale = float(np.nanmax(curves["argon_rdf_y"]))
+        if rdf_scale > 0.0 and pmf_scale > 0.0:
+            axes[3].plot(
+                curves["argon_rdf_x"],
+                curves["argon_rdf_y"] / rdf_scale * pmf_scale,
+                color="#d88c3d",
+                linewidth=1.0,
+                alpha=0.8,
+                label="scaled g(r)",
+            )
+        axes[3].axvline(
+            argon["pmf_minimum_radius"],
+            color="#333333",
+            linestyle=":",
+            linewidth=0.9,
+            label="PMF minimum",
+        )
+        axes[3].set_title("Trajectory RDF to PMF")
+        axes[3].set_xlabel("radius")
+        axes[3].set_ylabel("shifted F(r)")
+        axes[3].legend(frameon=False, fontsize=8)
+        axes[3].text(
+            0.03,
+            0.95,
+            f"N = {argon['atom_count']}\n"
+            f"frames = {argon['frame_count']}\n"
+            f"rmin = {argon['pmf_minimum_radius']:.3f}",
+            transform=axes[3].transAxes,
+            va="top",
+            ha="left",
+            fontsize=8.5,
+            bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+        )
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

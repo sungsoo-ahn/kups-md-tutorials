@@ -1,4 +1,17 @@
 {
+  "argon_rdf_pmf": {
+    "atom_count": 32,
+    "finite_pmf_bins": 18,
+    "frame_count": 126,
+    "masked_low_rdf_bins": 24,
+    "number_density": 0.85,
+    "pmf_barrier_height": 1.417000230046604,
+    "pmf_minimum_radius": 1.1,
+    "pmf_minimum_value": 0.0,
+    "rdf_first_peak_radius": 1.1,
+    "rdf_first_peak_value": 3.0105123045428717,
+    "temperature": 0.7
+  },
   "bias_center": 0.9,
   "bias_strength": 2.0,
   "bins": [
@@ -21,7 +34,7 @@
       "rmse_vs_true": 0.3072821950397572
     }
   ],
-  "config_sha256": "31ee712c74eb46e8064f07f63af0d24f07ddf6d847a95653a9ff84816b6f70e6",
+  "config_sha256": "cb5f03ea8168e323481768411a13097aa40fb716f916f7529b62f6971d0709e7",
   "domain_max": 2.5,
   "domain_min": -2.5,
   "post": "08",

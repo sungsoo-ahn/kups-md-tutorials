@@ -106,6 +106,8 @@ def test_load_free_energy_spec() -> None:
     assert spec.experiment.temperature == 1.0
     assert spec.experiment.bin_widths[0] == 0.10
     assert spec.experiment.domain_min < spec.experiment.domain_max
+    assert spec.argon_rdf_pmf is not None
+    assert spec.argon_rdf_pmf.repetitions == 2
 
 
 def test_load_estimator_spec() -> None:

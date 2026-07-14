@@ -4,10 +4,11 @@
 
 - Post: 08
 - Profiles reviewed: smoke and full
-- Current status: controlled one-dimensional free-energy workflow, committed
-  smoke/full outputs, notebook, full-profile diagnostic figure, hidden website
-  draft, rendered page snapshots, and self-review artifact are in place; the
-  final argon/kUPS RDF-derived PMF diagnostic is still pending.
+- Current status: controlled one-dimensional free-energy workflow, compact
+  reduced-unit argon trajectory RDF-derived PMF workflow, committed smoke/full
+  outputs, notebook, full-profile diagnostic figure, hidden website draft,
+  rendered page snapshots, and self-review artifact are in place; larger GPU
+  kUPS RDF-derived PMF diagnostics and final citations remain pending.
 
 ## Commands
 
@@ -16,9 +17,12 @@
 - `uv run kups-tutorial run 08 --profile full`
 - `uv run kups-tutorial verify 08 --profile full`
 - `uv run python scripts/generate_post08_figures.py`
+- `uv run ruff check .`
 - `uv run ruff check src tests scripts`
 - `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py -q`
 - `uv run jupyter execute notebooks/post-08-free-energies.ipynb --inplace`
+- `uv run kups-tutorial verify-artifacts`
+- `git diff --check`
 - `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
 - GitHub Actions deploy run `29362569505` for website commit
@@ -33,6 +37,9 @@
 - The workflow uses deterministic samples from a tabulated double-well
   equilibrium distribution, histogram PMF estimates, bootstrap barrier
   uncertainty, simple biased-sample reweighting, and an RDF-derived PMF.
+- The workflow now also writes compact argon trajectory RDF and RDF-PMF curves
+  into `free_energy_curves.csv`, generated from actual sampled reduced-unit
+  positions rather than a synthetic RDF profile.
 - The manifest records config hash, Git revision, Python/platform metadata, and
   kUPS/NumPy versions.
 - `kups-tutorial run`, `verify`, and `run-all` include post 08.
@@ -41,8 +48,8 @@
 
 Open items:
 
-- Connect the PMF diagnostic to an actual argon/RDF-derived observable before
-  treating this post as final.
+- Add larger GPU kUPS RDF-derived PMF diagnostics with block/replica
+  uncertainty before treating this post as final.
 
 ## Scientific Review
 
@@ -58,14 +65,23 @@ Open items:
   histogram PMF.
 - The RDF-derived PMF has a minimum at radius `1.20`, matching the configured
   synthetic RDF first-neighbor peak.
+- The compact full-profile argon trajectory uses 108 atoms and 551 sampled
+  frames at number density `0.85` and temperature `0.70`.
+- Its trajectory RDF has a first peak near radius `1.125`, peak value about
+  `3.01`, and the shifted `-kT log g(r)` PMF minimum at the same radius.
+- The argon RDF-PMF transform masks 32 finite low-RDF bins and retains 52
+  finite PMF bins; the retained shifted PMF range is about `1.64` in reduced
+  energy units. This is a support-aware PMF transform diagnostic, not a
+  production free-energy barrier.
 
 Open items:
 
 - The website prose should emphasize that a PMF is defined only after choosing
   a collective variable, normalization, binning/smoothing rule, and uncertainty
   estimate.
-- The final article should connect `-kT log g(r)` to the RDF estimator from
-  post 07 and explain where finite-size and low-count bins make PMFs fragile.
+- The final article should keep connecting `-kT log g(r)` to the RDF estimator
+  from post 07 and explain where finite-size and low-count bins make PMFs
+  fragile.
 
 ## Figure Snapshot Review
 
@@ -82,18 +98,25 @@ Feedback loop:
 - The true double-well curve has high walls near the domain edge, which is
   acceptable because the histogram PMF only has support where samples exist.
   The final article should explain missing/empty bins explicitly.
+- Compact argon RDF-PMF refresh: the fourth panel is visible in
+  `snapshots/post-08/free_energy_diagnostics_full_snapshot.png`; axis labels,
+  legend, PMF minimum marker, and `N = 108`, `frames = 551`,
+  `rmin = 1.125` annotation fit without covering the first minimum.
+- The trajectory PMF line is intentionally discontinuous where low RDF bins are
+  masked before the logarithm; this makes unsupported pair-distance regions
+  visible rather than presenting a falsely smooth PMF.
 
 Open items:
 
-- Add an RDF/PMF figure derived from the production observable workflow before
-  treating this post as final.
+- Add larger production RDF-PMF figures with block/replica uncertainty after
+  GPU kUPS diagnostics are implemented.
 
 ## Notebook Review
 
 - `notebooks/post-08-free-energies.ipynb` executes from a clean kernel.
 - The notebook loads smoke and full configurations, displays committed summary
-  values, and regenerates the full-profile diagnostic figure from committed
-  result files.
+  values, reports the compact argon RDF-PMF minimum/range/finite-bin count, and
+  regenerates the full-profile diagnostic figure from committed result files.
 - The notebook keeps the explanation focused on collective variables,
   histogram PMFs, binning bias, bootstrap uncertainty, reweighting, and
   RDF-derived PMFs rather than becoming the implementation source.
@@ -116,9 +139,13 @@ Open items:
   expanded prose explains collective-variable choice, histogram PMFs, binning
   bias, empty and low-count bins, reweighting, RDF-derived PMFs, uncertainty,
   common PMF mistakes, methods reporting, and the planned argon/kUPS extension.
+- Refreshed the hidden page to describe the compact reduced-unit argon
+  trajectory RDF-PMF panel and to keep larger GPU kUPS PMF diagnostics as the
+  remaining production blocker.
 - The expanded prose keeps the scope clear: the committed result is a
-  controlled one-dimensional PMF and synthetic RDF-derived PMF diagnostic, not
-  a final production argon/kUPS free-energy calculation.
+  controlled one-dimensional PMF, synthetic RDF-derived PMF, and compact
+  reduced-unit argon trajectory RDF-PMF diagnostic, not a final production
+  GPU kUPS free-energy calculation.
 - `python3 scripts/validate_kups_pages.py` passes in the website repository.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
@@ -155,7 +182,9 @@ Open items:
 
 - Keep mobile title and table wrapping as final typography-polish items after
   the rest of the articles are expanded.
-- Add the argon/kUPS RDF-derived PMF diagnostic linked back to post 07
-  observables before treating this post as final.
-- Re-run the page snapshot workflow after the final production RDF-derived PMF
-  figure and citations are added.
+- Re-run the page snapshot workflow after the compact argon RDF-PMF refresh is
+  deployed, then record desktop and mobile feedback.
+- Add larger GPU kUPS RDF-derived PMF diagnostics, block/replica uncertainty,
+  and final citations before treating this post as final.
+- Re-run the page snapshot workflow again after the final production
+  RDF-derived PMF figure and citations are added.

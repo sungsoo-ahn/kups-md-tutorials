@@ -1,0 +1,18 @@
+{
+  "post": "02",
+  "profile": "full",
+  "title": "What Does an MD Integrator Actually Approximate?",
+  "system": {
+    "kind": "harmonic_oscillator",
+    "mass": 1.0,
+    "omega": 1.0,
+    "position": 1.0,
+    "velocity": 0.0
+  },
+  "integrator_experiment": {
+    "time_steps": [0.02, 0.05, 0.1, 0.2],
+    "num_steps": 2000,
+    "integrators": ["velocity_verlet", "explicit_euler"],
+    "reference_integrator": "velocity_verlet"
+  }
+}

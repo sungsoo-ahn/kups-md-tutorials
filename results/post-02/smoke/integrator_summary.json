@@ -1,0 +1,63 @@
+{
+  "config_sha256": "e0d71cc61f7a1612cb54247abc3a4e3953c0d4ae4d22d965423c2b840ae81332",
+  "initial_position": 1.0,
+  "initial_velocity": 0.0,
+  "mass": 1.0,
+  "omega": 1.0,
+  "post": "02",
+  "profile": "smoke",
+  "runs": [
+    {
+      "final_energy": 0.4999833044873678,
+      "final_position_error": 0.000307697101423976,
+      "final_time": 16.0,
+      "initial_energy": 0.5,
+      "integrator": "velocity_verlet",
+      "max_abs_relative_energy_error": 0.0003999893532484755,
+      "num_steps": 400,
+      "reversibility_error": 1.1411052692018427e-15,
+      "rms_position_error": 0.00042266471836146,
+      "signed_energy_drift": -1.6695512632225462e-05,
+      "time_step": 0.04
+    },
+    {
+      "final_energy": 0.947755581794382,
+      "final_position_error": -0.36415399525153846,
+      "final_time": 16.0,
+      "initial_energy": 0.5,
+      "integrator": "explicit_euler",
+      "max_abs_relative_energy_error": 0.895511163588764,
+      "num_steps": 400,
+      "reversibility_error": 0.8955111635887654,
+      "rms_position_error": 0.15224378641549527,
+      "signed_energy_drift": 0.447755581794382,
+      "time_step": 0.04
+    },
+    {
+      "final_energy": 0.4988868391364426,
+      "final_position_error": 0.02242490637362282,
+      "final_time": 48.0,
+      "initial_energy": 0.5,
+      "integrator": "velocity_verlet",
+      "max_abs_relative_energy_error": 0.003599855938558938,
+      "num_steps": 400,
+      "reversibility_error": 5.224024053540252e-16,
+      "rms_position_error": 0.011609424424591586,
+      "signed_energy_drift": -0.0011131608635573942,
+      "time_step": 0.12
+    },
+    {
+      "final_energy": 152.28818805007865,
+      "final_position_error": -13.277662560312688,
+      "final_time": 48.0,
+      "initial_energy": 0.5,
+      "integrator": "explicit_euler",
+      "max_abs_relative_energy_error": 303.5763761001573,
+      "num_steps": 400,
+      "reversibility_error": 303.5763761001572,
+      "rms_position_error": 4.786080522027301,
+      "signed_energy_drift": 151.78818805007865,
+      "time_step": 0.12
+    }
+  ]
+}

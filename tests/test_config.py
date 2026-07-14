@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from kups_md_tutorials.config import RunSpec
+from kups_md_tutorials.config import RunSpec, load_integrator_spec
 
 
 def test_run_spec_validates_sampling_interval() -> None:
@@ -32,3 +32,10 @@ def test_output_path_is_stable() -> None:
         seed=1,
     )
     assert spec.output_path(Path("runs")) == Path("runs/example.h5")
+
+
+def test_load_integrator_spec() -> None:
+    spec = load_integrator_spec("02", "smoke")
+    assert spec.system.kind == "harmonic_oscillator"
+    assert spec.experiment.reference_integrator == "velocity_verlet"
+    assert "explicit_euler" in spec.experiment.integrators

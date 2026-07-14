@@ -94,6 +94,59 @@ class TutorialSpec:
         return Path(f"post-{self.post}") / self.profile
 
 
+@dataclass(frozen=True)
+class HarmonicOscillatorSpec:
+    """Dimensionless harmonic oscillator parameters for integrator diagnostics."""
+
+    kind: str
+    mass: float
+    omega: float
+    position: float
+    velocity: float
+
+
+@dataclass(frozen=True)
+class IntegratorExperimentSpec:
+    """Configuration for deterministic integrator error diagnostics."""
+
+    time_steps: tuple[float, ...]
+    num_steps: int
+    integrators: tuple[str, ...]
+    reference_integrator: str
+
+    def validate(self) -> None:
+        if not self.time_steps:
+            msg = "time_steps must be non-empty"
+            raise ValueError(msg)
+        if any(time_step <= 0.0 for time_step in self.time_steps):
+            msg = "time_steps must be positive"
+            raise ValueError(msg)
+        if self.num_steps <= 0:
+            msg = "num_steps must be positive"
+            raise ValueError(msg)
+        if not self.integrators:
+            msg = "integrators must be non-empty"
+            raise ValueError(msg)
+        if self.reference_integrator not in self.integrators:
+            msg = "reference_integrator must be one of integrators"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class IntegratorTutorialSpec:
+    """Configuration for post-02 harmonic oscillator integrator experiments."""
+
+    post: str
+    profile: str
+    title: str
+    system: HarmonicOscillatorSpec
+    experiment: IntegratorExperimentSpec
+
+    @property
+    def result_dir_name(self) -> Path:
+        return Path(f"post-{self.post}") / self.profile
+
+
 def _expect_mapping(value: Any, name: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         msg = f"{name} must be an object"
@@ -151,4 +204,58 @@ def load_tutorial_spec(
             f"config profile {spec.profile!r} does not match requested {profile!r}"
         )
         raise ValueError(msg)
+    return spec
+
+
+def load_integrator_spec(
+    post: str, profile: str, config_root: Path = Path("configs")
+) -> IntegratorTutorialSpec:
+    """Load a committed JSON configuration for integrator diagnostics."""
+
+    path = config_root / f"post-{post}" / f"{profile}.json"
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    root = _expect_mapping(data, "integrator config")
+    system = _expect_mapping(root.get("system"), "system")
+    experiment = _expect_mapping(
+        root.get("integrator_experiment"), "integrator_experiment"
+    )
+
+    spec = IntegratorTutorialSpec(
+        post=str(root["post"]),
+        profile=str(root["profile"]),
+        title=str(root["title"]),
+        system=HarmonicOscillatorSpec(
+            kind=str(system["kind"]),
+            mass=float(system["mass"]),
+            omega=float(system["omega"]),
+            position=float(system["position"]),
+            velocity=float(system["velocity"]),
+        ),
+        experiment=IntegratorExperimentSpec(
+            time_steps=tuple(float(value) for value in experiment["time_steps"]),
+            num_steps=int(experiment["num_steps"]),
+            integrators=tuple(str(value) for value in experiment["integrators"]),
+            reference_integrator=str(experiment["reference_integrator"]),
+        ),
+    )
+    if spec.post != post:
+        msg = f"config post {spec.post!r} does not match requested {post!r}"
+        raise ValueError(msg)
+    if spec.profile != profile:
+        msg = (
+            f"config profile {spec.profile!r} does not match requested {profile!r}"
+        )
+        raise ValueError(msg)
+    if spec.system.kind != "harmonic_oscillator":
+        msg = f"unsupported integrator system kind: {spec.system.kind}"
+        raise ValueError(msg)
+    if spec.system.mass <= 0.0:
+        msg = "harmonic oscillator mass must be positive"
+        raise ValueError(msg)
+    if spec.system.omega <= 0.0:
+        msg = "harmonic oscillator omega must be positive"
+        raise ValueError(msg)
+    spec.experiment.validate()
     return spec

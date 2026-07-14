@@ -1,0 +1,39 @@
+{
+  "config": {
+    "experiment": {
+      "integrators": [
+        "velocity_verlet",
+        "explicit_euler"
+      ],
+      "num_steps": 400,
+      "reference_integrator": "velocity_verlet",
+      "time_steps": [
+        0.04,
+        0.12
+      ]
+    },
+    "post": "02",
+    "profile": "smoke",
+    "system": {
+      "kind": "harmonic_oscillator",
+      "mass": 1.0,
+      "omega": 1.0,
+      "position": 1.0,
+      "velocity": 0.0
+    },
+    "title": "What Does an MD Integrator Actually Approximate?"
+  },
+  "provenance": {
+    "config_path": "configs/post-02/smoke.json",
+    "config_sha256": "e0d71cc61f7a1612cb54247abc3a4e3953c0d4ae4d22d965423c2b840ae81332",
+    "git_revision": "1c89416c52a95a8a4b804287239060d682b53f8b",
+    "platform": "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",
+    "python_version": "3.13.13"
+  },
+  "samples_file": "trajectory_samples.csv",
+  "summary_file": "integrator_summary.json",
+  "versions": {
+    "kups": "1.0.3",
+    "numpy": "2.5.1"
+  }
+}

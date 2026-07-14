@@ -77,3 +77,68 @@ node scripts/capture_kups_snapshots.js \
 
 If using a local Jekyll build instead of the deployed site, start Jekyll and
 replace `--base-url` with the local server URL.
+
+## CI Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29354941319`.
+- Website commit: `ca3ba0b9fac267aaf382c063a64adcbfa69aced0`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-page-snapshots/`.
+- Manifest reviewed: `/tmp/kups-page-snapshots/manifest.json`.
+- Capture command used by workflow:
+
+```bash
+node scripts/capture_kups_snapshots.js \
+  --base-url "https://sungsoo-ahn.github.io" \
+  --posts "01,02,03,04,05,06,07,08,09,10,11,12" \
+  --output-dir snapshots/kups-md-pages
+```
+
+Manifest coverage:
+
+- 24 rendered snapshots captured.
+- 12 desktop snapshots and 12 mobile snapshots.
+- All twelve posts have both viewports.
+- All captured URLs returned HTTP 200.
+- First URL:
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-01-initialization/`.
+- Last URL:
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-page-snapshots/post-01-desktop.png`
+- `/tmp/kups-page-snapshots/post-01-mobile.png`
+- `/tmp/kups-page-snapshots/post-12-desktop.png`
+- `/tmp/kups-page-snapshots/post-12-mobile.png`
+
+Feedback:
+
+- Post 01 desktop renders the hidden page with the expected blog chrome,
+  sidebar table of contents, title, author note, equation, provenance links,
+  initialization table, full-profile figure, reproduction code block, current
+  status, and references. No blank-page, missing-image, or obvious clipping
+  issue was found in the inspected full-page capture.
+- Post 01 mobile renders the same content through the mobile navigation. The
+  initialization table and reproduction code block are narrow, but they remain
+  readable and are not clipped in the inspected snapshot. Keep this as a final
+  article polish item because longer final prose may change wrapping.
+- Post 12 desktop renders the capstone table, figure, reproduction code block,
+  current-status section, and references without visible clipping or missing
+  assets in the inspected full-page capture.
+- Post 12 mobile renders the long title, author note, capstone table, MLIP
+  diagnostic figure, code block, and references without clipping. The title
+  wraps heavily but remains readable.
+
+Revision decisions:
+
+- No blocking layout issue was found in the inspected sample snapshots.
+- The hidden draft pages can remain direct-link reachable and hidden from public
+  navigation while content matures.
+- Final-release blocker remains: inspect all 24 captured snapshots, not only
+  the representative samples above, after the full prose and final figures are
+  in place.
+- Final article polish item: recheck mobile table/code wrapping after posts are
+  expanded to full length.

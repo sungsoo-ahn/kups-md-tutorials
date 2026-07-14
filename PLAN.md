@@ -112,6 +112,26 @@ commit/push status. A milestone is incomplete if any review artifact is still
 written in future tense, if snapshot feedback has not been recorded, or if the
 final answer does not state which checks passed and which open items remain.
 
+Each `/goal` continuation must leave a review ledger in `reviews/`, either in
+the relevant `reviews/post-XX.md` file or in a shared review file when the work
+spans multiple posts. The ledger must record:
+
+- exact commands run and whether they passed, failed, or were intentionally
+  skipped;
+- the commit or working-tree state used for generated artifacts;
+- every figure or rendered page snapshot inspected, including artifact path,
+  source figure or URL, viewport/raster size, and capture date;
+- concrete feedback from the inspection, not just approval language;
+- the revision decision for each feedback item: fixed now, accepted for hidden
+  draft, deferred to final release, or blocked with an unblock command;
+- the validation commands rerun after any fix.
+
+If a `/goal` continuation creates snapshots through CI instead of the local
+machine, the ledger must include the workflow name, run id, commit SHA, artifact
+name, downloaded manifest location, and a summary of manifest coverage. The
+artifact does not have to be committed if it is bulky, but the review note must
+make it possible to retrieve the exact snapshots again.
+
 For each post, `/goal` must create or update `reviews/post-XX.md` with these
 sections before the post can be called done:
 
@@ -159,6 +179,21 @@ Snapshot feedback is required work, not optional polish. Preserve final figure
 snapshots under `snapshots/post-XX/` or record equivalent lightweight snapshot
 references in the review note. Do not commit large browser caches, raw
 trajectories, model archives, or bulky intermediate render outputs.
+
+Figure feedback must be written as an edit-oriented critique. For each figure,
+state which visual claim the figure is supposed to support, then check the
+actual snapshot for label fit, axis units, legends, color/marker separation,
+caption agreement, numerical consistency with committed summaries, and mobile
+or narrow-column readability. If the figure is unchanged after review, explain
+which specific failure modes were checked and not found. If the figure is
+changed, record the before/after snapshot paths and the reason for the edit.
+
+Rendered page feedback must include at least one desktop and one mobile
+snapshot for the page state being reviewed. Inspect article title wrap, author
+note, table of contents or mobile nav, equations, tables, code blocks, figures,
+captions, links back to configs/notebooks/results/reviews, and footer spacing.
+For hidden pages, also confirm that direct links work while public listing or
+navigation exposure remains intentionally disabled.
 
 If browser or rendering dependencies prevent snapshot capture, `/goal` must not
 silently pass the milestone. Record the exact command, error, missing dependency,

@@ -17,5 +17,14 @@
       {"name": "moderate_barostat", "relaxation_time": 2.0},
       {"name": "slow_barostat", "relaxation_time": 8.0}
     ]
+  },
+  "argon_cell_response": {
+    "repetitions": 3,
+    "number_density": 1.0,
+    "temperature": 0.70,
+    "volume_factors": [0.90, 0.94, 0.97, 1.00, 1.03, 1.06, 1.10],
+    "epsilon": 1.0,
+    "sigma": 1.0,
+    "cutoff": 2.5
   }
 }

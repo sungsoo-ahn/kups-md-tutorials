@@ -5,9 +5,10 @@
 - Post: 05
 - Profiles reviewed: smoke and full
 - Current status: controlled scalar-volume pressure/cell diagnostic workflow,
-  committed smoke/full outputs, notebook, full-profile diagnostic figure,
-  expanded hidden website draft, rendered page snapshots, and self-review
-  artifact are in place; the final atomistic NPT diagnostic is still pending.
+  compact reduced-unit argon cell-response workflow, committed smoke/full
+  outputs, notebook, full-profile diagnostic figure, expanded hidden website
+  draft, rendered page snapshots, and self-review artifact are in place; the
+  final dynamic argon/kUPS NPT diagnostic is still pending.
 
 ## Commands
 
@@ -17,8 +18,9 @@
 - `uv run kups-tutorial verify 05 --profile full`
 - `uv run python scripts/generate_post05_figures.py`
 - `uv run jupyter execute notebooks/post-05-barostats.ipynb --inplace`
-- `uv run pytest -q`
 - `uv run ruff check .`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py -q`
+- `uv run kups-tutorial verify-artifacts`
 - `git diff --check`
 - `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
@@ -33,6 +35,9 @@
 - Smoke and full outputs are committed under `results/post-05/`.
 - The workflow uses a deterministic scalar-volume Ornstein-Uhlenbeck model with
   known NPT-like volume and pressure fluctuation targets.
+- The workflow now also writes `argon_cell_response.csv`, a deterministic
+  reduced-unit FCC argon pressure-volume sweep using affine box scaling,
+  minimum-image periodic boundaries, and the Lennard-Jones virial pressure.
 - The manifest records config hash, Git revision, Python/platform metadata, and
   kUPS/NumPy versions.
 - `kups-tutorial run`, `verify`, and `run-all` include post 05.
@@ -41,9 +46,10 @@
 
 Open items:
 
-- Add an argon/kUPS NPT diagnostic before treating this post as final. The
-  current scalar model isolates fluctuation and memory concepts, but it does
-  not yet exercise actual MD cell degrees of freedom.
+- Add a dynamic argon/kUPS NPT diagnostic before treating this post as final.
+  The current scalar model isolates fluctuation and memory concepts, and the
+  compact argon sweep checks real coordinates/cell scaling, but it does not yet
+  exercise moving-cell MD sampling.
 
 ## Scientific Review
 
@@ -55,6 +61,11 @@ Open items:
 - Volume autocorrelation time increases from about `2.0` for the fast barostat
   to about `22.5` for the slow barostat, supporting the claim that barostat
   time constants change memory and effective sampling.
+- The compact full-profile argon response uses 108 atoms, reference reduced
+  density `1.0`, volume factors `0.90` through `1.10`, fitted reduced-unit bulk
+  response about `42.1`, and pressure span about `8.7`. The pressure decreases
+  with expansion, so the virial sign and affine scaling are qualitatively
+  consistent for this wiring check.
 - The smoke profile uses fewer samples; verification tolerances are deliberately
   wider for fluctuation variance than for the full scientific review.
 
@@ -63,7 +74,7 @@ Open items:
 - The website prose should not imply that pressure itself is tightly controlled
   instant by instant. Pressure fluctuations are the signal in small-system NPT.
 - The final article should discuss isotropic versus flexible-cell coupling and
-  finite-size effects using an actual argon/kUPS workflow.
+  finite-size effects using a dynamic argon/kUPS NPT workflow.
 
 ## Figure Snapshot Review
 
@@ -77,20 +88,26 @@ Feedback loop:
 - First full-profile pass: labels are readable, target lines are visible in the
   volume and pressure panels, and the autocorrelation panel clearly increases
   with relaxation time.
-- The figure does not yet show anisotropic/flexible-cell behavior. That is
-  acceptable for this scalar draft, but the final post should add a real cell
-  diagnostic if flexible-cell claims are made.
+- Compact argon cell-response refresh: the fourth panel is visible in the
+  full-profile snapshot, the `V / V0` axis and reduced pressure labels fit, the
+  pressure-volume trend is clear, and the `Kfit = 42.13`, `N = 108` annotation
+  does not obscure the interpretation.
+- The figure does not yet show dynamic NPT density relaxation or
+  anisotropic/flexible-cell behavior. That is acceptable for this draft, but
+  the final post should add a production cell-dynamics diagnostic if
+  flexible-cell claims are made.
 
 Open items:
 
-- Add a production-cell figure after argon/kUPS NPT diagnostics are implemented.
+- Add a production-cell dynamics figure after argon/kUPS NPT diagnostics are
+  implemented.
 
 ## Notebook Review
 
 - `notebooks/post-05-barostats.ipynb` executes from a clean kernel.
 - The notebook loads both smoke and full configurations, displays committed
-  outputs, and regenerates the full-profile diagnostic figure from committed
-  result files.
+  outputs, reports the compact argon response summary, and regenerates the
+  full-profile diagnostic figure from committed result files.
 - The notebook keeps the explanation focused on pressure fluctuations and cell
   memory rather than becoming the implementation source.
 
@@ -113,10 +130,10 @@ Open items:
   expanded prose explains pressure fluctuations, scalar-volume NPT-like
   diagnostics, barostat relaxation time, effective samples, initialization
   before NPT, cell-degree choices, thermostat/barostat interaction, and the
-  planned atomistic argon/kUPS extension.
+  compact atomistic argon cell-response check.
 - The expanded prose keeps the scope clear: the committed result is a
-  controlled scalar diagnostic, not a final production NPT workflow with real
-  cell degrees of freedom.
+  controlled scalar diagnostic plus a static argon pressure-volume sweep, not a
+  final production NPT workflow with moving cell degrees of freedom.
 - `python3 scripts/validate_kups_pages.py` passes in the website repository.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
@@ -152,7 +169,9 @@ Open items:
 
 - Keep mobile table wrapping as a final typography-polish item after the rest
   of the articles are expanded.
-- Add the argon/kUPS NPT diagnostic with actual cell degrees of freedom before
-  treating this post as final.
-- Re-run the page snapshot workflow after the final production-cell figure and
-  citations are added.
+- Re-run the page snapshot workflow after the compact argon cell-response
+  refresh is deployed, then record desktop and mobile feedback.
+- Add the dynamic argon/kUPS NPT diagnostic with moving cell degrees of freedom
+  before treating this post as final.
+- Re-run the page snapshot workflow again after the final production-cell
+  figure and citations are added.

@@ -1,6 +1,50 @@
 {
+  "argon_cell_response": {
+    "atom_count": 32,
+    "fitted_bulk_modulus": 45.96820894413604,
+    "points": [
+      {
+        "number_density": 1.0638297872340425,
+        "potential_energy_per_atom": -6.835290177650333,
+        "pressure": 2.639720106577482,
+        "volume": 30.08,
+        "volume_factor": 0.94
+      },
+      {
+        "number_density": 1.0309278350515465,
+        "potential_energy_per_atom": -6.860877816985074,
+        "pressure": 0.624176607485781,
+        "volume": 31.039999999999996,
+        "volume_factor": 0.97
+      },
+      {
+        "number_density": 1.0000000000000002,
+        "potential_energy_per_atom": -6.834285280832047,
+        "pressure": -0.9045022344392855,
+        "volume": 31.999999999999993,
+        "volume_factor": 1.0
+      },
+      {
+        "number_density": 0.9708737864077673,
+        "potential_energy_per_atom": -6.7683558469868546,
+        "pressure": -2.056255572878222,
+        "volume": 32.95999999999999,
+        "volume_factor": 1.03
+      },
+      {
+        "number_density": 0.9433962264150945,
+        "potential_energy_per_atom": -6.6730424642089154,
+        "pressure": -2.91529514486091,
+        "volume": 33.919999999999995,
+        "volume_factor": 1.06
+      }
+    ],
+    "pressure_span": 5.555015251438392,
+    "reference_pressure": -0.5224312476230537,
+    "reference_volume": 31.999999999999993
+  },
   "compressibility": 0.01,
-  "config_sha256": "7f1771c98f86d3616a1beedc67897259d25cb6a0459848f2dba0af8147fb9679",
+  "config_sha256": "3a6d876f3232091bdf24574caad43c51717b2db6e5aa091d2381f78a232550bf",
   "equilibrium_volume": 1000.0,
   "post": "05",
   "profile": "smoke",

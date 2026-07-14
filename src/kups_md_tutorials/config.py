@@ -448,6 +448,45 @@ class BarostatExperimentSpec:
 
 
 @dataclass(frozen=True)
+class ArgonCellResponseSpec:
+    """Configuration for compact reduced-unit argon pressure-volume checks."""
+
+    repetitions: int
+    number_density: float
+    temperature: float
+    volume_factors: tuple[float, ...]
+    epsilon: float = 1.0
+    sigma: float = 1.0
+    cutoff: float = 2.5
+
+    def validate(self) -> None:
+        if self.repetitions <= 0:
+            msg = "argon repetitions must be positive"
+            raise ValueError(msg)
+        if self.number_density <= 0.0:
+            msg = "argon number_density must be positive"
+            raise ValueError(msg)
+        if self.temperature < 0.0:
+            msg = "argon temperature must be non-negative"
+            raise ValueError(msg)
+        if not self.volume_factors:
+            msg = "argon volume_factors must be non-empty"
+            raise ValueError(msg)
+        if any(factor <= 0.0 for factor in self.volume_factors):
+            msg = "argon volume_factors must be positive"
+            raise ValueError(msg)
+        if self.epsilon <= 0.0:
+            msg = "argon epsilon must be positive"
+            raise ValueError(msg)
+        if self.sigma <= 0.0:
+            msg = "argon sigma must be positive"
+            raise ValueError(msg)
+        if self.cutoff <= 0.0:
+            msg = "argon cutoff must be positive"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
 class BarostatTutorialSpec:
     """Configuration for post-05 barostat experiments."""
 
@@ -455,6 +494,7 @@ class BarostatTutorialSpec:
     profile: str
     title: str
     experiment: BarostatExperimentSpec
+    argon_cell_response: ArgonCellResponseSpec | None = None
 
     @property
     def result_dir_name(self) -> Path:
@@ -1307,6 +1347,48 @@ def load_barostat_spec(
                 for value in experiment["barostats"]
             ),
         ),
+        argon_cell_response=(
+            None
+            if root.get("argon_cell_response") is None
+            else ArgonCellResponseSpec(
+                repetitions=int(
+                    _expect_mapping(
+                        root.get("argon_cell_response"), "argon_cell_response"
+                    )["repetitions"]
+                ),
+                number_density=float(
+                    _expect_mapping(
+                        root.get("argon_cell_response"), "argon_cell_response"
+                    )["number_density"]
+                ),
+                temperature=float(
+                    _expect_mapping(
+                        root.get("argon_cell_response"), "argon_cell_response"
+                    )["temperature"]
+                ),
+                volume_factors=tuple(
+                    float(value)
+                    for value in _expect_mapping(
+                        root.get("argon_cell_response"), "argon_cell_response"
+                    )["volume_factors"]
+                ),
+                epsilon=float(
+                    _expect_mapping(
+                        root.get("argon_cell_response"), "argon_cell_response"
+                    ).get("epsilon", 1.0)
+                ),
+                sigma=float(
+                    _expect_mapping(
+                        root.get("argon_cell_response"), "argon_cell_response"
+                    ).get("sigma", 1.0)
+                ),
+                cutoff=float(
+                    _expect_mapping(
+                        root.get("argon_cell_response"), "argon_cell_response"
+                    ).get("cutoff", 2.5)
+                ),
+            )
+        ),
     )
     if spec.post != post:
         msg = f"config post {spec.post!r} does not match requested {post!r}"
@@ -1317,6 +1399,8 @@ def load_barostat_spec(
         )
         raise ValueError(msg)
     spec.experiment.validate()
+    if spec.argon_cell_response is not None:
+        spec.argon_cell_response.validate()
     return spec
 
 

@@ -357,11 +357,14 @@ def _verify_post05(post: str, profile: str, output_root: Path) -> None:
     summary_path = output_dir / "barostat_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "barostat_samples.csv"
+    argon_samples_path = output_dir / "argon_cell_response.csv"
     missing = [
         str(path)
         for path in (summary_path, manifest_path, samples_path)
         if not path.exists()
     ]
+    if spec.argon_cell_response is not None and not argon_samples_path.exists():
+        missing.append(str(argon_samples_path))
     if missing:
         msg = "missing expected output files: " + ", ".join(missing)
         raise FileNotFoundError(msg)
@@ -385,6 +388,21 @@ def _verify_post05(post: str, profile: str, output_root: Path) -> None:
     if min(run.volume_effective_samples for run in summary.runs) <= 5.0:
         msg = "barostat effective sample count is too small"
         raise ValueError(msg)
+    if spec.argon_cell_response is not None:
+        if summary.argon_cell_response is None:
+            msg = "argon cell-response summary is missing"
+            raise ValueError(msg)
+        if len(summary.argon_cell_response.points) != len(
+            spec.argon_cell_response.volume_factors
+        ):
+            msg = "argon cell-response summary has the wrong number of points"
+            raise ValueError(msg)
+        if summary.argon_cell_response.fitted_bulk_modulus <= 0.0:
+            msg = "argon cell-response fitted bulk modulus must be positive"
+            raise ValueError(msg)
+        if summary.argon_cell_response.pressure_span <= 0.5:
+            msg = "argon cell-response pressure span is too small"
+            raise ValueError(msg)
 
 
 def _verify_post06(post: str, profile: str, output_root: Path) -> None:

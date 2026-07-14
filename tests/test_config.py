@@ -79,6 +79,8 @@ def test_load_barostat_spec() -> None:
     assert spec.experiment.equilibrium_volume == 1000.0
     assert spec.experiment.compressibility == 0.01
     assert spec.experiment.barostats[0].name == "fast_barostat"
+    assert spec.argon_cell_response is not None
+    assert spec.argon_cell_response.number_density == 1.0
 
 
 def test_load_trajectory_length_spec() -> None:

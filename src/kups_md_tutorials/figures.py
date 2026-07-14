@@ -168,10 +168,14 @@ def generate_post05_figures(
 
     summary = json.loads((result_dir / "barostat_summary.json").read_text())
     samples = _read_post05_samples(result_dir / "barostat_samples.csv")
+    argon_samples_path = result_dir / "argon_cell_response.csv"
+    argon_samples = (
+        _read_post05_samples(argon_samples_path) if argon_samples_path.exists() else None
+    )
 
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-05"}):
-        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
-        _draw_post05_figure(fig, axes, summary, samples)
+        fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.2), constrained_layout=True)
+        _draw_post05_figure(fig, axes.ravel(), summary, samples, argon_samples)
 
         svg_path = figure_dir / f"{name}.svg"
         png_path = figure_dir / f"{name}.png"
@@ -999,6 +1003,7 @@ def _draw_post05_figure(
     axes: np.ndarray,
     summary: dict,
     samples: dict[str, np.ndarray],
+    argon_samples: dict[str, np.ndarray] | None,
 ) -> None:
     fig.patch.set_facecolor("white")
     runs = sorted(summary["runs"], key=lambda run: run["relaxation_time"])
@@ -1053,6 +1058,43 @@ def _draw_post05_figure(
         fontsize=8.5,
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
     )
+
+    axes[3].set_title("Argon cell response")
+    if argon_samples is not None:
+        axes[3].plot(
+            argon_samples["volume_factor"],
+            argon_samples["pressure"],
+            marker="o",
+            color="#2b8a6e",
+            linewidth=1.6,
+        )
+        axes[3].axvline(1.0, color="#333333", linewidth=0.8, linestyle=":")
+        response = summary.get("argon_cell_response") or {}
+        axes[3].set_xlabel("V / V0")
+        axes[3].set_ylabel("reduced pressure")
+        axes[3].text(
+            0.04,
+            0.95,
+            f"Kfit = {response.get('fitted_bulk_modulus', float('nan')):.2f}\n"
+            f"N = {response.get('atom_count', 0)}",
+            transform=axes[3].transAxes,
+            va="top",
+            ha="left",
+            fontsize=8.5,
+            bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+        )
+    else:
+        axes[3].text(
+            0.5,
+            0.5,
+            "argon cell response\nnot configured",
+            transform=axes[3].transAxes,
+            va="center",
+            ha="center",
+            fontsize=9,
+        )
+        axes[3].set_xticks([])
+        axes[3].set_yticks([])
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

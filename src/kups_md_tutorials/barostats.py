@@ -10,6 +10,7 @@ import numpy as np
 
 from kups_md_tutorials.config import BarostatCase, BarostatTutorialSpec
 from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.systems import argon_fcc
 
 
 @dataclass(frozen=True)
@@ -35,6 +36,29 @@ class BarostatRunSummary:
 
 
 @dataclass(frozen=True)
+class ArgonCellResponsePoint:
+    """One reduced-unit argon pressure point under affine cell scaling."""
+
+    volume_factor: float
+    volume: float
+    number_density: float
+    pressure: float
+    potential_energy_per_atom: float
+
+
+@dataclass(frozen=True)
+class ArgonCellResponseSummary:
+    """Pressure-volume response summary for a compact atomistic cell."""
+
+    atom_count: int
+    reference_volume: float
+    reference_pressure: float
+    fitted_bulk_modulus: float
+    pressure_span: float
+    points: list[ArgonCellResponsePoint]
+
+
+@dataclass(frozen=True)
 class BarostatExperimentSummary:
     """Summary table for one post/profile pressure experiment."""
 
@@ -49,12 +73,103 @@ class BarostatExperimentSummary:
     seed: int
     config_sha256: str
     runs: list[BarostatRunSummary]
+    argon_cell_response: ArgonCellResponseSummary | None = None
 
 
 def expected_volume_variance(temperature: float, compressibility: float, volume: float) -> float:
     """Return the NPT volume fluctuation target, using kB = 1 units."""
 
     return temperature * compressibility * volume
+
+
+def _lennard_jones_pressure(
+    positions: np.ndarray,
+    box_length: float,
+    *,
+    temperature: float,
+    epsilon: float,
+    sigma: float,
+    cutoff: float,
+) -> tuple[float, float]:
+    """Return reduced-unit LJ pressure and potential with minimum-image PBC."""
+
+    atom_count = len(positions)
+    cutoff_distance = cutoff * sigma
+    cutoff_squared = cutoff_distance**2
+    sigma_squared = sigma**2
+    potential = 0.0
+    virial = 0.0
+
+    for i in range(atom_count - 1):
+        displacement = positions[i] - positions[i + 1 :]
+        displacement -= box_length * np.rint(displacement / box_length)
+        distance_squared = np.sum(displacement * displacement, axis=1)
+        mask = distance_squared < cutoff_squared
+        if not np.any(mask):
+            continue
+        pair_vectors = displacement[mask]
+        inv_r2 = sigma_squared / distance_squared[mask]
+        inv_r6 = inv_r2**3
+        inv_r12 = inv_r6**2
+        potential += float(np.sum(4.0 * epsilon * (inv_r12 - inv_r6)))
+        force_over_r = 24.0 * epsilon * (2.0 * inv_r12 - inv_r6) / distance_squared[mask]
+        forces = force_over_r[:, None] * pair_vectors
+        virial += float(np.sum(pair_vectors * forces))
+
+    volume = box_length**3
+    pressure = (atom_count * temperature + virial / 3.0) / volume
+    return pressure, potential
+
+
+def summarize_argon_cell_response(spec: BarostatTutorialSpec) -> ArgonCellResponseSummary | None:
+    """Compute compact reduced-unit argon pressure under affine cell scaling."""
+
+    argon_spec = spec.argon_cell_response
+    if argon_spec is None:
+        return None
+
+    atoms = argon_fcc(argon_spec.repetitions, argon_spec.number_density)
+    reference_box = float(atoms.cell.lengths()[0])
+    reference_positions = atoms.get_positions()
+    atom_count = len(atoms)
+    points: list[ArgonCellResponsePoint] = []
+
+    for volume_factor in argon_spec.volume_factors:
+        length_factor = volume_factor ** (1.0 / 3.0)
+        box_length = reference_box * length_factor
+        positions = reference_positions * length_factor
+        pressure, potential = _lennard_jones_pressure(
+            positions,
+            box_length,
+            temperature=argon_spec.temperature,
+            epsilon=argon_spec.epsilon,
+            sigma=argon_spec.sigma,
+            cutoff=argon_spec.cutoff,
+        )
+        volume = box_length**3
+        points.append(
+            ArgonCellResponsePoint(
+                volume_factor=volume_factor,
+                volume=volume,
+                number_density=atom_count / volume,
+                pressure=pressure,
+                potential_energy_per_atom=potential / atom_count,
+            )
+        )
+
+    volumes = np.array([point.volume for point in points], dtype=float)
+    pressures = np.array([point.pressure for point in points], dtype=float)
+    slope, intercept = np.polyfit(volumes, pressures, deg=1)
+    reference_volume = reference_box**3
+    reference_pressure = float(slope * reference_volume + intercept)
+    return ArgonCellResponseSummary(
+        atom_count=atom_count,
+        reference_volume=reference_volume,
+        reference_pressure=reference_pressure,
+        fitted_bulk_modulus=float(-reference_volume * slope),
+        pressure_span=float(np.max(pressures) - np.min(pressures)),
+        points=points,
+    )
 
 
 def simulate_scalar_barostat(
@@ -182,6 +297,7 @@ def run_barostat_experiment(
         summaries.append(summary)
         trajectories[barostat.name] = trajectory
     exp = spec.experiment
+    argon_cell_response = summarize_argon_cell_response(spec)
     return (
         BarostatExperimentSummary(
             post=spec.post,
@@ -195,6 +311,7 @@ def run_barostat_experiment(
             seed=exp.seed,
             config_sha256=config_sha256,
             runs=summaries,
+            argon_cell_response=argon_cell_response,
         ),
         trajectories,
     )
@@ -222,6 +339,32 @@ def _write_samples(
             writer.writerow(row)
 
 
+def _write_argon_cell_response_samples(
+    path: Path, summary: ArgonCellResponseSummary
+) -> None:
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(
+            [
+                "volume_factor",
+                "volume",
+                "number_density",
+                "pressure",
+                "potential_energy_per_atom",
+            ]
+        )
+        for point in summary.points:
+            writer.writerow(
+                [
+                    f"{point.volume_factor:.12g}",
+                    f"{point.volume:.12g}",
+                    f"{point.number_density:.12g}",
+                    f"{point.pressure:.12g}",
+                    f"{point.potential_energy_per_atom:.12g}",
+                ]
+            )
+
+
 def write_barostat_outputs(
     spec: BarostatTutorialSpec,
     output_root: Path = Path("results"),
@@ -238,15 +381,21 @@ def write_barostat_outputs(
     summary_path = output_dir / "barostat_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "barostat_samples.csv"
+    argon_samples_path = output_dir / "argon_cell_response.csv"
     summary_path.write_text(
         json.dumps(asdict(summary), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     _write_samples(samples_path, trajectories)
+    if summary.argon_cell_response is not None:
+        _write_argon_cell_response_samples(argon_samples_path, summary.argon_cell_response)
     manifest = {
         "config": asdict(spec),
         "summary_file": summary_path.name,
         "samples_file": samples_path.name,
+        "argon_cell_response_file": (
+            argon_samples_path.name if summary.argon_cell_response is not None else None
+        ),
         "provenance": asdict(prov),
         "versions": {
             "kups": kups.__version__,
@@ -265,4 +414,15 @@ def load_barostat_summary(path: Path) -> BarostatExperimentSummary:
 
     data = json.loads(path.read_text(encoding="utf-8"))
     runs = [BarostatRunSummary(**run) for run in data.pop("runs")]
-    return BarostatExperimentSummary(runs=runs, **data)
+    argon_cell_response = data.pop("argon_cell_response", None)
+    if argon_cell_response is not None:
+        argon_cell_response = ArgonCellResponseSummary(
+            points=[
+                ArgonCellResponsePoint(**point)
+                for point in argon_cell_response.pop("points")
+            ],
+            **argon_cell_response,
+        )
+    return BarostatExperimentSummary(
+        runs=runs, argon_cell_response=argon_cell_response, **data
+    )

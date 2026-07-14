@@ -27,6 +27,11 @@
 - GitHub Actions deploy run `29361737064` for website commit
   `2ae2434e4933fde7fe3f2241e18be00af913d159`
 - GitHub Actions snapshot run `29361900585`
+- GitHub Actions tutorial verify run `29372999316` for tutorial commit
+  `e7961d3650c5c41fafca370782b61d80c305e21d`
+- GitHub Actions deploy run `29372999672` for website commit
+  `184a54fd81c3b4a38fe659839ee9427666d46324`
+- GitHub Actions snapshot run `29373158618`
 - `uv run kups-tutorial verify-reviews`
 
 ## Code And Reproducibility Review
@@ -174,13 +179,34 @@ Rendered page feedback:
   navigation, author note, tables, equation, figure, code block,
   current-status section, and references present. The title wraps heavily but
   remains readable; tables and code block stay within the page.
+- Website deploy run `29372999672` succeeded for compact argon trajectory
+  refresh commit `184a54fd81c3b4a38fe659839ee9427666d46324`.
+- Snapshot workflow run `29373158618` captured the refreshed hidden page.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post07-argon-trajectory-snapshots/`.
+- Refreshed manifest reviewed:
+  `/tmp/kups-post07-argon-trajectory-snapshots/manifest.json`.
+- Refreshed manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`; both
+  returned HTTP 200 with page title
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+- Refreshed rendered snapshots visually inspected:
+  `/tmp/kups-post07-argon-trajectory-snapshots/post-07-desktop.png` and
+  `/tmp/kups-post07-argon-trajectory-snapshots/post-07-mobile.png`.
+- Refreshed desktop capture renders the compact trajectory table, updated
+  source links, full article body, and four-panel observable diagnostic figure
+  with the trajectory RDF panel visible. No blank page, missing figure, clipped
+  table, or broken page chrome was found in the inspected snapshot.
+- Refreshed mobile capture renders the updated article through the mobile
+  layout with the compact trajectory table, four-panel figure, reproduction
+  code block, current-status section, and references present. The embedded
+  plot text is small, as expected for a full-width diagnostic on mobile, but
+  the figure, caption, and surrounding prose remain coherent and unclipped.
 
 Open items:
 
 - Keep mobile title and table wrapping as final typography-polish items after
   the rest of the articles are expanded.
-- Re-run the page snapshot workflow after the compact argon trajectory
-  observable refresh is deployed, then record desktop and mobile feedback.
 - Add larger GPU kUPS trajectory diagnostics for physical observables before
   treating this post as final.
 - Re-run the page snapshot workflow again after the final

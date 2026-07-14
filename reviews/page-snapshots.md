@@ -583,6 +583,58 @@ Revision decisions:
   final-release blocker for post 07.
 - The page remains hidden from public navigation and direct-link reachable.
 
+## Post 07 Compact Argon Trajectory Snapshot Refresh
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29373158618`.
+- Website commit: `184a54fd81c3b4a38fe659839ee9427666d46324`.
+- Deploy run for that commit: `29372999672`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post07-argon-trajectory-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post07-argon-trajectory-snapshots/manifest.json`.
+- Capture scope: post 07 only, after adding the compact reduced-unit argon
+  trajectory observable workflow and four-panel diagnostic figure.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post07-argon-trajectory-snapshots/post-07-desktop.png`
+- `/tmp/kups-post07-argon-trajectory-snapshots/post-07-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the refreshed hidden article end to end with sidebar
+  table of contents, source links, compact trajectory table, full-profile
+  four-panel diagnostic figure, reproduction code block, current-status
+  section, references, and footer present. The trajectory RDF panel is visible
+  in the figure and no blank page, missing asset, obvious text clipping, or
+  broken page chrome was found in the inspected snapshot.
+- Mobile capture renders the updated article through the mobile layout with
+  the title, compact trajectory table, four-panel figure, code block,
+  current-status section, and references present. The figure is necessarily
+  dense on mobile, but it scales within the page and the caption/prose make the
+  trajectory RDF panel identifiable.
+
+Revision decisions:
+
+- No blocking layout issue was found for the compact argon trajectory refresh.
+- Keep mobile figure readability and table wrapping as final typography-polish
+  items after the rest of the article content is final.
+- Larger GPU kUPS production trajectory observables remain a final-release
+  blocker for post 07.
+- The page remains hidden from public navigation and direct-link reachable.
+
 ## Expanded Post 08 Snapshot Capture
 
 - Capture date: 2026-07-14.

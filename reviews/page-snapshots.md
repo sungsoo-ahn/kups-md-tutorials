@@ -383,3 +383,52 @@ Revision decisions:
 - The argon/kUPS NPT diagnostic with actual cell degrees of freedom remains a
   final-release blocker for post 05.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 06 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29361099780`.
+- Website commit: `aac0e52f2cbfc388afc884073e36172cd26e4c9e`.
+- Deploy run for that commit: `29360919260`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post06-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post06-expanded-snapshots/manifest.json`.
+- Capture scope: post 06 only, after expansion to about 3,534 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `When Is a Trajectory Long Enough to Trust? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post06-expanded-snapshots/post-06-desktop.png`
+- `/tmp/kups-post06-expanded-snapshots/post-06-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-draft note, source links, trajectory-length diagnostic
+  tables, display equation, full-profile figure, reproduction code block,
+  practical checklist, current-status section, references, and footer present.
+  No blank page, missing figure, obvious text clipping, or broken page chrome
+  was found in the inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, navigation, hidden-draft note, tables, equation, figure, code block,
+  current-status section, and references present. The tables are tight but
+  readable and are not clipped in the inspected snapshot.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 06 hidden draft.
+- Keep mobile table wrapping as a final typography-polish item after the rest
+  of the articles are expanded.
+- The argon/kUPS physical-observable trajectory-length diagnostic remains a
+  final-release blocker for post 06.
+- The page remains hidden from public navigation and direct-link reachable.

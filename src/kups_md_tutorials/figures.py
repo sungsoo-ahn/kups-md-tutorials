@@ -363,8 +363,8 @@ def generate_post10_figures(
     windows = _read_post10_windows(result_dir / "umbrella_windows.csv")
 
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-10"}):
-        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
-        _draw_post10_figure(fig, axes, summary, curves, windows)
+        fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.0), constrained_layout=True)
+        _draw_post10_figure(fig, axes.ravel(), summary, curves, windows)
 
         svg_path = figure_dir / f"{name}.svg"
         png_path = figure_dir / f"{name}.png"
@@ -1783,6 +1783,31 @@ def _draw_post10_figure(
         f"dense RMSE = {dense['pmf_rmse_vs_true']:.3f}\n"
         f"sparse RMSE = {sparse['pmf_rmse_vs_true']:.3f}",
         transform=axes[2].transAxes,
+        va="top",
+        ha="left",
+        fontsize=8.5,
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+    )
+
+    for protocol in protocols:
+        name = protocol["protocol"]
+        axes[3].plot(
+            curves[f"{name}_x"],
+            curves[f"{name}_replica_abs_difference"],
+            color=colors.get(name, "#666666"),
+            linewidth=1.25,
+            label=name.replace("_", " "),
+        )
+    axes[3].set_title("Replica disagreement is local")
+    axes[3].set_xlabel("collective variable")
+    axes[3].set_ylabel("|PMF replica difference|")
+    axes[3].legend(frameon=False, fontsize=8)
+    axes[3].text(
+        0.03,
+        0.97,
+        f"dense replica RMSE = {dense['forward_reverse_pmf_rmse']:.3f}\n"
+        f"sparse replica RMSE = {sparse['forward_reverse_pmf_rmse']:.3f}",
+        transform=axes[3].transAxes,
         va="top",
         ha="left",
         fontsize=8.5,

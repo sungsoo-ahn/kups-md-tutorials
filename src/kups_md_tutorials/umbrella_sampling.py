@@ -33,10 +33,13 @@ class UmbrellaProtocolSummary:
     window_count: int
     reconstructed_barrier_height: float
     barrier_error: float
+    replica_barrier_height: float
+    barrier_replica_difference: float
     pmf_rmse_vs_true: float
     min_adjacent_overlap: float
     mean_adjacent_overlap: float
     forward_reverse_pmf_rmse: float
+    max_replica_pmf_difference: float
     max_replica_mean_difference: float
     min_effective_bins: int
     windows: list[UmbrellaWindowSummary]
@@ -249,7 +252,9 @@ def _summarize_protocol(
 
     overlap = _overlap_coefficients(counts)
     barrier = _barrier_height(centers, pmf)
+    replica_barrier = _barrier_height(centers, replica_pmf)
     true_barrier = float(double_well_potential(np.array([0.0]))[0])
+    replica_difference = np.abs(pmf - replica_pmf)
     window_summaries = []
     for idx, center in enumerate(protocol.window_centers):
         samples = samples_by_window[idx]
@@ -271,10 +276,13 @@ def _summarize_protocol(
             window_count=len(protocol.window_centers),
             reconstructed_barrier_height=barrier,
             barrier_error=float(barrier - true_barrier),
+            replica_barrier_height=replica_barrier,
+            barrier_replica_difference=float(abs(barrier - replica_barrier)),
             pmf_rmse_vs_true=_pmf_rmse(centers, pmf),
             min_adjacent_overlap=float(min(overlap)),
             mean_adjacent_overlap=float(np.mean(overlap)),
             forward_reverse_pmf_rmse=float(np.sqrt(np.nanmean((pmf - replica_pmf) ** 2))),
+            max_replica_pmf_difference=float(np.nanmax(replica_difference)),
             max_replica_mean_difference=max(
                 item.replica_mean_difference for item in window_summaries
             ),
@@ -285,6 +293,7 @@ def _summarize_protocol(
             "centers": centers,
             "pmf": pmf,
             "replica_pmf": replica_pmf,
+            "replica_abs_difference": replica_difference,
             "overlap": np.array(overlap, dtype=float),
             "window_centers": np.array(protocol.window_centers, dtype=float),
             "window_means": np.array(
@@ -348,10 +357,17 @@ def _write_umbrella_curves(
     protocol_names = list(curves)
     max_len = max(len(item["centers"]) for item in curves.values())
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         header = ["true_x", "true_pmf"]
         for name in protocol_names:
-            header.extend([f"{name}_x", f"{name}_pmf", f"{name}_replica_pmf"])
+            header.extend(
+                [
+                    f"{name}_x",
+                    f"{name}_pmf",
+                    f"{name}_replica_pmf",
+                    f"{name}_replica_abs_difference",
+                ]
+            )
         writer.writerow(header)
         true_x = curves[protocol_names[0]]["centers"]
         true_pmf = double_well_potential(true_x)
@@ -369,10 +385,11 @@ def _write_umbrella_curves(
                             f"{protocol['centers'][idx]:.12g}",
                             f"{protocol['pmf'][idx]:.12g}",
                             f"{protocol['replica_pmf'][idx]:.12g}",
+                            f"{protocol['replica_abs_difference'][idx]:.12g}",
                         ]
                     )
                 else:
-                    row.extend(["", "", ""])
+                    row.extend(["", "", "", ""])
             writer.writerow(row)
 
 
@@ -382,7 +399,7 @@ def _write_umbrella_windows(
 ) -> None:
     max_len = max(len(item["window_centers"]) for item in curves.values())
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         header = []
         for name in curves:
             header.extend(

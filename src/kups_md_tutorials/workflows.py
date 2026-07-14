@@ -731,6 +731,9 @@ def _verify_post10(post: str, profile: str, output_root: Path) -> None:
     if dense.forward_reverse_pmf_rmse > 0.35:
         msg = "dense-window replica consistency is outside the review threshold"
         raise ValueError(msg)
+    if dense.forward_reverse_pmf_rmse >= sparse.forward_reverse_pmf_rmse:
+        msg = "dense windows should improve replica PMF consistency"
+        raise ValueError(msg)
 
 
 def _verify_post11(post: str, profile: str, output_root: Path) -> None:

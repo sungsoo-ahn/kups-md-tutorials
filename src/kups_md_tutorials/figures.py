@@ -348,6 +348,35 @@ def generate_post11_figures(
     return [svg_path, png_path, snapshot_path]
 
 
+def generate_post12_figures(
+    result_dir: Path = Path("results/post-12/smoke"),
+    figure_dir: Path = Path("figures/post-12"),
+    snapshot_dir: Path = Path("snapshots/post-12"),
+    name: str = "mlip_diagnostics",
+) -> list[Path]:
+    """Generate MLIP capstone diagnostic figures."""
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+    summary = json.loads((result_dir / "mlip_summary.json").read_text())
+    samples = _read_post12_samples(result_dir / "mlip_samples.csv")
+
+    with rc_context({"svg.hashsalt": "kups-md-tutorials-post-12"}):
+        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+        _draw_post12_figure(fig, axes, summary, samples)
+
+        svg_path = figure_dir / f"{name}.svg"
+        png_path = figure_dir / f"{name}.png"
+        snapshot_path = snapshot_dir / f"{name}_snapshot.png"
+        fig.savefig(svg_path, metadata={"Date": None})
+        _strip_trailing_whitespace(svg_path)
+        fig.savefig(png_path, dpi=220)
+        fig.savefig(snapshot_path, dpi=160)
+        plt.close(fig)
+    return [svg_path, png_path, snapshot_path]
+
+
 def _read_post02_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -460,6 +489,16 @@ def _read_post11_curves(path: Path) -> dict[str, np.ndarray]:
         values = [float(row[key]) for row in rows if row[key]]
         curves[key] = np.array(values, dtype=float)
     return curves
+
+
+def _read_post12_samples(path: Path) -> dict[str, np.ndarray]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    return {
+        key: np.array([float(row[key]) for row in rows], dtype=float)
+        for key in reader.fieldnames or []
+    }
 
 
 def _draw_post01_figure(
@@ -1459,6 +1498,106 @@ def _draw_post11_figure(
     axes[2].set_xlabel("work")
     axes[2].set_ylabel("density")
     axes[2].legend(frameon=False, fontsize=7.4)
+
+    for ax in axes:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(alpha=0.18, linewidth=0.6)
+
+
+def _draw_post12_figure(
+    fig: plt.Figure,
+    axes: np.ndarray,
+    summary: dict,
+    samples: dict[str, np.ndarray],
+) -> None:
+    fig.patch.set_facecolor("white")
+    cases = summary["cases"]
+    labels = [case["case"].replace("_", "\n") for case in cases]
+    x = np.arange(len(cases))
+
+    width = 0.34
+    axes[0].bar(
+        x - width / 2,
+        [case["force_rmse"] for case in cases],
+        width=width,
+        color="#2f6f9f",
+        label="force RMSE",
+    )
+    axes[0].bar(
+        x + width / 2,
+        [case["force_bias_norm"] for case in cases],
+        width=width,
+        color="#d88c3d",
+        label="force bias norm",
+    )
+    axes[0].set_title("Static errors miss deployment risk")
+    axes[0].set_ylabel("force error")
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels(labels, fontsize=8)
+    axes[0].legend(frameon=False, fontsize=8)
+
+    axes[1].plot(
+        x,
+        [case["normalized_nve_energy_drift"] for case in cases],
+        marker="o",
+        color="#8c6bb1",
+        linewidth=1.5,
+        label="NVE drift",
+    )
+    axes[1].plot(
+        x,
+        [case["extrapolation_fraction"] for case in cases],
+        marker="s",
+        color="#6a8f4e",
+        linewidth=1.5,
+        label="extrapolation fraction",
+    )
+    axes[1].plot(
+        x,
+        [case["neighbor_list_risk_fraction"] for case in cases],
+        marker="^",
+        color="#d88c3d",
+        linewidth=1.5,
+        label="neighbor-list risk",
+    )
+    axes[1].set_title("Dynamics expose extrapolation")
+    axes[1].set_ylabel("fraction or normalized drift")
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(labels, fontsize=8)
+    axes[1].legend(frameon=False, fontsize=7.8)
+
+    colors = ["#2f6f9f", "#d88c3d", "#8c6bb1"]
+    for case, color in zip(cases, colors, strict=True):
+        name = case["case"]
+        error = np.abs(samples[f"{name}_force_error"])
+        uncertainty = samples[f"{name}_uncertainty"]
+        ratio = error / np.maximum(uncertainty, 1.0e-12)
+        axes[2].hist(
+            ratio,
+            bins=np.linspace(0.0, 4.0, 36),
+            density=True,
+            histtype="step",
+            linewidth=1.4,
+            color=color,
+            label=name.replace("_", " "),
+        )
+    axes[2].axvline(2.0, color="#333333", linewidth=0.9, linestyle="--")
+    axes[2].set_title("Uncertainty must calibrate errors")
+    axes[2].set_xlabel("|force error| / uncertainty")
+    axes[2].set_ylabel("density")
+    axes[2].legend(frameon=False, fontsize=7.6)
+    axes[2].text(
+        0.03,
+        0.96,
+        f"artifact: {summary['model_name']}\n"
+        f"revision: {summary['model_revision']}",
+        transform=axes[2].transAxes,
+        va="top",
+        ha="left",
+        fontsize=8.0,
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+    )
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

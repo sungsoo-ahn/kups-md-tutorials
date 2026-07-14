@@ -1,0 +1,61 @@
+{
+  "cases": [
+    {
+      "case": "in_domain_fcc",
+      "ensemble_temperature_drift_k": 0.5185346798311276,
+      "extrapolation_fraction": 0.0,
+      "force_bias_norm": 0.0005295622808893587,
+      "force_rmse": 0.03518227879401498,
+      "free_energy_barrier_shift": 4.23649824711487e-05,
+      "neighbor_list_risk_fraction": 0.0,
+      "normalized_nve_energy_drift": 0.0027301236899247676,
+      "static_energy_rmse_mev_per_atom": 4.2218734552817985,
+      "strain": 0.0,
+      "thermal_displacement": 0.035,
+      "uncertainty_coverage_2sigma": 0.99,
+      "uncertainty_mean": 0.047169433222620696
+    },
+    {
+      "case": "strained_cell",
+      "ensemble_temperature_drift_k": 13.565942611493004,
+      "extrapolation_fraction": 0.994,
+      "force_bias_norm": 0.022226931756942934,
+      "force_rmse": 0.07386167868345496,
+      "free_energy_barrier_shift": 0.003938154540555435,
+      "neighbor_list_risk_fraction": 0.1484,
+      "normalized_nve_energy_drift": 0.014528580161516248,
+      "static_energy_rmse_mev_per_atom": 9.122303735339848,
+      "strain": 0.06,
+      "thermal_displacement": 0.055,
+      "uncertainty_coverage_2sigma": 0.9996,
+      "uncertainty_mean": 0.15338501099559967
+    },
+    {
+      "case": "extrapolative_hot",
+      "ensemble_temperature_drift_k": 16.069673155343065,
+      "extrapolation_fraction": 1.0,
+      "force_bias_norm": 0.08141923300980189,
+      "force_rmse": 0.157190358572756,
+      "free_energy_barrier_shift": 0.015153538640784153,
+      "neighbor_list_risk_fraction": 0.9676,
+      "normalized_nve_energy_drift": 0.019214768821945213,
+      "static_energy_rmse_mev_per_atom": 20.328664046020233,
+      "strain": 0.12,
+      "thermal_displacement": 0.09,
+      "uncertainty_coverage_2sigma": 1.0,
+      "uncertainty_mean": 0.41373095927686554
+    }
+  ],
+  "config_sha256": "24a375f66a20a3749aa944bd6a47ba9c2aaa8986c60c5b62cc22db76d06e6fe3",
+  "material": "fcc_aluminum",
+  "model_name": "mace-mp-0-medium",
+  "model_repository": "ACEsuit/mace",
+  "model_revision": "pinned-placeholder",
+  "model_sha256": "pending-gpu-artifact-hash",
+  "post": "12",
+  "profile": "smoke",
+  "sample_count": 2500,
+  "seed": 2026071412,
+  "temperature_k": 300.0,
+  "time_step_fs": 1.0
+}

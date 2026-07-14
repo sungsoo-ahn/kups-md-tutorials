@@ -775,6 +775,97 @@ class EnhancedSamplingTutorialSpec:
         return Path(f"post-{self.post}") / self.profile
 
 
+@dataclass(frozen=True)
+class ModelArtifactSpec:
+    """Pinned MLIP artifact metadata for post-12."""
+
+    name: str
+    repository: str
+    revision: str
+    sha256: str
+
+
+@dataclass(frozen=True)
+class MlipCaseSpec:
+    """One MLIP reliability diagnostic regime."""
+
+    name: str
+    strain: float
+    thermal_displacement: float
+    force_noise: float
+    force_bias: float
+    uncertainty_scale: float
+
+
+@dataclass(frozen=True)
+class MlipExperimentSpec:
+    """Configuration for MLIP capstone diagnostics."""
+
+    material: str
+    temperature_k: float
+    seed: int
+    sample_count: int
+    time_step_fs: float
+    model_artifact: ModelArtifactSpec
+    cases: tuple[MlipCaseSpec, ...]
+
+    def validate(self) -> None:
+        if not self.material:
+            msg = "material must be non-empty"
+            raise ValueError(msg)
+        if self.temperature_k <= 0.0:
+            msg = "temperature_k must be positive"
+            raise ValueError(msg)
+        if self.sample_count <= 0:
+            msg = "sample_count must be positive"
+            raise ValueError(msg)
+        if self.time_step_fs <= 0.0:
+            msg = "time_step_fs must be positive"
+            raise ValueError(msg)
+        if not self.model_artifact.name:
+            msg = "model artifact name must be non-empty"
+            raise ValueError(msg)
+        if not self.model_artifact.repository:
+            msg = "model artifact repository must be non-empty"
+            raise ValueError(msg)
+        if not self.model_artifact.revision:
+            msg = "model artifact revision must be non-empty"
+            raise ValueError(msg)
+        if not self.model_artifact.sha256:
+            msg = "model artifact sha256 must be non-empty"
+            raise ValueError(msg)
+        if not self.cases:
+            msg = "MLIP cases must be non-empty"
+            raise ValueError(msg)
+        for case in self.cases:
+            if not case.name:
+                msg = "MLIP case names must be non-empty"
+                raise ValueError(msg)
+            if case.thermal_displacement < 0.0:
+                msg = "thermal_displacement must be non-negative"
+                raise ValueError(msg)
+            if case.force_noise < 0.0:
+                msg = "force_noise must be non-negative"
+                raise ValueError(msg)
+            if case.uncertainty_scale <= 0.0:
+                msg = "uncertainty_scale must be positive"
+                raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class MlipTutorialSpec:
+    """Configuration for post-12 MLIP capstone experiments."""
+
+    post: str
+    profile: str
+    title: str
+    experiment: MlipExperimentSpec
+
+    @property
+    def result_dir_name(self) -> Path:
+        return Path(f"post-{self.post}") / self.profile
+
+
 def _expect_mapping(value: Any, name: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         msg = f"{name} must be an object"
@@ -1340,6 +1431,67 @@ def load_enhanced_sampling_spec(
                 start_center=float(pulling["start_center"]),
                 end_center=float(pulling["end_center"]),
                 noise_scale=float(pulling["noise_scale"]),
+            ),
+        ),
+    )
+    if spec.post != post:
+        msg = f"config post {spec.post!r} does not match requested {post!r}"
+        raise ValueError(msg)
+    if spec.profile != profile:
+        msg = (
+            f"config profile {spec.profile!r} does not match requested {profile!r}"
+        )
+        raise ValueError(msg)
+    spec.experiment.validate()
+    return spec
+
+
+def load_mlip_spec(
+    post: str, profile: str, config_root: Path = Path("configs")
+) -> MlipTutorialSpec:
+    """Load a committed JSON configuration for MLIP diagnostics."""
+
+    path = config_root / f"post-{post}" / f"{profile}.json"
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    root = _expect_mapping(data, "MLIP config")
+    experiment = _expect_mapping(root.get("mlip_experiment"), "mlip_experiment")
+    artifact = _expect_mapping(experiment.get("model_artifact"), "model_artifact")
+    spec = MlipTutorialSpec(
+        post=str(root["post"]),
+        profile=str(root["profile"]),
+        title=str(root["title"]),
+        experiment=MlipExperimentSpec(
+            material=str(experiment["material"]),
+            temperature_k=float(experiment["temperature_k"]),
+            seed=int(experiment["seed"]),
+            sample_count=int(experiment["sample_count"]),
+            time_step_fs=float(experiment["time_step_fs"]),
+            model_artifact=ModelArtifactSpec(
+                name=str(artifact["name"]),
+                repository=str(artifact["repository"]),
+                revision=str(artifact["revision"]),
+                sha256=str(artifact["sha256"]),
+            ),
+            cases=tuple(
+                MlipCaseSpec(
+                    name=str(_expect_mapping(value, "MLIP case")["name"]),
+                    strain=float(_expect_mapping(value, "MLIP case")["strain"]),
+                    thermal_displacement=float(
+                        _expect_mapping(value, "MLIP case")[
+                            "thermal_displacement"
+                        ]
+                    ),
+                    force_noise=float(
+                        _expect_mapping(value, "MLIP case")["force_noise"]
+                    ),
+                    force_bias=float(_expect_mapping(value, "MLIP case")["force_bias"]),
+                    uncertainty_scale=float(
+                        _expect_mapping(value, "MLIP case")["uncertainty_scale"]
+                    ),
+                )
+                for value in experiment["cases"]
             ),
         ),
     )

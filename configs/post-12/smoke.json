@@ -1,0 +1,44 @@
+{
+  "post": "12",
+  "profile": "smoke",
+  "title": "What Changes When the Potential Is a Machine-Learned Interatomic Potential?",
+  "mlip_experiment": {
+    "material": "fcc_aluminum",
+    "temperature_k": 300.0,
+    "seed": 2026071412,
+    "sample_count": 2500,
+    "time_step_fs": 1.0,
+    "model_artifact": {
+      "name": "mace-mp-0-medium",
+      "repository": "ACEsuit/mace",
+      "revision": "pinned-placeholder",
+      "sha256": "pending-gpu-artifact-hash"
+    },
+    "cases": [
+      {
+        "name": "in_domain_fcc",
+        "strain": 0.00,
+        "thermal_displacement": 0.035,
+        "force_noise": 0.035,
+        "force_bias": 0.000,
+        "uncertainty_scale": 1.0
+      },
+      {
+        "name": "strained_cell",
+        "strain": 0.06,
+        "thermal_displacement": 0.055,
+        "force_noise": 0.070,
+        "force_bias": 0.018,
+        "uncertainty_scale": 1.4
+      },
+      {
+        "name": "extrapolative_hot",
+        "strain": 0.12,
+        "thermal_displacement": 0.090,
+        "force_noise": 0.135,
+        "force_bias": 0.055,
+        "uncertainty_scale": 2.0
+      }
+    ]
+  }
+}

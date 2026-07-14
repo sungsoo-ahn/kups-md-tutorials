@@ -9,6 +9,7 @@ from kups_md_tutorials.config import (
     load_estimator_spec,
     load_free_energy_spec,
     load_integrator_spec,
+    load_mlip_spec,
     load_observable_spec,
     load_trajectory_length_spec,
     load_thermostat_spec,
@@ -38,6 +39,10 @@ from kups_md_tutorials.initialization import (
 from kups_md_tutorials.integrators import (
     load_integrator_summary,
     write_integrator_outputs,
+)
+from kups_md_tutorials.mlip_capstone import (
+    load_mlip_summary,
+    write_mlip_outputs,
 )
 from kups_md_tutorials.free_energies import (
     load_free_energy_summary,
@@ -72,6 +77,7 @@ SUPPORTED_POSTS = (
     "09",
     "10",
     "11",
+    "12",
 )
 SUPPORTED_PROFILES = ("smoke", "full")
 
@@ -112,6 +118,9 @@ def run_post(post: str, profile: str, output_root: Path = Path("results")) -> Pa
     if post == "11":
         spec = load_enhanced_sampling_spec(post, profile)
         return write_enhanced_sampling_outputs(spec, output_root=output_root)
+    if post == "12":
+        spec = load_mlip_spec(post, profile)
+        return write_mlip_outputs(spec, output_root=output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -148,6 +157,8 @@ def verify_post(post: str, profile: str, output_root: Path = Path("results")) ->
         _verify_post10(post, profile, output_root)
     elif post == "11":
         _verify_post11(post, profile, output_root)
+    elif post == "12":
+        _verify_post12(post, profile, output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -608,4 +619,52 @@ def _verify_post11(post: str, profile: str, output_root: Path) -> None:
         raise ValueError(msg)
     if abs(summary.pulling.crooks_crossing_delta_f - summary.pulling.true_delta_f) > 0.50:
         msg = "Crooks crossing estimate is outside the review threshold"
+        raise ValueError(msg)
+
+
+def _verify_post12(post: str, profile: str, output_root: Path) -> None:
+    spec = load_mlip_spec(post, profile)
+    output_dir = output_root / spec.result_dir_name
+    summary_path = output_dir / "mlip_summary.json"
+    manifest_path = output_dir / "manifest.json"
+    samples_path = output_dir / "mlip_samples.csv"
+    missing = [
+        str(path)
+        for path in (summary_path, manifest_path, samples_path)
+        if not path.exists()
+    ]
+    if missing:
+        msg = "missing expected output files: " + ", ".join(missing)
+        raise FileNotFoundError(msg)
+
+    summary = load_mlip_summary(summary_path)
+    if summary.post != post or summary.profile != profile:
+        msg = "summary post/profile does not match requested verification target"
+        raise ValueError(msg)
+    if len(summary.cases) != len(spec.experiment.cases):
+        msg = "summary does not contain the expected MLIP cases"
+        raise ValueError(msg)
+    if not summary.model_revision or not summary.model_sha256:
+        msg = "MLIP artifact metadata is incomplete"
+        raise ValueError(msg)
+
+    in_domain = next(case for case in summary.cases if case.case == "in_domain_fcc")
+    hot = next(case for case in summary.cases if case.case == "extrapolative_hot")
+    if hot.force_rmse <= in_domain.force_rmse:
+        msg = "extrapolative case should have larger force RMSE"
+        raise ValueError(msg)
+    if hot.extrapolation_fraction <= in_domain.extrapolation_fraction:
+        msg = "extrapolative case should have larger extrapolation fraction"
+        raise ValueError(msg)
+    if hot.normalized_nve_energy_drift <= in_domain.normalized_nve_energy_drift:
+        msg = "extrapolative case should have larger NVE drift"
+        raise ValueError(msg)
+    if hot.ensemble_temperature_drift_k <= in_domain.ensemble_temperature_drift_k:
+        msg = "extrapolative case should have larger ensemble drift"
+        raise ValueError(msg)
+    if min(case.uncertainty_coverage_2sigma for case in summary.cases) < 0.85:
+        msg = "uncertainty coverage is too low for the diagnostic"
+        raise ValueError(msg)
+    if max(case.static_energy_rmse_mev_per_atom for case in summary.cases) <= 0.0:
+        msg = "static energy errors should be nonzero"
         raise ValueError(msg)

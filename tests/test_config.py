@@ -10,6 +10,7 @@ from kups_md_tutorials.config import (
     load_estimator_spec,
     load_free_energy_spec,
     load_integrator_spec,
+    load_mlip_spec,
     load_observable_spec,
     load_trajectory_length_spec,
     load_thermostat_spec,
@@ -116,3 +117,10 @@ def test_load_enhanced_sampling_spec() -> None:
     assert spec.experiment.temperature == 1.0
     assert spec.experiment.metadynamics.bias_factor > 1.0
     assert spec.experiment.pulling.path_count > 0
+
+
+def test_load_mlip_spec() -> None:
+    spec = load_mlip_spec("12", "smoke")
+    assert spec.experiment.material == "fcc_aluminum"
+    assert spec.experiment.model_artifact.name.startswith("mace")
+    assert spec.experiment.cases[-1].strain > spec.experiment.cases[0].strain

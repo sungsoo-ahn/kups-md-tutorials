@@ -7,6 +7,7 @@ from kups_md_tutorials.config import (
     load_estimator_spec,
     load_free_energy_spec,
     load_integrator_spec,
+    load_mlip_spec,
     load_observable_spec,
     load_trajectory_length_spec,
     load_thermostat_spec,
@@ -27,12 +28,14 @@ from kups_md_tutorials.figures import (
     generate_post09_figures,
     generate_post10_figures,
     generate_post11_figures,
+    generate_post12_figures,
 )
 from kups_md_tutorials.enhanced_sampling import write_enhanced_sampling_outputs
 from kups_md_tutorials.estimators import write_estimator_outputs
 from kups_md_tutorials.free_energies import write_free_energy_outputs
 from kups_md_tutorials.initialization import write_initialization_outputs
 from kups_md_tutorials.integrators import write_integrator_outputs
+from kups_md_tutorials.mlip_capstone import write_mlip_outputs
 from kups_md_tutorials.observables import write_observable_outputs
 from kups_md_tutorials.thermostats import write_thermostat_outputs
 from kups_md_tutorials.trajectory_length import write_trajectory_length_outputs
@@ -183,6 +186,20 @@ def test_post11_figure_generation(tmp_path: Path) -> None:
     spec = load_enhanced_sampling_spec("11", "smoke")
     result_dir = write_enhanced_sampling_outputs(spec, output_root=tmp_path / "results")
     outputs = generate_post11_figures(
+        result_dir=result_dir,
+        figure_dir=tmp_path / "figures",
+        snapshot_dir=tmp_path / "snapshots",
+    )
+    assert len(outputs) == 3
+    for path in outputs:
+        assert path.exists()
+        assert path.stat().st_size > 0
+
+
+def test_post12_figure_generation(tmp_path: Path) -> None:
+    spec = load_mlip_spec("12", "smoke")
+    result_dir = write_mlip_outputs(spec, output_root=tmp_path / "results")
+    outputs = generate_post12_figures(
         result_dir=result_dir,
         figure_dir=tmp_path / "figures",
         snapshot_dir=tmp_path / "snapshots",

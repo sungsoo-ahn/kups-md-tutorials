@@ -37,7 +37,33 @@
       "true_delta_f": 0.8
     }
   ],
-  "config_sha256": "bcc5b310d129879a61d5b31b5e530752f1a2383e18c67538ed486ac4fabf9f3b",
+  "config_sha256": "74a0ff4f273dd6e7ba1e4eb30b6156f92b053f345855749827b26965b286e74a",
+  "multistate_protocols": [
+    {
+      "disconnected_edges": 0,
+      "finite_pmf_bins": 55,
+      "force_constant": 12.0,
+      "max_pmf_abs_error": 5.3500000000000165,
+      "mean_adjacent_overlap": 0.27166666666666667,
+      "min_adjacent_overlap": 0.18083333333333332,
+      "pmf_rmse_vs_true": 2.108253369835679,
+      "protocol": "dense_bridge",
+      "sample_count_per_window": 1200,
+      "window_count": 7
+    },
+    {
+      "disconnected_edges": 1,
+      "finite_pmf_bins": 40,
+      "force_constant": 12.0,
+      "max_pmf_abs_error": 5.3500000000000165,
+      "mean_adjacent_overlap": 0.0,
+      "min_adjacent_overlap": 0.0,
+      "pmf_rmse_vs_true": 3.202123062844529,
+      "protocol": "sparse_bridge",
+      "sample_count_per_window": 1200,
+      "window_count": 2
+    }
+  ],
   "post": "09",
   "profile": "smoke",
   "sample_count": 4000,

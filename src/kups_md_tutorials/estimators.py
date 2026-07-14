@@ -8,7 +8,12 @@ import json
 import kups
 import numpy as np
 
-from kups_md_tutorials.config import EstimatorCase, EstimatorTutorialSpec
+from kups_md_tutorials.config import (
+    EstimatorCase,
+    EstimatorTutorialSpec,
+    MultiStateOverlapSpec,
+    MultiStateProtocolSpec,
+)
 from kups_md_tutorials.provenance import provenance
 
 
@@ -45,6 +50,23 @@ class EstimatorExperimentSummary:
     seed: int
     config_sha256: str
     cases: list[EstimatorCaseSummary]
+    multistate_protocols: list["MultiStateProtocolSummary"] | None = None
+
+
+@dataclass(frozen=True)
+class MultiStateProtocolSummary:
+    """Compact diagnostics for one WHAM/MBAR-style bridge layout."""
+
+    protocol: str
+    window_count: int
+    sample_count_per_window: int
+    force_constant: float
+    min_adjacent_overlap: float
+    mean_adjacent_overlap: float
+    disconnected_edges: int
+    finite_pmf_bins: int
+    pmf_rmse_vs_true: float
+    max_pmf_abs_error: float
 
 
 def reduced_potential_a(values: np.ndarray) -> np.ndarray:
@@ -105,7 +127,167 @@ def _normal_pdf(values: np.ndarray, mean: float) -> np.ndarray:
 
 def _overlap_coefficient(mean_shift: float) -> float:
     grid = np.linspace(-8.0, 8.0 + mean_shift, 4000)
-    return float(np.trapezoid(np.minimum(_normal_pdf(grid, 0.0), _normal_pdf(grid, mean_shift)), grid))
+    overlap = np.minimum(_normal_pdf(grid, 0.0), _normal_pdf(grid, mean_shift))
+    return float(np.trapezoid(overlap, grid))
+
+
+def _biased_window_samples(
+    *,
+    center: float,
+    force_constant: float,
+    sample_count: int,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    precision = 1.0 + force_constant
+    mean = force_constant * center / precision
+    std = np.sqrt(1.0 / precision)
+    return rng.normal(mean, std, size=sample_count)
+
+
+def _target_pmf(centers: np.ndarray) -> np.ndarray:
+    pmf = 0.5 * centers * centers
+    return pmf - np.min(pmf)
+
+
+def _window_histogram(
+    values: np.ndarray,
+    edges: np.ndarray,
+) -> np.ndarray:
+    counts, _ = np.histogram(values, bins=edges)
+    total = np.sum(counts)
+    if total == 0:
+        return np.zeros(len(edges) - 1, dtype=float)
+    return counts.astype(float) / total
+
+
+def _window_overlap(left: np.ndarray, right: np.ndarray) -> float:
+    return float(np.sum(np.minimum(left, right)))
+
+
+def _reconstruct_target_pmf(
+    *,
+    samples_by_window: list[np.ndarray],
+    window_centers: tuple[float, ...],
+    force_constant: float,
+    edges: np.ndarray,
+) -> np.ndarray:
+    bin_centers = 0.5 * (edges[:-1] + edges[1:])
+    estimates = []
+    for center, samples in zip(window_centers, samples_by_window, strict=True):
+        counts, _ = np.histogram(samples, bins=edges)
+        probability = counts.astype(float) / np.sum(counts)
+        bias = 0.5 * force_constant * (bin_centers - center) ** 2
+        bridge_constant = (1.0 / np.sqrt(1.0 + force_constant)) * np.exp(
+            -0.5 * force_constant * center * center / (1.0 + force_constant)
+        )
+        unnormalized = probability * np.exp(bias) * bridge_constant
+        estimates.append(unnormalized)
+
+    stacked = np.vstack(estimates)
+    supported = stacked > 0.0
+    support_count = np.sum(supported, axis=0)
+    combined = np.full(stacked.shape[1], np.nan, dtype=float)
+    valid = support_count > 0
+    combined[valid] = np.sum(stacked[:, valid], axis=0) / support_count[valid]
+    combined_sum = np.nansum(combined)
+    if combined_sum <= 0.0:
+        return np.full_like(combined, np.nan)
+    combined = combined / combined_sum
+    pmf = np.full_like(combined, np.nan)
+    positive = combined > 0.0
+    pmf[positive] = -np.log(combined[positive])
+    if np.any(np.isfinite(pmf)):
+        pmf = pmf - np.nanmin(pmf)
+    return pmf
+
+
+def _summarize_multistate_protocol(
+    *,
+    protocol: MultiStateProtocolSpec,
+    spec: MultiStateOverlapSpec,
+    seed: int,
+) -> tuple[MultiStateProtocolSummary, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    rng = np.random.default_rng(seed)
+    edges = np.arange(
+        spec.domain_min,
+        spec.domain_max + spec.bin_width * 0.5,
+        spec.bin_width,
+    )
+    bin_centers = 0.5 * (edges[:-1] + edges[1:])
+    samples_by_window = [
+        _biased_window_samples(
+            center=center,
+            force_constant=spec.force_constant,
+            sample_count=spec.sample_count_per_window,
+            rng=rng,
+        )
+        for center in protocol.window_centers
+    ]
+    histograms = [_window_histogram(samples, edges) for samples in samples_by_window]
+    adjacent_overlap = np.array(
+        [
+            _window_overlap(left, right)
+            for left, right in zip(histograms[:-1], histograms[1:], strict=False)
+        ],
+        dtype=float,
+    )
+    reconstructed_pmf = _reconstruct_target_pmf(
+        samples_by_window=samples_by_window,
+        window_centers=protocol.window_centers,
+        force_constant=spec.force_constant,
+        edges=edges,
+    )
+    true_pmf = _target_pmf(bin_centers)
+    finite = np.isfinite(reconstructed_pmf)
+    unsupported_penalty = float(np.max(true_pmf) + 1.0)
+    errors = np.full_like(true_pmf, unsupported_penalty)
+    errors[finite] = reconstructed_pmf[finite] - true_pmf[finite]
+    rmse = float(np.sqrt(np.mean(errors * errors)))
+    max_abs = float(np.max(np.abs(errors)))
+    summary = MultiStateProtocolSummary(
+        protocol=protocol.name,
+        window_count=len(protocol.window_centers),
+        sample_count_per_window=spec.sample_count_per_window,
+        force_constant=spec.force_constant,
+        min_adjacent_overlap=float(np.min(adjacent_overlap)),
+        mean_adjacent_overlap=float(np.mean(adjacent_overlap)),
+        disconnected_edges=int(np.sum(adjacent_overlap < 0.01)),
+        finite_pmf_bins=int(np.sum(finite)),
+        pmf_rmse_vs_true=rmse,
+        max_pmf_abs_error=max_abs,
+    )
+    return summary, bin_centers, true_pmf, reconstructed_pmf, adjacent_overlap
+
+
+def _summarize_multistate_overlap(
+    spec: MultiStateOverlapSpec,
+) -> tuple[
+    list[MultiStateProtocolSummary],
+    dict[str, np.ndarray],
+    dict[str, np.ndarray],
+]:
+    summaries = []
+    curves: dict[str, np.ndarray] = {}
+    windows: dict[str, np.ndarray] = {}
+    for idx, protocol in enumerate(spec.protocols):
+        (
+            summary,
+            centers,
+            true_pmf,
+            reconstructed_pmf,
+            adjacent_overlap,
+        ) = _summarize_multistate_protocol(
+            protocol=protocol,
+            spec=spec,
+            seed=spec.seed + idx * 1009,
+        )
+        summaries.append(summary)
+        curves["coordinate"] = centers
+        curves["true_pmf"] = true_pmf
+        curves[f"{protocol.name}_pmf"] = reconstructed_pmf
+        windows[f"{protocol.name}_center"] = np.array(protocol.window_centers, dtype=float)
+        windows[f"{protocol.name}_adjacent_overlap"] = adjacent_overlap
+    return summaries, curves, windows
 
 
 def _summarize_case(
@@ -154,7 +336,12 @@ def _summarize_case(
 def run_estimator_experiment(
     spec: EstimatorTutorialSpec,
     config_sha256: str,
-) -> tuple[EstimatorExperimentSummary, dict[str, tuple[np.ndarray, np.ndarray]]]:
+) -> tuple[
+    EstimatorExperimentSummary,
+    dict[str, tuple[np.ndarray, np.ndarray]],
+    dict[str, np.ndarray],
+    dict[str, np.ndarray],
+]:
     """Run all configured free-energy estimator diagnostics."""
 
     summaries = []
@@ -167,6 +354,15 @@ def run_estimator_experiment(
         )
         summaries.append(summary)
         work_samples[case.name] = samples
+    multistate_summaries = None
+    multistate_curves: dict[str, np.ndarray] = {}
+    multistate_windows: dict[str, np.ndarray] = {}
+    if spec.multistate_overlap is not None:
+        (
+            multistate_summaries,
+            multistate_curves,
+            multistate_windows,
+        ) = _summarize_multistate_overlap(spec.multistate_overlap)
     return (
         EstimatorExperimentSummary(
             post=spec.post,
@@ -176,8 +372,11 @@ def run_estimator_experiment(
             seed=spec.experiment.seed,
             config_sha256=config_sha256,
             cases=summaries,
+            multistate_protocols=multistate_summaries,
         ),
         work_samples,
+        multistate_curves,
+        multistate_windows,
     )
 
 
@@ -190,7 +389,7 @@ def _write_work_samples(
     stride = max(1, int(np.ceil(len(first) / max_rows)))
     names = list(work_samples)
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         header = []
         for name in names:
             header.extend([f"{name}_forward_work", f"{name}_reverse_work"])
@@ -200,6 +399,25 @@ def _write_work_samples(
             for name in names:
                 forward, reverse = work_samples[name]
                 row.extend([f"{forward[idx]:.12g}", f"{reverse[idx]:.12g}"])
+            writer.writerow(row)
+
+
+def _write_array_table(path: Path, values: dict[str, np.ndarray]) -> None:
+    names = list(values)
+    if not names:
+        return
+    row_count = max(len(array) for array in values.values())
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle, lineterminator="\n")
+        writer.writerow(names)
+        for idx in range(row_count):
+            row = []
+            for name in names:
+                array = values[name]
+                if idx >= len(array) or not np.isfinite(array[idx]):
+                    row.append("")
+                else:
+                    row.append(f"{array[idx]:.12g}")
             writer.writerow(row)
 
 
@@ -214,20 +432,30 @@ def write_estimator_outputs(
     output_dir.mkdir(parents=True, exist_ok=True)
     config_path = config_root / f"post-{spec.post}" / f"{spec.profile}.json"
     prov = provenance(config_path)
-    summary, work_samples = run_estimator_experiment(spec, prov.config_sha256)
+    summary, work_samples, multistate_curves, multistate_windows = (
+        run_estimator_experiment(spec, prov.config_sha256)
+    )
 
     summary_path = output_dir / "estimator_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "work_samples.csv"
+    curves_path = output_dir / "multistate_curves.csv"
+    windows_path = output_dir / "multistate_windows.csv"
     summary_path.write_text(
         json.dumps(asdict(summary), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     _write_work_samples(samples_path, work_samples)
+    if multistate_curves:
+        _write_array_table(curves_path, multistate_curves)
+    if multistate_windows:
+        _write_array_table(windows_path, multistate_windows)
     manifest = {
         "config": asdict(spec),
         "summary_file": summary_path.name,
         "samples_file": samples_path.name,
+        "multistate_curves_file": curves_path.name if multistate_curves else None,
+        "multistate_windows_file": windows_path.name if multistate_windows else None,
         "provenance": asdict(prov),
         "versions": {
             "kups": kups.__version__,
@@ -246,4 +474,14 @@ def load_estimator_summary(path: Path) -> EstimatorExperimentSummary:
 
     data = json.loads(path.read_text(encoding="utf-8"))
     cases = [EstimatorCaseSummary(**item) for item in data.pop("cases")]
-    return EstimatorExperimentSummary(cases=cases, **data)
+    protocols = data.pop("multistate_protocols", None)
+    multistate_protocols = (
+        [MultiStateProtocolSummary(**item) for item in protocols]
+        if protocols is not None
+        else None
+    )
+    return EstimatorExperimentSummary(
+        cases=cases,
+        multistate_protocols=multistate_protocols,
+        **data,
+    )

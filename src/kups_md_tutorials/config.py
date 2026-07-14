@@ -900,6 +900,61 @@ class EstimatorExperimentSpec:
 
 
 @dataclass(frozen=True)
+class MultiStateProtocolSpec:
+    """One multi-state bridge layout for WHAM/MBAR-style diagnostics."""
+
+    name: str
+    window_centers: tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class MultiStateOverlapSpec:
+    """Configuration for multi-state overlap/reconstruction diagnostics."""
+
+    sample_count_per_window: int
+    seed: int
+    force_constant: float
+    domain_min: float
+    domain_max: float
+    bin_width: float
+    protocols: tuple[MultiStateProtocolSpec, ...]
+
+    def validate(self) -> None:
+        if self.sample_count_per_window <= 0:
+            msg = "sample_count_per_window must be positive"
+            raise ValueError(msg)
+        if self.force_constant <= 0.0:
+            msg = "force_constant must be positive"
+            raise ValueError(msg)
+        if self.domain_min >= self.domain_max:
+            msg = "domain_min must be smaller than domain_max"
+            raise ValueError(msg)
+        if self.bin_width <= 0.0:
+            msg = "bin_width must be positive"
+            raise ValueError(msg)
+        if not self.protocols:
+            msg = "protocols must be non-empty"
+            raise ValueError(msg)
+        for protocol in self.protocols:
+            if not protocol.name:
+                msg = "protocol names must be non-empty"
+                raise ValueError(msg)
+            if len(protocol.window_centers) < 2:
+                msg = "multi-state protocols require at least two windows"
+                raise ValueError(msg)
+            if any(
+                right <= left
+                for left, right in zip(
+                    protocol.window_centers[:-1],
+                    protocol.window_centers[1:],
+                    strict=False,
+                )
+            ):
+                msg = "window_centers must be strictly increasing"
+                raise ValueError(msg)
+
+
+@dataclass(frozen=True)
 class EstimatorTutorialSpec:
     """Configuration for post-09 free-energy estimator experiments."""
 
@@ -907,6 +962,7 @@ class EstimatorTutorialSpec:
     profile: str
     title: str
     experiment: EstimatorExperimentSpec
+    multistate_overlap: MultiStateOverlapSpec | None = None
 
     @property
     def result_dir_name(self) -> Path:
@@ -1827,6 +1883,30 @@ def load_estimator_spec(
 
     root = _expect_mapping(data, "estimator config")
     experiment = _expect_mapping(root.get("estimator_experiment"), "estimator_experiment")
+    multistate_data = root.get("multistate_overlap")
+    multistate = None
+    if multistate_data is not None:
+        multistate_root = _expect_mapping(multistate_data, "multistate_overlap")
+        multistate = MultiStateOverlapSpec(
+            sample_count_per_window=int(multistate_root["sample_count_per_window"]),
+            seed=int(multistate_root["seed"]),
+            force_constant=float(multistate_root["force_constant"]),
+            domain_min=float(multistate_root["domain_min"]),
+            domain_max=float(multistate_root["domain_max"]),
+            bin_width=float(multistate_root["bin_width"]),
+            protocols=tuple(
+                MultiStateProtocolSpec(
+                    name=str(_expect_mapping(value, "multi-state protocol")["name"]),
+                    window_centers=tuple(
+                        float(center)
+                        for center in _expect_mapping(
+                            value, "multi-state protocol"
+                        )["window_centers"]
+                    ),
+                )
+                for value in multistate_root["protocols"]
+            ),
+        )
     spec = EstimatorTutorialSpec(
         post=str(root["post"]),
         profile=str(root["profile"]),
@@ -1848,6 +1928,7 @@ def load_estimator_spec(
                 for value in experiment["cases"]
             ),
         ),
+        multistate_overlap=multistate,
     )
     if spec.post != post:
         msg = f"config post {spec.post!r} does not match requested {post!r}"
@@ -1858,6 +1939,8 @@ def load_estimator_spec(
         )
         raise ValueError(msg)
     spec.experiment.validate()
+    if spec.multistate_overlap is not None:
+        spec.multistate_overlap.validate()
     return spec
 
 

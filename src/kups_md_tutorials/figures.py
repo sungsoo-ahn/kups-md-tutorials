@@ -306,10 +306,35 @@ def generate_post09_figures(
 
     summary = json.loads((result_dir / "estimator_summary.json").read_text())
     samples = _read_post09_samples(result_dir / "work_samples.csv")
+    multistate_curves_path = result_dir / "multistate_curves.csv"
+    multistate_windows_path = result_dir / "multistate_windows.csv"
+    multistate_curves = (
+        _read_post09_samples(multistate_curves_path)
+        if multistate_curves_path.exists()
+        else None
+    )
+    multistate_windows = (
+        _read_post09_samples(multistate_windows_path)
+        if multistate_windows_path.exists()
+        else None
+    )
 
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-09"}):
-        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
-        _draw_post09_figure(fig, axes, summary, samples)
+        if multistate_curves:
+            fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.0), constrained_layout=True)
+            axes_for_plot = axes.ravel()
+        else:
+            fig, axes_for_plot = plt.subplots(
+                1, 3, figsize=(12.2, 3.6), constrained_layout=True
+            )
+        _draw_post09_figure(
+            fig,
+            axes_for_plot,
+            summary,
+            samples,
+            multistate_curves,
+            multistate_windows,
+        )
 
         svg_path = figure_dir / f"{name}.svg"
         png_path = figure_dir / f"{name}.png"
@@ -509,7 +534,10 @@ def _read_post09_samples(path: Path) -> dict[str, np.ndarray]:
         reader = csv.DictReader(handle)
         rows = list(reader)
     return {
-        key: np.array([float(row[key]) for row in rows], dtype=float)
+        key: np.array(
+            [float(row[key]) if row[key] else np.nan for row in rows],
+            dtype=float,
+        )
         for key in reader.fieldnames or []
     }
 
@@ -1521,6 +1549,8 @@ def _draw_post09_figure(
     axes: np.ndarray,
     summary: dict,
     samples: dict[str, np.ndarray],
+    multistate_curves: dict[str, np.ndarray] | None = None,
+    multistate_windows: dict[str, np.ndarray] | None = None,
 ) -> None:
     fig.patch.set_facecolor("white")
     cases = summary["cases"]
@@ -1605,6 +1635,63 @@ def _draw_post09_figure(
     axes[2].set_xlabel("forward work")
     axes[2].set_ylabel("density")
     axes[2].legend(frameon=False, fontsize=8)
+
+    if multistate_curves is not None and len(axes) > 3:
+        ax = axes[3]
+        coordinate = multistate_curves["coordinate"]
+        ax.plot(
+            coordinate,
+            multistate_curves["true_pmf"],
+            color="#333333",
+            linewidth=1.2,
+            label="true PMF",
+        )
+        colors = {
+            "dense_bridge_pmf": "#6a8f4e",
+            "sparse_bridge_pmf": "#c44e52",
+        }
+        for key, color in colors.items():
+            if key not in multistate_curves:
+                continue
+            values = multistate_curves[key]
+            ax.plot(
+                coordinate,
+                values,
+                linewidth=1.4,
+                color=color,
+                label=key.replace("_pmf", "").replace("_", " "),
+            )
+        if multistate_windows is not None:
+            text_lines = []
+            for key in sorted(multistate_windows):
+                if not key.endswith("_adjacent_overlap"):
+                    continue
+                values = multistate_windows[key]
+                values = values[np.isfinite(values)]
+                if len(values) == 0:
+                    continue
+                name = key.removesuffix("_adjacent_overlap").replace("_", " ")
+                text_lines.append(f"{name}: min overlap {np.min(values):.3f}")
+            if text_lines:
+                ax.text(
+                    0.03,
+                    0.95,
+                    "\n".join(text_lines),
+                    transform=ax.transAxes,
+                    va="top",
+                    ha="left",
+                    fontsize=8,
+                    color="#333333",
+                    bbox={
+                        "boxstyle": "round,pad=0.25",
+                        "facecolor": "white",
+                        "alpha": 0.88,
+                    },
+                )
+        ax.set_title("Multi-state bridges need connected overlap")
+        ax.set_xlabel("coordinate")
+        ax.set_ylabel("shifted PMF")
+        ax.legend(frameon=False, fontsize=8, loc="upper center")
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

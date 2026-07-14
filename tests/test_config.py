@@ -115,6 +115,11 @@ def test_load_estimator_spec() -> None:
     assert spec.experiment.temperature == 1.0
     assert spec.experiment.cases[0].name == "good_overlap"
     assert spec.experiment.cases[-1].mean_shift > spec.experiment.cases[0].mean_shift
+    assert spec.multistate_overlap is not None
+    assert spec.multistate_overlap.protocols[0].name == "dense_bridge"
+    assert len(spec.multistate_overlap.protocols[0].window_centers) > len(
+        spec.multistate_overlap.protocols[1].window_centers
+    )
 
 
 def test_load_umbrella_spec() -> None:

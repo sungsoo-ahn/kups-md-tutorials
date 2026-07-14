@@ -613,6 +613,8 @@ def _verify_post09(post: str, profile: str, output_root: Path) -> None:
     summary_path = output_dir / "estimator_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "work_samples.csv"
+    curves_path = output_dir / "multistate_curves.csv"
+    windows_path = output_dir / "multistate_windows.csv"
     missing = [
         str(path)
         for path in (summary_path, manifest_path, samples_path)
@@ -645,6 +647,40 @@ def _verify_post09(post: str, profile: str, output_root: Path) -> None:
     if abs(poor.forward_fep_error) <= abs(good.forward_fep_error):
         msg = "poor-overlap FEP should be less reliable than good-overlap FEP"
         raise ValueError(msg)
+    if spec.multistate_overlap is not None:
+        missing_multistate = [
+            str(path) for path in (curves_path, windows_path) if not path.exists()
+        ]
+        if missing_multistate:
+            msg = "missing expected multi-state estimator files: " + ", ".join(
+                missing_multistate
+            )
+            raise FileNotFoundError(msg)
+        if not summary.multistate_protocols:
+            msg = "configured multi-state overlap summary is missing"
+            raise ValueError(msg)
+        dense = next(
+            protocol
+            for protocol in summary.multistate_protocols
+            if protocol.protocol == "dense_bridge"
+        )
+        sparse = next(
+            protocol
+            for protocol in summary.multistate_protocols
+            if protocol.protocol == "sparse_bridge"
+        )
+        if dense.min_adjacent_overlap <= sparse.min_adjacent_overlap:
+            msg = "dense bridge should improve minimum adjacent overlap"
+            raise ValueError(msg)
+        if dense.disconnected_edges != 0:
+            msg = "dense bridge should not have disconnected adjacent windows"
+            raise ValueError(msg)
+        if sparse.disconnected_edges == 0:
+            msg = "sparse bridge should expose an overlap-network failure"
+            raise ValueError(msg)
+        if dense.pmf_rmse_vs_true >= sparse.pmf_rmse_vs_true:
+            msg = "dense bridge should reconstruct the PMF more accurately"
+            raise ValueError(msg)
 
 
 def _verify_post10(post: str, profile: str, output_root: Path) -> None:

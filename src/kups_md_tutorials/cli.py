@@ -4,6 +4,7 @@ import argparse
 from collections.abc import Sequence
 from pathlib import Path
 
+from kups_md_tutorials.artifact_audit import verify_tracked_artifacts
 from kups_md_tutorials.site_export import export_site_assets
 from kups_md_tutorials.workflows import run_all, run_post, verify_all, verify_post
 
@@ -25,6 +26,11 @@ def _build_parser() -> argparse.ArgumentParser:
     verify.add_argument("post", nargs="?", help="tutorial identifier, such as 01")
     verify.add_argument("--profile", choices=("smoke", "full"), default="smoke")
     verify.add_argument("--output-dir", type=Path, default=Path("results"))
+
+    subparsers.add_parser(
+        "verify-artifacts",
+        help="verify tracked files do not include raw trajectories, caches, or models",
+    )
 
     export_site = subparsers.add_parser(
         "export-site", help="export compact assets for the site"
@@ -75,6 +81,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             else:
                 verify_post(args.post, args.profile, output_root=args.output_dir)
             print("Verification passed")
+            return 0
+        if args.command == "verify-artifacts":
+            result = verify_tracked_artifacts(repo_root=Path.cwd())
+            print(f"Artifact audit passed for {result.tracked_file_count} tracked files")
             return 0
         if args.command == "export-site":
             posts = None

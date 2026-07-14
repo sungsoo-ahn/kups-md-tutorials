@@ -43,7 +43,10 @@ The tutorial will:
 - executable notebook;
 - unit and integration tests;
 - publication-quality SVG and PNG figures;
+- reviewed figure snapshots with feedback and revisions;
 - website article draft;
+- self-review note covering code, science, prose, figures, and rendered page
+  snapshots;
 - README with reproduction instructions.
 
 ## Non-goals for the first milestone
@@ -73,3 +76,6 @@ The tutorial will:
 - The website repository is the source of truth for prose and final figures.
 - Only small tabular results are transferred to the website repository.
 - Do not commit large trajectories or generated caches.
+- Before publication, capture rendered desktop and mobile snapshots of the post,
+  review equations, figures, captions, code overflow, and layout, then revise
+  until no blocking visual issues remain.

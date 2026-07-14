@@ -88,8 +88,48 @@ not a standalone tutorial-book style.
 - [ ] Add smoke and full profiles for every tutorial; require smoke verification before full runs.
 - [ ] Run final experiments on a GPU and freeze compact summaries after statistical review.
 - [ ] Create one executable notebook and final figure set per tutorial.
+- [ ] Self-review each tutorial package before considering it complete: code,
+  configs, notebook, numerical summaries, figures, and website post must be
+  reviewed against this plan and the scientific rules below.
+- [ ] Collect rendered snapshots for every final figure and every website post,
+  record feedback, revise, and repeat until the figures and page layout are
+  publication-ready.
 - [ ] Write all twelve website posts with one publication date, blog-style front matter, author notes, references, code links, final figures, and shared series metadata.
 - [ ] Validate both repositories and visually inspect rendered posts.
+
+## Goal Execution Protocol
+
+When `/goal` is used to continue this project, every substantial milestone must
+include an explicit self-review and visual-review loop before it can be marked
+complete.
+
+- Maintain a running review note for each post under a committed review artifact
+  such as `reviews/post-XX.md`. Record the current commit, commands run, data
+  products inspected, figure snapshots reviewed, issues found, and follow-up
+  fixes.
+- Perform a code and reproducibility self-review before writing the final prose:
+  check config determinism, seed handling, unit assumptions, output paths,
+  manifest contents, test coverage, and whether generated tables can be
+  reproduced from committed code.
+- Perform a scientific self-review before publishing numerical claims: check
+  whether diagnostics support the claim, whether uncertainty is reported, and
+  whether failures or ambiguous results are described rather than hidden.
+- Perform a prose self-review against the website style contract: confirm the
+  post is concept-led, ML-facing, citation-complete, and not merely a notebook
+  transcript.
+- For figures, generate snapshot PNGs from the exact SVG/PNG assets that will
+  be published. Review them at desktop and mobile-relevant sizes for legibility,
+  label overlap, color contrast, caption consistency, and whether the visual
+  supports the intended claim.
+- For website pages, capture rendered desktop and mobile snapshots from a local
+  or deployed Jekyll build. Review equations, figures, captions, code blocks,
+  tables, navigation, and overflow before marking the post ready.
+- Treat snapshot feedback as required work, not optional polish. If a figure or
+  page snapshot reveals unclear labels, broken math, bad cropping, misleading
+  encodings, or layout problems, revise and capture a new snapshot.
+- Preserve final snapshots or review references in a lightweight committed form
+  when practical; do not commit large browser caches, raw trajectories, or bulky
+  intermediate render outputs.
 
 ## Scientific Rules
 
@@ -111,6 +151,10 @@ not a standalone tutorial-book style.
 - `uv run kups-tutorial verify`
 - Execute all notebooks from clean kernels.
 - Reproduce committed summaries from full GPU configurations.
+- Review each post's self-review artifact and confirm every blocking item is
+  resolved.
+- Capture and inspect figure snapshots for all final figures.
+- Capture and inspect desktop and mobile snapshots of all rendered posts.
 - Run `python3 scripts/validate_blog.py` in the website repository.
 - Run `bundle exec jekyll build`, using Homebrew Ruby on macOS when applicable.
 - Inspect all posts at desktop and mobile widths for equations, figures, captions, code overflow, and broken links.
@@ -121,3 +165,6 @@ not a standalone tutorial-book style.
 
 - 2026-07-14: Plan approved. Audience, eight-post scope, concept-led Python API approach, standalone publication, shared release date, GPU execution, argon progression, and MACE/fcc-Al capstone locked.
 - 2026-07-14: Curriculum revised to twelve advanced posts for MLIP-aware ML researchers, with emphasis on initialization, integrators, ensemble control, free-energy estimation, enhanced sampling, and an MLIP-Al capstone.
+- 2026-07-14: Added `/goal` execution expectations for self-review artifacts,
+  figure snapshot feedback, and rendered page snapshot review before milestone
+  completion.

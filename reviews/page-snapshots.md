@@ -481,3 +481,52 @@ Revision decisions:
 - The argon/kUPS production trajectory-observable diagnostic remains a
   final-release blocker for post 07.
 - The page remains hidden from public navigation and direct-link reachable.
+
+## Expanded Post 08 Snapshot Capture
+
+- Capture date: 2026-07-14.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29362752198`.
+- Website commit: `80f1adec082720e3db395ff0c078c166fe3113f7`.
+- Deploy run for that commit: `29362569505`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-post08-expanded-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post08-expanded-snapshots/manifest.json`.
+- Capture scope: post 08 only, after expansion to about 3,501 words.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Equilibrium Samples Become Free Energies? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post08-expanded-snapshots/post-08-desktop.png`
+- `/tmp/kups-post08-expanded-snapshots/post-08-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the expanded article end to end with sidebar table of
+  contents, hidden-draft note, source links, PMF diagnostic tables, display
+  equations, full-profile free-energy figure, reproduction code block,
+  practical checklist, current-status section, references, and footer present.
+  No blank page, missing figure, obvious text clipping, or broken page chrome
+  was found in the inspected snapshot.
+- Mobile capture renders the long article through the mobile layout with the
+  title, navigation, hidden-draft note, tables, display equations, figure, code
+  block, current-status section, and references present. The title wraps but
+  remains readable; tables are tight but contained.
+
+Revision decisions:
+
+- No blocking layout issue was found for the expanded post 08 hidden draft.
+- Keep mobile title and table wrapping as final typography-polish items after
+  the rest of the articles are expanded.
+- The argon/kUPS RDF-derived PMF diagnostic linked back to post 07 remains a
+  final-release blocker for post 08.
+- The page remains hidden from public navigation and direct-link reachable.

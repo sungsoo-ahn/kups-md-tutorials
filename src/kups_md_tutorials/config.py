@@ -492,6 +492,70 @@ class ObservableTutorialSpec:
         return Path(f"post-{self.post}") / self.profile
 
 
+@dataclass(frozen=True)
+class FreeEnergyExperimentSpec:
+    """Configuration for equilibrium-sample free-energy diagnostics."""
+
+    temperature: float
+    sample_count: int
+    seed: int
+    domain_min: float
+    domain_max: float
+    grid_points: int
+    bin_widths: tuple[float, ...]
+    bootstrap_replicates: int
+    bias_center: float
+    bias_strength: float
+    rdf_peak_radius: float
+    rdf_peak_width: float
+
+    def validate(self) -> None:
+        if self.temperature <= 0.0:
+            msg = "temperature must be positive"
+            raise ValueError(msg)
+        if self.sample_count <= 0:
+            msg = "sample_count must be positive"
+            raise ValueError(msg)
+        if self.domain_min >= self.domain_max:
+            msg = "domain_min must be smaller than domain_max"
+            raise ValueError(msg)
+        if self.grid_points < 16:
+            msg = "grid_points must be at least 16"
+            raise ValueError(msg)
+        if not self.bin_widths:
+            msg = "bin_widths must be non-empty"
+            raise ValueError(msg)
+        if any(width <= 0.0 for width in self.bin_widths):
+            msg = "bin_widths must be positive"
+            raise ValueError(msg)
+        if self.bootstrap_replicates <= 1:
+            msg = "bootstrap_replicates must exceed one"
+            raise ValueError(msg)
+        if self.bias_strength <= 0.0:
+            msg = "bias_strength must be positive"
+            raise ValueError(msg)
+        if self.rdf_peak_radius <= 0.0:
+            msg = "rdf_peak_radius must be positive"
+            raise ValueError(msg)
+        if self.rdf_peak_width <= 0.0:
+            msg = "rdf_peak_width must be positive"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class FreeEnergyTutorialSpec:
+    """Configuration for post-08 free-energy experiments."""
+
+    post: str
+    profile: str
+    title: str
+    experiment: FreeEnergyExperimentSpec
+
+    @property
+    def result_dir_name(self) -> Path:
+        return Path(f"post-{self.post}") / self.profile
+
+
 def _expect_mapping(value: Any, name: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         msg = f"{name} must be an object"
@@ -861,6 +925,48 @@ def load_observable_spec(
                 )
                 for value in experiment["systems"]
             ),
+        ),
+    )
+    if spec.post != post:
+        msg = f"config post {spec.post!r} does not match requested {post!r}"
+        raise ValueError(msg)
+    if spec.profile != profile:
+        msg = (
+            f"config profile {spec.profile!r} does not match requested {profile!r}"
+        )
+        raise ValueError(msg)
+    spec.experiment.validate()
+    return spec
+
+
+def load_free_energy_spec(
+    post: str, profile: str, config_root: Path = Path("configs")
+) -> FreeEnergyTutorialSpec:
+    """Load a committed JSON configuration for free-energy diagnostics."""
+
+    path = config_root / f"post-{post}" / f"{profile}.json"
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    root = _expect_mapping(data, "free-energy config")
+    experiment = _expect_mapping(root.get("free_energy_experiment"), "free_energy_experiment")
+    spec = FreeEnergyTutorialSpec(
+        post=str(root["post"]),
+        profile=str(root["profile"]),
+        title=str(root["title"]),
+        experiment=FreeEnergyExperimentSpec(
+            temperature=float(experiment["temperature"]),
+            sample_count=int(experiment["sample_count"]),
+            seed=int(experiment["seed"]),
+            domain_min=float(experiment["domain_min"]),
+            domain_max=float(experiment["domain_max"]),
+            grid_points=int(experiment["grid_points"]),
+            bin_widths=tuple(float(value) for value in experiment["bin_widths"]),
+            bootstrap_replicates=int(experiment["bootstrap_replicates"]),
+            bias_center=float(experiment["bias_center"]),
+            bias_strength=float(experiment["bias_strength"]),
+            rdf_peak_radius=float(experiment["rdf_peak_radius"]),
+            rdf_peak_width=float(experiment["rdf_peak_width"]),
         ),
     )
     if spec.post != post:

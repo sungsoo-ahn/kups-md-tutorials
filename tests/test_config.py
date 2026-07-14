@@ -6,6 +6,7 @@ from kups_md_tutorials.config import (
     RunSpec,
     load_barostat_spec,
     load_error_spec,
+    load_free_energy_spec,
     load_integrator_spec,
     load_observable_spec,
     load_trajectory_length_spec,
@@ -82,3 +83,10 @@ def test_load_observable_spec() -> None:
     assert spec.experiment.number_density == 0.021
     assert spec.experiment.systems[0].name == "small_cell"
     assert spec.experiment.coordination_cutoff < spec.experiment.rdf_max_radius
+
+
+def test_load_free_energy_spec() -> None:
+    spec = load_free_energy_spec("08", "smoke")
+    assert spec.experiment.temperature == 1.0
+    assert spec.experiment.bin_widths[0] == 0.10
+    assert spec.experiment.domain_min < spec.experiment.domain_max

@@ -78,3 +78,14 @@ def test_cli_run_and_verify_post07_smoke(tmp_path: Path) -> None:
         main(["verify", "07", "--profile", "smoke", "--output-dir", str(tmp_path)])
         == 0
     )
+
+
+def test_cli_run_and_verify_post08_smoke(tmp_path: Path) -> None:
+    assert (
+        main(["run", "08", "--profile", "smoke", "--output-dir", str(tmp_path)])
+        == 0
+    )
+    assert (
+        main(["verify", "08", "--profile", "smoke", "--output-dir", str(tmp_path)])
+        == 0
+    )

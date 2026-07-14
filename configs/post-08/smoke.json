@@ -1,0 +1,19 @@
+{
+  "post": "08",
+  "profile": "smoke",
+  "title": "How Do Equilibrium Samples Become Free Energies?",
+  "free_energy_experiment": {
+    "temperature": 1.0,
+    "sample_count": 12000,
+    "seed": 2026071408,
+    "domain_min": -2.5,
+    "domain_max": 2.5,
+    "grid_points": 801,
+    "bin_widths": [0.10, 0.25],
+    "bootstrap_replicates": 80,
+    "bias_center": 0.9,
+    "bias_strength": 2.0,
+    "rdf_peak_radius": 1.2,
+    "rdf_peak_width": 0.16
+  }
+}

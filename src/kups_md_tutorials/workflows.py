@@ -5,6 +5,7 @@ from pathlib import Path
 from kups_md_tutorials.config import (
     load_barostat_spec,
     load_error_spec,
+    load_free_energy_spec,
     load_integrator_spec,
     load_observable_spec,
     load_trajectory_length_spec,
@@ -27,6 +28,10 @@ from kups_md_tutorials.integrators import (
     load_integrator_summary,
     write_integrator_outputs,
 )
+from kups_md_tutorials.free_energies import (
+    load_free_energy_summary,
+    write_free_energy_outputs,
+)
 from kups_md_tutorials.observables import (
     load_observable_summary,
     write_observable_outputs,
@@ -40,7 +45,7 @@ from kups_md_tutorials.trajectory_length import (
     write_trajectory_length_outputs,
 )
 
-SUPPORTED_POSTS = ("01", "02", "03", "04", "05", "06", "07")
+SUPPORTED_POSTS = ("01", "02", "03", "04", "05", "06", "07", "08")
 SUPPORTED_PROFILES = ("smoke", "full")
 
 
@@ -68,6 +73,9 @@ def run_post(post: str, profile: str, output_root: Path = Path("results")) -> Pa
     if post == "07":
         spec = load_observable_spec(post, profile)
         return write_observable_outputs(spec, output_root=output_root)
+    if post == "08":
+        spec = load_free_energy_spec(post, profile)
+        return write_free_energy_outputs(spec, output_root=output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -96,6 +104,8 @@ def verify_post(post: str, profile: str, output_root: Path = Path("results")) ->
         _verify_post06(post, profile, output_root)
     elif post == "07":
         _verify_post07(post, profile, output_root)
+    elif post == "08":
+        _verify_post08(post, profile, output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -379,4 +389,43 @@ def _verify_post07(post: str, profile: str, output_root: Path) -> None:
         raise ValueError(msg)
     if summary.vacf.normalized_integral <= 0.0:
         msg = "VACF integral should be positive"
+        raise ValueError(msg)
+
+
+def _verify_post08(post: str, profile: str, output_root: Path) -> None:
+    spec = load_free_energy_spec(post, profile)
+    output_dir = output_root / spec.result_dir_name
+    summary_path = output_dir / "free_energy_summary.json"
+    manifest_path = output_dir / "manifest.json"
+    curves_path = output_dir / "free_energy_curves.csv"
+    missing = [
+        str(path)
+        for path in (summary_path, manifest_path, curves_path)
+        if not path.exists()
+    ]
+    if missing:
+        msg = "missing expected output files: " + ", ".join(missing)
+        raise FileNotFoundError(msg)
+
+    summary = load_free_energy_summary(summary_path)
+    if summary.post != post or summary.profile != profile:
+        msg = "summary post/profile does not match requested verification target"
+        raise ValueError(msg)
+    if len(summary.bins) != len(spec.experiment.bin_widths):
+        msg = "summary does not contain the expected histogram bin widths"
+        raise ValueError(msg)
+    if min(item.occupied_bins for item in summary.bins) <= 0:
+        msg = "histogram PMF contains no occupied bins"
+        raise ValueError(msg)
+    if min(item.bootstrap_barrier_standard_error for item in summary.bins) <= 0.0:
+        msg = "bootstrap uncertainty should be positive"
+        raise ValueError(msg)
+    if min(abs(item.barrier_error) for item in summary.bins) > 0.35:
+        msg = "no histogram bin width recovers the known barrier within tolerance"
+        raise ValueError(msg)
+    if abs(summary.reweighted_barrier_error) > 0.45:
+        msg = "reweighted PMF barrier is outside the review threshold"
+        raise ValueError(msg)
+    if summary.rdf_pmf_barrier_height <= 0.0:
+        msg = "RDF-derived PMF should have a nonzero barrier height"
         raise ValueError(msg)

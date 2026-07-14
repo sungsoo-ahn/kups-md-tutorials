@@ -1,0 +1,37 @@
+{
+  "config": {
+    "experiment": {
+      "bias_center": 0.9,
+      "bias_strength": 2.0,
+      "bin_widths": [
+        0.1,
+        0.25
+      ],
+      "bootstrap_replicates": 80,
+      "domain_max": 2.5,
+      "domain_min": -2.5,
+      "grid_points": 801,
+      "rdf_peak_radius": 1.2,
+      "rdf_peak_width": 0.16,
+      "sample_count": 12000,
+      "seed": 2026071408,
+      "temperature": 1.0
+    },
+    "post": "08",
+    "profile": "smoke",
+    "title": "How Do Equilibrium Samples Become Free Energies?"
+  },
+  "curves_file": "free_energy_curves.csv",
+  "provenance": {
+    "config_path": "configs/post-08/smoke.json",
+    "config_sha256": "31ee712c74eb46e8064f07f63af0d24f07ddf6d847a95653a9ff84816b6f70e6",
+    "git_revision": "76f51354bffae53575172f52acc29989175b2ca6",
+    "platform": "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",
+    "python_version": "3.13.13"
+  },
+  "summary_file": "free_energy_summary.json",
+  "versions": {
+    "kups": "1.0.3",
+    "numpy": "2.5.1"
+  }
+}

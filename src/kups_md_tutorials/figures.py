@@ -231,6 +231,35 @@ def generate_post07_figures(
     return [svg_path, png_path, snapshot_path]
 
 
+def generate_post08_figures(
+    result_dir: Path = Path("results/post-08/smoke"),
+    figure_dir: Path = Path("figures/post-08"),
+    snapshot_dir: Path = Path("snapshots/post-08"),
+    name: str = "free_energy_diagnostics",
+) -> list[Path]:
+    """Generate PMF, binning, reweighting, and RDF-PMF figures."""
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+    summary = json.loads((result_dir / "free_energy_summary.json").read_text())
+    curves = _read_post08_curves(result_dir / "free_energy_curves.csv")
+
+    with rc_context({"svg.hashsalt": "kups-md-tutorials-post-08"}):
+        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+        _draw_post08_figure(fig, axes, summary, curves)
+
+        svg_path = figure_dir / f"{name}.svg"
+        png_path = figure_dir / f"{name}.png"
+        snapshot_path = snapshot_dir / f"{name}_snapshot.png"
+        fig.savefig(svg_path, metadata={"Date": None})
+        _strip_trailing_whitespace(svg_path)
+        fig.savefig(png_path, dpi=220)
+        fig.savefig(snapshot_path, dpi=160)
+        plt.close(fig)
+    return [svg_path, png_path, snapshot_path]
+
+
 def _read_post02_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -289,6 +318,17 @@ def _read_post07_samples(path: Path) -> dict[str, np.ndarray]:
         key: np.array([float(row[key]) for row in rows], dtype=float)
         for key in reader.fieldnames or []
     }
+
+
+def _read_post08_curves(path: Path) -> dict[str, np.ndarray]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    curves: dict[str, np.ndarray] = {}
+    for key in reader.fieldnames or []:
+        values = [float(row[key]) for row in rows if row[key]]
+        curves[key] = np.array(values, dtype=float)
+    return curves
 
 
 def _draw_post01_figure(
@@ -886,6 +926,95 @@ def _draw_post07_figure(
         0.95,
         f"rho = {summary['number_density']:.3g}\n"
         f"bin = {summary['rdf_bin_width']:.2g}",
+        transform=axes[2].transAxes,
+        va="top",
+        ha="left",
+        fontsize=8.5,
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+    )
+
+    for ax in axes:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(alpha=0.18, linewidth=0.6)
+
+
+def _draw_post08_figure(
+    fig: plt.Figure,
+    axes: np.ndarray,
+    summary: dict,
+    curves: dict[str, np.ndarray],
+) -> None:
+    fig.patch.set_facecolor("white")
+
+    axes[0].plot(
+        curves["true_pmf_x"],
+        curves["true_pmf_y"],
+        color="#222222",
+        linewidth=1.2,
+        label="true F(s)",
+    )
+    axes[0].plot(
+        curves["histogram_pmf_x"],
+        curves["histogram_pmf_y"],
+        color="#2f6f9f",
+        linewidth=1.4,
+        label="histogram PMF",
+    )
+    axes[0].plot(
+        curves["reweighted_pmf_x"],
+        curves["reweighted_pmf_y"],
+        color="#d88c3d",
+        linewidth=1.2,
+        linestyle="--",
+        label="reweighted",
+    )
+    axes[0].set_title("PMF from equilibrium samples")
+    axes[0].set_xlabel("collective variable s")
+    axes[0].set_ylabel("F(s)")
+    axes[0].legend(frameon=False, fontsize=8)
+
+    bins = summary["bins"]
+    x = np.arange(len(bins))
+    axes[1].axhline(summary["true_barrier_height"], color="#333333", linewidth=0.9)
+    axes[1].bar(
+        x,
+        [item["barrier_height"] for item in bins],
+        yerr=[item["bootstrap_barrier_standard_error"] for item in bins],
+        capsize=4,
+        color="#6a8f4e",
+        edgecolor="#2d4721",
+        linewidth=0.6,
+    )
+    axes[1].set_title("Binning changes barriers")
+    axes[1].set_ylabel("barrier height")
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels([f"bin {item['bin_width']:.2g}" for item in bins], fontsize=8)
+
+    axes[2].plot(
+        curves["rdf_pmf_x"],
+        curves["rdf_pmf_y"],
+        color="#8c6bb1",
+        linewidth=1.5,
+        label="-log g(r)",
+    )
+    axes[2].plot(
+        curves["rdf_x"],
+        curves["rdf_y"] / np.nanmax(curves["rdf_y"]) * np.nanmax(curves["rdf_pmf_y"]),
+        color="#d88c3d",
+        linewidth=1.0,
+        alpha=0.8,
+        label="scaled g(r)",
+    )
+    axes[2].set_title("RDF can become a PMF")
+    axes[2].set_xlabel("radius")
+    axes[2].set_ylabel("shifted F(r)")
+    axes[2].legend(frameon=False, fontsize=8)
+    axes[2].text(
+        0.03,
+        0.95,
+        f"kT = {summary['temperature']:.1f}\n"
+        f"N = {summary['sample_count']}",
         transform=axes[2].transAxes,
         va="top",
         ha="left",

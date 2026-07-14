@@ -1,0 +1,37 @@
+{
+  "bias_center": 0.9,
+  "bias_strength": 2.0,
+  "bins": [
+    {
+      "barrier_error": -0.06422813255402249,
+      "barrier_height": 0.9357718674459775,
+      "bin_width": 0.1,
+      "bins": 50,
+      "bootstrap_barrier_standard_error": 0.06277383026763242,
+      "occupied_bins": 38,
+      "rmse_vs_true": 0.13179518257826203
+    },
+    {
+      "barrier_error": -0.08679093466325305,
+      "barrier_height": 0.913209065336747,
+      "bin_width": 0.25,
+      "bins": 20,
+      "bootstrap_barrier_standard_error": 0.03834947767333285,
+      "occupied_bins": 16,
+      "rmse_vs_true": 0.3072821950397572
+    }
+  ],
+  "config_sha256": "31ee712c74eb46e8064f07f63af0d24f07ddf6d847a95653a9ff84816b6f70e6",
+  "domain_max": 2.5,
+  "domain_min": -2.5,
+  "post": "08",
+  "profile": "smoke",
+  "rdf_pmf_barrier_height": 1.7050866181659299,
+  "rdf_pmf_minimum_radius": 1.200418410041841,
+  "reweighted_barrier_error": 0.02637392943255934,
+  "reweighted_barrier_height": 1.0263739294325593,
+  "sample_count": 12000,
+  "seed": 2026071408,
+  "temperature": 1.0,
+  "true_barrier_height": 1.0
+}

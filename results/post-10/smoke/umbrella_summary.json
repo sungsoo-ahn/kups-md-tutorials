@@ -1,0 +1,135 @@
+{
+  "bin_width": 0.08,
+  "config_sha256": "d5345a9705aa80d264b7f7eb4480aa97a027e4aae26a9fdaed650a28aa3df739",
+  "domain_max": 2.5,
+  "domain_min": -2.5,
+  "post": "10",
+  "profile": "smoke",
+  "protocols": [
+    {
+      "barrier_error": 0.04433630701236346,
+      "force_constant": 18.0,
+      "forward_reverse_pmf_rmse": 0.26521180906252556,
+      "max_replica_mean_difference": 0.012386666666666712,
+      "mean_adjacent_overlap": 0.4445,
+      "min_adjacent_overlap": 0.3456,
+      "min_effective_bins": 16,
+      "pmf_rmse_vs_true": 0.23610153248139126,
+      "protocol": "dense_windows",
+      "reconstructed_barrier_height": 1.0443363070123635,
+      "window_count": 9,
+      "windows": [
+        {
+          "center": -1.6,
+          "effective_bins": 16,
+          "replica_mean_difference": 0.0035799999999999166,
+          "sample_mean": -1.3430016666666666,
+          "sample_std": 0.1681932545120206
+        },
+        {
+          "center": -1.2,
+          "effective_bins": 18,
+          "replica_mean_difference": 0.0038449999999998763,
+          "sample_mean": -1.1196316666666666,
+          "sample_std": 0.1866099780877274
+        },
+        {
+          "center": -0.8,
+          "effective_bins": 21,
+          "replica_mean_difference": 0.004595000000000127,
+          "sample_mean": -0.8378200000000001,
+          "sample_std": 0.2108152359635675
+        },
+        {
+          "center": -0.4,
+          "effective_bins": 21,
+          "replica_mean_difference": 0.012386666666666712,
+          "sample_mean": -0.47037333333333337,
+          "sample_std": 0.24547576270043991
+        },
+        {
+          "center": 0.0,
+          "effective_bins": 23,
+          "replica_mean_difference": 0.0038266666666666627,
+          "sample_mean": -0.0033033333333333643,
+          "sample_std": 0.2591393433436851
+        },
+        {
+          "center": 0.4,
+          "effective_bins": 22,
+          "replica_mean_difference": 0.0061249999999999916,
+          "sample_mean": 0.4693816666666666,
+          "sample_std": 0.24149748151341002
+        },
+        {
+          "center": 0.8,
+          "effective_bins": 18,
+          "replica_mean_difference": 0.0006233333333334201,
+          "sample_mean": 0.8326849999999999,
+          "sample_std": 0.20314997912474697
+        },
+        {
+          "center": 1.2,
+          "effective_bins": 17,
+          "replica_mean_difference": 0.0027166666666664785,
+          "sample_mean": 1.1155183333333334,
+          "sample_std": 0.18762271471524905
+        },
+        {
+          "center": 1.6,
+          "effective_bins": 18,
+          "replica_mean_difference": 0.008503333333333085,
+          "sample_mean": 1.3363116666666668,
+          "sample_std": 0.17040638234053998
+        }
+      ]
+    },
+    {
+      "barrier_error": -0.3549859875398129,
+      "force_constant": 18.0,
+      "forward_reverse_pmf_rmse": 0.453214242304507,
+      "max_replica_mean_difference": 0.004811666666666881,
+      "mean_adjacent_overlap": 0.12426666666666668,
+      "min_adjacent_overlap": 0.0004,
+      "min_effective_bins": 15,
+      "pmf_rmse_vs_true": 0.47317023126363317,
+      "protocol": "sparse_windows",
+      "reconstructed_barrier_height": 0.6450140124601871,
+      "window_count": 4,
+      "windows": [
+        {
+          "center": -1.6,
+          "effective_bins": 16,
+          "replica_mean_difference": 0.0037283333333333335,
+          "sample_mean": -1.336625,
+          "sample_std": 0.16806049719787952
+        },
+        {
+          "center": -0.8,
+          "effective_bins": 20,
+          "replica_mean_difference": 0.0018016666666664793,
+          "sample_mean": -0.8309566666666668,
+          "sample_std": 0.21568489361514856
+        },
+        {
+          "center": 0.8,
+          "effective_bins": 20,
+          "replica_mean_difference": 0.00016333333333340416,
+          "sample_mean": 0.8343333333333333,
+          "sample_std": 0.21207618906523149
+        },
+        {
+          "center": 1.6,
+          "effective_bins": 15,
+          "replica_mean_difference": 0.004811666666666881,
+          "sample_mean": 1.3335099999999998,
+          "sample_std": 0.1680871321409653
+        }
+      ]
+    }
+  ],
+  "sample_count_per_window": 2500,
+  "seed": 2026071410,
+  "temperature": 1.0,
+  "true_barrier_height": 1.0
+}

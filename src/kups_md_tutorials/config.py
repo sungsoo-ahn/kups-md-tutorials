@@ -607,6 +607,82 @@ class EstimatorTutorialSpec:
         return Path(f"post-{self.post}") / self.profile
 
 
+@dataclass(frozen=True)
+class UmbrellaProtocolSpec:
+    """One umbrella-sampling window layout."""
+
+    name: str
+    force_constant: float
+    window_centers: tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class UmbrellaExperimentSpec:
+    """Configuration for umbrella-sampling reconstruction diagnostics."""
+
+    temperature: float
+    domain_min: float
+    domain_max: float
+    grid_points: int
+    bin_width: float
+    sample_count_per_window: int
+    seed: int
+    protocols: tuple[UmbrellaProtocolSpec, ...]
+
+    def validate(self) -> None:
+        if self.temperature <= 0.0:
+            msg = "temperature must be positive"
+            raise ValueError(msg)
+        if self.domain_min >= self.domain_max:
+            msg = "domain_min must be smaller than domain_max"
+            raise ValueError(msg)
+        if self.grid_points < 16:
+            msg = "grid_points must be at least 16"
+            raise ValueError(msg)
+        if self.bin_width <= 0.0:
+            msg = "bin_width must be positive"
+            raise ValueError(msg)
+        if self.sample_count_per_window <= 0:
+            msg = "sample_count_per_window must be positive"
+            raise ValueError(msg)
+        if not self.protocols:
+            msg = "protocols must be non-empty"
+            raise ValueError(msg)
+        for protocol in self.protocols:
+            if not protocol.name:
+                msg = "protocol names must be non-empty"
+                raise ValueError(msg)
+            if protocol.force_constant <= 0.0:
+                msg = "force_constant must be positive"
+                raise ValueError(msg)
+            if len(protocol.window_centers) < 2:
+                msg = "each protocol must contain at least two windows"
+                raise ValueError(msg)
+            if tuple(sorted(protocol.window_centers)) != protocol.window_centers:
+                msg = "window_centers must be sorted"
+                raise ValueError(msg)
+            if any(
+                center < self.domain_min or center > self.domain_max
+                for center in protocol.window_centers
+            ):
+                msg = "window centers must lie inside the domain"
+                raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class UmbrellaTutorialSpec:
+    """Configuration for post-10 umbrella-sampling experiments."""
+
+    post: str
+    profile: str
+    title: str
+    experiment: UmbrellaExperimentSpec
+
+    @property
+    def result_dir_name(self) -> Path:
+        return Path(f"post-{self.post}") / self.profile
+
+
 def _expect_mapping(value: Any, name: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         msg = f"{name} must be an object"
@@ -1062,6 +1138,61 @@ def load_estimator_spec(
                     ),
                 )
                 for value in experiment["cases"]
+            ),
+        ),
+    )
+    if spec.post != post:
+        msg = f"config post {spec.post!r} does not match requested {post!r}"
+        raise ValueError(msg)
+    if spec.profile != profile:
+        msg = (
+            f"config profile {spec.profile!r} does not match requested {profile!r}"
+        )
+        raise ValueError(msg)
+    spec.experiment.validate()
+    return spec
+
+
+def load_umbrella_spec(
+    post: str, profile: str, config_root: Path = Path("configs")
+) -> UmbrellaTutorialSpec:
+    """Load a committed JSON configuration for umbrella diagnostics."""
+
+    path = config_root / f"post-{post}" / f"{profile}.json"
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    root = _expect_mapping(data, "umbrella config")
+    experiment = _expect_mapping(root.get("umbrella_experiment"), "umbrella_experiment")
+    spec = UmbrellaTutorialSpec(
+        post=str(root["post"]),
+        profile=str(root["profile"]),
+        title=str(root["title"]),
+        experiment=UmbrellaExperimentSpec(
+            temperature=float(experiment["temperature"]),
+            domain_min=float(experiment["domain_min"]),
+            domain_max=float(experiment["domain_max"]),
+            grid_points=int(experiment["grid_points"]),
+            bin_width=float(experiment["bin_width"]),
+            sample_count_per_window=int(experiment["sample_count_per_window"]),
+            seed=int(experiment["seed"]),
+            protocols=tuple(
+                UmbrellaProtocolSpec(
+                    name=str(_expect_mapping(value, "umbrella protocol")["name"]),
+                    force_constant=float(
+                        _expect_mapping(value, "umbrella protocol")[
+                            "force_constant"
+                        ]
+                    ),
+                    window_centers=tuple(
+                        float(center)
+                        for center in _expect_mapping(
+                            value,
+                            "umbrella protocol",
+                        )["window_centers"]
+                    ),
+                )
+                for value in experiment["protocols"]
             ),
         ),
     )

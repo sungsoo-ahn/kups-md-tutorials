@@ -12,6 +12,7 @@ from kups_md_tutorials.config import (
     load_trajectory_length_spec,
     load_thermostat_spec,
     load_tutorial_spec,
+    load_umbrella_spec,
 )
 from kups_md_tutorials.barostats import (
     load_barostat_summary,
@@ -49,8 +50,12 @@ from kups_md_tutorials.trajectory_length import (
     load_trajectory_length_summary,
     write_trajectory_length_outputs,
 )
+from kups_md_tutorials.umbrella_sampling import (
+    load_umbrella_summary,
+    write_umbrella_outputs,
+)
 
-SUPPORTED_POSTS = ("01", "02", "03", "04", "05", "06", "07", "08", "09")
+SUPPORTED_POSTS = ("01", "02", "03", "04", "05", "06", "07", "08", "09", "10")
 SUPPORTED_PROFILES = ("smoke", "full")
 
 
@@ -84,6 +89,9 @@ def run_post(post: str, profile: str, output_root: Path = Path("results")) -> Pa
     if post == "09":
         spec = load_estimator_spec(post, profile)
         return write_estimator_outputs(spec, output_root=output_root)
+    if post == "10":
+        spec = load_umbrella_spec(post, profile)
+        return write_umbrella_outputs(spec, output_root=output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -116,6 +124,8 @@ def verify_post(post: str, profile: str, output_root: Path = Path("results")) ->
         _verify_post08(post, profile, output_root)
     elif post == "09":
         _verify_post09(post, profile, output_root)
+    elif post == "10":
+        _verify_post10(post, profile, output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
@@ -478,4 +488,54 @@ def _verify_post09(post: str, profile: str, output_root: Path) -> None:
         raise ValueError(msg)
     if abs(poor.forward_fep_error) <= abs(good.forward_fep_error):
         msg = "poor-overlap FEP should be less reliable than good-overlap FEP"
+        raise ValueError(msg)
+
+
+def _verify_post10(post: str, profile: str, output_root: Path) -> None:
+    spec = load_umbrella_spec(post, profile)
+    output_dir = output_root / spec.result_dir_name
+    summary_path = output_dir / "umbrella_summary.json"
+    manifest_path = output_dir / "manifest.json"
+    curves_path = output_dir / "umbrella_curves.csv"
+    windows_path = output_dir / "umbrella_windows.csv"
+    missing = [
+        str(path)
+        for path in (summary_path, manifest_path, curves_path, windows_path)
+        if not path.exists()
+    ]
+    if missing:
+        msg = "missing expected output files: " + ", ".join(missing)
+        raise FileNotFoundError(msg)
+
+    summary = load_umbrella_summary(summary_path)
+    if summary.post != post or summary.profile != profile:
+        msg = "summary post/profile does not match requested verification target"
+        raise ValueError(msg)
+    if len(summary.protocols) != len(spec.experiment.protocols):
+        msg = "summary does not contain the expected umbrella protocols"
+        raise ValueError(msg)
+    if min(protocol.window_count for protocol in summary.protocols) <= 1:
+        msg = "umbrella protocols require multiple windows"
+        raise ValueError(msg)
+    if min(protocol.min_effective_bins for protocol in summary.protocols) <= 2:
+        msg = "at least one umbrella window has too little sampled support"
+        raise ValueError(msg)
+
+    dense = next(
+        protocol for protocol in summary.protocols if protocol.protocol == "dense_windows"
+    )
+    sparse = next(
+        protocol for protocol in summary.protocols if protocol.protocol == "sparse_windows"
+    )
+    if dense.min_adjacent_overlap <= sparse.min_adjacent_overlap:
+        msg = "dense windows should improve the minimum adjacent overlap"
+        raise ValueError(msg)
+    if dense.pmf_rmse_vs_true >= sparse.pmf_rmse_vs_true:
+        msg = "dense windows should reconstruct the PMF more accurately"
+        raise ValueError(msg)
+    if abs(dense.barrier_error) > 0.20:
+        msg = "dense-window barrier estimate is outside the review threshold"
+        raise ValueError(msg)
+    if dense.forward_reverse_pmf_rmse > 0.35:
+        msg = "dense-window replica consistency is outside the review threshold"
         raise ValueError(msg)

@@ -10,6 +10,7 @@ from kups_md_tutorials.config import (
     load_trajectory_length_spec,
     load_thermostat_spec,
     load_tutorial_spec,
+    load_umbrella_spec,
 )
 from kups_md_tutorials.barostats import write_barostat_outputs
 from kups_md_tutorials.error_diagnostics import write_error_outputs
@@ -23,6 +24,7 @@ from kups_md_tutorials.figures import (
     generate_post07_figures,
     generate_post08_figures,
     generate_post09_figures,
+    generate_post10_figures,
 )
 from kups_md_tutorials.estimators import write_estimator_outputs
 from kups_md_tutorials.free_energies import write_free_energy_outputs
@@ -31,6 +33,7 @@ from kups_md_tutorials.integrators import write_integrator_outputs
 from kups_md_tutorials.observables import write_observable_outputs
 from kups_md_tutorials.thermostats import write_thermostat_outputs
 from kups_md_tutorials.trajectory_length import write_trajectory_length_outputs
+from kups_md_tutorials.umbrella_sampling import write_umbrella_outputs
 
 
 def test_post01_figure_generation(tmp_path: Path) -> None:
@@ -149,6 +152,20 @@ def test_post09_figure_generation(tmp_path: Path) -> None:
     spec = load_estimator_spec("09", "smoke")
     result_dir = write_estimator_outputs(spec, output_root=tmp_path / "results")
     outputs = generate_post09_figures(
+        result_dir=result_dir,
+        figure_dir=tmp_path / "figures",
+        snapshot_dir=tmp_path / "snapshots",
+    )
+    assert len(outputs) == 3
+    for path in outputs:
+        assert path.exists()
+        assert path.stat().st_size > 0
+
+
+def test_post10_figure_generation(tmp_path: Path) -> None:
+    spec = load_umbrella_spec("10", "smoke")
+    result_dir = write_umbrella_outputs(spec, output_root=tmp_path / "results")
+    outputs = generate_post10_figures(
         result_dir=result_dir,
         figure_dir=tmp_path / "figures",
         snapshot_dir=tmp_path / "snapshots",

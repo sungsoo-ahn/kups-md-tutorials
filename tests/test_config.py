@@ -12,6 +12,7 @@ from kups_md_tutorials.config import (
     load_observable_spec,
     load_trajectory_length_spec,
     load_thermostat_spec,
+    load_umbrella_spec,
 )
 
 
@@ -98,3 +99,12 @@ def test_load_estimator_spec() -> None:
     assert spec.experiment.temperature == 1.0
     assert spec.experiment.cases[0].name == "good_overlap"
     assert spec.experiment.cases[-1].mean_shift > spec.experiment.cases[0].mean_shift
+
+
+def test_load_umbrella_spec() -> None:
+    spec = load_umbrella_spec("10", "smoke")
+    assert spec.experiment.temperature == 1.0
+    assert spec.experiment.protocols[0].name == "dense_windows"
+    assert len(spec.experiment.protocols[0].window_centers) > len(
+        spec.experiment.protocols[1].window_centers
+    )

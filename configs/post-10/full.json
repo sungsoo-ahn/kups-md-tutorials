@@ -1,0 +1,26 @@
+{
+  "post": "10",
+  "profile": "full",
+  "title": "What Does Umbrella Sampling Actually Sample?",
+  "umbrella_experiment": {
+    "temperature": 1.0,
+    "domain_min": -2.5,
+    "domain_max": 2.5,
+    "grid_points": 2001,
+    "bin_width": 0.04,
+    "sample_count_per_window": 20000,
+    "seed": 2026071410,
+    "protocols": [
+      {
+        "name": "dense_windows",
+        "force_constant": 18.0,
+        "window_centers": [-1.6, -1.2, -0.8, -0.4, 0.0, 0.4, 0.8, 1.2, 1.6]
+      },
+      {
+        "name": "sparse_windows",
+        "force_constant": 18.0,
+        "window_centers": [-1.6, -0.8, 0.8, 1.6]
+      }
+    ]
+  }
+}

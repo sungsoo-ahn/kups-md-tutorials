@@ -289,6 +289,36 @@ def generate_post09_figures(
     return [svg_path, png_path, snapshot_path]
 
 
+def generate_post10_figures(
+    result_dir: Path = Path("results/post-10/smoke"),
+    figure_dir: Path = Path("figures/post-10"),
+    snapshot_dir: Path = Path("snapshots/post-10"),
+    name: str = "umbrella_diagnostics",
+) -> list[Path]:
+    """Generate umbrella-sampling reconstruction diagnostic figures."""
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+
+    summary = json.loads((result_dir / "umbrella_summary.json").read_text())
+    curves = _read_post10_curves(result_dir / "umbrella_curves.csv")
+    windows = _read_post10_windows(result_dir / "umbrella_windows.csv")
+
+    with rc_context({"svg.hashsalt": "kups-md-tutorials-post-10"}):
+        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
+        _draw_post10_figure(fig, axes, summary, curves, windows)
+
+        svg_path = figure_dir / f"{name}.svg"
+        png_path = figure_dir / f"{name}.png"
+        snapshot_path = snapshot_dir / f"{name}_snapshot.png"
+        fig.savefig(svg_path, metadata={"Date": None})
+        _strip_trailing_whitespace(svg_path)
+        fig.savefig(png_path, dpi=220)
+        fig.savefig(snapshot_path, dpi=160)
+        plt.close(fig)
+    return [svg_path, png_path, snapshot_path]
+
+
 def _read_post02_samples(path: Path) -> dict[str, np.ndarray]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -368,6 +398,28 @@ def _read_post09_samples(path: Path) -> dict[str, np.ndarray]:
         key: np.array([float(row[key]) for row in rows], dtype=float)
         for key in reader.fieldnames or []
     }
+
+
+def _read_post10_curves(path: Path) -> dict[str, np.ndarray]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    curves: dict[str, np.ndarray] = {}
+    for key in reader.fieldnames or []:
+        values = [float(row[key]) for row in rows if row[key]]
+        curves[key] = np.array(values, dtype=float)
+    return curves
+
+
+def _read_post10_windows(path: Path) -> dict[str, np.ndarray]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    windows: dict[str, np.ndarray] = {}
+    for key in reader.fieldnames or []:
+        values = [float(row[key]) for row in rows if row[key]]
+        windows[key] = np.array(values, dtype=float)
+    return windows
 
 
 def _draw_post01_figure(
@@ -1156,6 +1208,102 @@ def _draw_post09_figure(
     axes[2].set_xlabel("forward work")
     axes[2].set_ylabel("density")
     axes[2].legend(frameon=False, fontsize=8)
+
+    for ax in axes:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(alpha=0.18, linewidth=0.6)
+
+
+def _draw_post10_figure(
+    fig: plt.Figure,
+    axes: np.ndarray,
+    summary: dict,
+    curves: dict[str, np.ndarray],
+    windows: dict[str, np.ndarray],
+) -> None:
+    fig.patch.set_facecolor("white")
+    protocols = summary["protocols"]
+    colors = {"dense_windows": "#2f6f9f", "sparse_windows": "#d88c3d"}
+
+    axes[0].plot(
+        curves["true_x"],
+        curves["true_pmf"],
+        color="#222222",
+        linewidth=1.5,
+        label="true PMF",
+    )
+    for protocol in protocols:
+        name = protocol["protocol"]
+        axes[0].plot(
+            curves[f"{name}_x"],
+            curves[f"{name}_pmf"],
+            color=colors.get(name, "#666666"),
+            linewidth=1.35,
+            label=name.replace("_", " "),
+        )
+    axes[0].set_title("Reconstruction needs connected windows")
+    axes[0].set_xlabel("collective variable")
+    axes[0].set_ylabel("shifted F")
+    axes[0].legend(frameon=False, fontsize=8)
+
+    width = 0.34
+    for offset, protocol in zip((-0.18, 0.18), protocols, strict=True):
+        name = protocol["protocol"]
+        overlap = windows[f"{name}_adjacent_overlap"]
+        axes[1].bar(
+            np.arange(len(overlap)) + offset,
+            overlap,
+            width=width,
+            color=colors.get(name, "#666666"),
+            alpha=0.82,
+            label=name.replace("_", " "),
+        )
+    axes[1].set_title("Adjacent overlap is the control")
+    axes[1].set_xlabel("window pair")
+    axes[1].set_ylabel("histogram overlap")
+    axes[1].set_ylim(0.0, 1.0)
+    axes[1].legend(frameon=False, fontsize=8)
+
+    for protocol in protocols:
+        name = protocol["protocol"]
+        centers = windows[f"{name}_window_center"]
+        means = windows[f"{name}_sample_mean"]
+        stds = windows[f"{name}_sample_std"]
+        axes[2].errorbar(
+            centers,
+            means,
+            yerr=stds,
+            marker="o",
+            linewidth=1.1,
+            capsize=2.5,
+            color=colors.get(name, "#666666"),
+            label=name.replace("_", " "),
+        )
+    axes[2].plot(
+        [summary["domain_min"], summary["domain_max"]],
+        [summary["domain_min"], summary["domain_max"]],
+        color="#333333",
+        linewidth=0.9,
+        linestyle="--",
+    )
+    axes[2].set_title("A biased window samples a distribution")
+    axes[2].set_xlabel("umbrella center")
+    axes[2].set_ylabel("sample mean +/- std")
+    axes[2].legend(frameon=False, fontsize=8)
+    dense = next(item for item in protocols if item["protocol"] == "dense_windows")
+    sparse = next(item for item in protocols if item["protocol"] == "sparse_windows")
+    axes[2].text(
+        0.03,
+        0.97,
+        f"dense RMSE = {dense['pmf_rmse_vs_true']:.3f}\n"
+        f"sparse RMSE = {sparse['pmf_rmse_vs_true']:.3f}",
+        transform=axes[2].transAxes,
+        va="top",
+        ha="left",
+        fontsize=8.5,
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+    )
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

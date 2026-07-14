@@ -9,7 +9,12 @@ import kups
 import numpy as np
 
 from kups_md_tutorials.config import TrajectoryLengthTutorialSpec
+from kups_md_tutorials.error_diagnostics import (
+    _initialized_argon_velocities,
+    _lennard_jones_forces,
+)
 from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.systems import argon_fcc
 
 
 @dataclass(frozen=True)
@@ -36,6 +41,41 @@ class TrajectoryCheckpointSummary:
 
 
 @dataclass(frozen=True)
+class ArgonObservableCheckpointSummary:
+    """Checkpointed uncertainty for one compact argon physical observable."""
+
+    checkpoint_steps: int
+    samples_per_replica: int
+    total_samples: int
+    mean_potential_energy_per_atom: float
+    naive_standard_error: float
+    integrated_autocorrelation_time: float
+    effective_samples: float
+    autocorrelation_standard_error: float
+    replica_standard_error: float
+    conservative_standard_error: float
+    conservative_ci95_half_width: float
+    replica_mean_min: float
+    replica_mean_max: float
+
+
+@dataclass(frozen=True)
+class ArgonObservableSummary:
+    """Compact argon trajectory-length diagnostic for a physical observable."""
+
+    atom_count: int
+    number_density: float
+    temperature: float
+    gamma: float
+    time_step: float
+    warmup_steps: int
+    sample_every: int
+    replica_count: int
+    observable: str
+    checkpoints: list[ArgonObservableCheckpointSummary]
+
+
+@dataclass(frozen=True)
 class TrajectoryLengthExperimentSummary:
     """Summary table for one post/profile trajectory-length experiment."""
 
@@ -53,6 +93,7 @@ class TrajectoryLengthExperimentSummary:
     seed: int
     config_sha256: str
     checkpoints: list[TrajectoryCheckpointSummary]
+    argon_observable: ArgonObservableSummary | None = None
 
 
 def simulate_correlated_observable(
@@ -168,11 +209,148 @@ def _checkpoint_summary(
     )
 
 
+def _argon_observable_checkpoint_summary(
+    *,
+    checkpoint: int,
+    warmup_steps: int,
+    sample_every: int,
+    trajectories: list[tuple[np.ndarray, np.ndarray]],
+) -> ArgonObservableCheckpointSummary:
+    values_by_replica = [
+        values[(times >= warmup_steps) & (times <= checkpoint)]
+        for times, values in trajectories
+    ]
+    pooled = np.concatenate(values_by_replica)
+    replica_means = np.array([np.mean(values) for values in values_by_replica], dtype=float)
+    iats = np.array(
+        [_integrated_autocorrelation_time(values) for values in values_by_replica],
+        dtype=float,
+    )
+    iat = float(np.mean(iats))
+    effective_samples = float(len(pooled) / iat)
+    naive_standard_error = float(np.std(pooled, ddof=1) / np.sqrt(len(pooled)))
+    autocorrelation_standard_error = float(np.std(pooled, ddof=1) / np.sqrt(effective_samples))
+    replica_standard_error = float(np.std(replica_means, ddof=1) / np.sqrt(len(replica_means)))
+    conservative_standard_error = max(
+        naive_standard_error,
+        autocorrelation_standard_error,
+        replica_standard_error,
+    )
+    return ArgonObservableCheckpointSummary(
+        checkpoint_steps=checkpoint,
+        samples_per_replica=len(values_by_replica[0]),
+        total_samples=len(pooled),
+        mean_potential_energy_per_atom=float(np.mean(pooled)),
+        naive_standard_error=naive_standard_error,
+        integrated_autocorrelation_time=iat,
+        effective_samples=effective_samples,
+        autocorrelation_standard_error=autocorrelation_standard_error,
+        replica_standard_error=replica_standard_error,
+        conservative_standard_error=conservative_standard_error,
+        conservative_ci95_half_width=1.96 * conservative_standard_error,
+        replica_mean_min=float(np.min(replica_means)),
+        replica_mean_max=float(np.max(replica_means)),
+    )
+
+
+def _simulate_argon_observable_replica(
+    spec: TrajectoryLengthTutorialSpec,
+    replica_index: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    argon = spec.argon_observable
+    if argon is None:
+        msg = "argon_observable config is required"
+        raise ValueError(msg)
+
+    atoms = argon_fcc(argon.repetitions, argon.number_density)
+    positions = atoms.get_positions().astype(float)
+    box = float(atoms.cell.lengths()[0])
+    velocities = _initialized_argon_velocities(
+        atom_count=len(atoms),
+        temperature=argon.temperature,
+        seed=argon.seed + replica_index * 1009,
+    )
+    forces, potential = _lennard_jones_forces(
+        positions,
+        box_length=box,
+        epsilon=argon.epsilon,
+        sigma=argon.sigma,
+        cutoff=argon.cutoff,
+    )
+    c = float(np.exp(-argon.gamma * argon.time_step))
+    sigma_v = float(np.sqrt(argon.temperature * (1.0 - c**2)))
+    rng = np.random.default_rng(argon.seed + replica_index * 1009 + 17)
+    times: list[float] = []
+    potential_energy_per_atom: list[float] = []
+
+    for step in range(1, argon.max_steps + 1):
+        velocities += 0.5 * argon.time_step * forces
+        positions = (positions + 0.5 * argon.time_step * velocities) % box
+        velocities = c * velocities + sigma_v * rng.normal(size=velocities.shape)
+        velocities -= np.mean(velocities, axis=0)
+        positions = (positions + 0.5 * argon.time_step * velocities) % box
+        forces, potential = _lennard_jones_forces(
+            positions,
+            box_length=box,
+            epsilon=argon.epsilon,
+            sigma=argon.sigma,
+            cutoff=argon.cutoff,
+        )
+        velocities += 0.5 * argon.time_step * forces
+
+        if step >= argon.warmup_steps and (step - argon.warmup_steps) % argon.sample_every == 0:
+            times.append(float(step))
+            potential_energy_per_atom.append(float(potential / len(atoms)))
+
+    return np.asarray(times, dtype=float), np.asarray(potential_energy_per_atom, dtype=float)
+
+
+def run_argon_observable_experiment(
+    spec: TrajectoryLengthTutorialSpec,
+) -> tuple[ArgonObservableSummary | None, list[tuple[np.ndarray, np.ndarray]]]:
+    """Run optional compact argon physical-observable trajectory-length checks."""
+
+    argon = spec.argon_observable
+    if argon is None:
+        return None, []
+
+    trajectories = [
+        _simulate_argon_observable_replica(spec, replica_index=replica)
+        for replica in range(argon.replica_count)
+    ]
+    atom_count = len(argon_fcc(argon.repetitions, argon.number_density))
+    checkpoints = [
+        _argon_observable_checkpoint_summary(
+            checkpoint=checkpoint,
+            warmup_steps=argon.warmup_steps,
+            sample_every=argon.sample_every,
+            trajectories=trajectories,
+        )
+        for checkpoint in argon.checkpoints
+    ]
+    return (
+        ArgonObservableSummary(
+            atom_count=atom_count,
+            number_density=argon.number_density,
+            temperature=argon.temperature,
+            gamma=argon.gamma,
+            time_step=argon.time_step,
+            warmup_steps=argon.warmup_steps,
+            sample_every=argon.sample_every,
+            replica_count=argon.replica_count,
+            observable="potential_energy_per_atom",
+            checkpoints=checkpoints,
+        ),
+        trajectories,
+    )
+
+
 def run_trajectory_length_experiment(
     spec: TrajectoryLengthTutorialSpec,
     config_sha256: str,
 ) -> tuple[
     TrajectoryLengthExperimentSummary,
+    list[tuple[np.ndarray, np.ndarray]],
     list[tuple[np.ndarray, np.ndarray]],
 ]:
     """Run all configured trajectory-length diagnostics."""
@@ -195,6 +373,7 @@ def run_trajectory_length_experiment(
         _checkpoint_summary(spec=spec, checkpoint=checkpoint, trajectories=trajectories)
         for checkpoint in exp.checkpoints
     ]
+    argon_summary, argon_trajectories = run_argon_observable_experiment(spec)
     return (
         TrajectoryLengthExperimentSummary(
             post=spec.post,
@@ -211,8 +390,10 @@ def run_trajectory_length_experiment(
             seed=exp.seed,
             config_sha256=config_sha256,
             checkpoints=checkpoints,
+            argon_observable=argon_summary,
         ),
         trajectories,
+        argon_trajectories,
     )
 
 
@@ -238,6 +419,30 @@ def _write_samples(
             writer.writerow(row)
 
 
+def _write_argon_observable_samples(
+    path: Path,
+    trajectories: list[tuple[np.ndarray, np.ndarray]],
+    max_rows: int = 900,
+) -> None:
+    if not trajectories:
+        return
+    first_times = trajectories[0][0]
+    stride = max(1, int(np.ceil(len(first_times) / max_rows)))
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        header = ["step"]
+        header.extend(
+            f"replica_{idx}_potential_energy_per_atom"
+            for idx in range(len(trajectories))
+        )
+        writer.writerow(header)
+        for row_idx in range(0, len(first_times), stride):
+            row: list[str] = [f"{first_times[row_idx]:.12g}"]
+            for _, values in trajectories:
+                row.append(f"{values[row_idx]:.12g}")
+            writer.writerow(row)
+
+
 def write_trajectory_length_outputs(
     spec: TrajectoryLengthTutorialSpec,
     output_root: Path = Path("results"),
@@ -249,20 +454,28 @@ def write_trajectory_length_outputs(
     output_dir.mkdir(parents=True, exist_ok=True)
     config_path = config_root / f"post-{spec.post}" / f"{spec.profile}.json"
     prov = provenance(config_path)
-    summary, trajectories = run_trajectory_length_experiment(spec, prov.config_sha256)
+    summary, trajectories, argon_trajectories = run_trajectory_length_experiment(
+        spec, prov.config_sha256
+    )
 
     summary_path = output_dir / "trajectory_length_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "trajectory_length_samples.csv"
+    argon_samples_path = output_dir / "argon_observable_samples.csv"
     summary_path.write_text(
         json.dumps(asdict(summary), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     _write_samples(samples_path, trajectories, sample_every=spec.experiment.sample_every)
+    if summary.argon_observable is not None:
+        _write_argon_observable_samples(argon_samples_path, argon_trajectories)
     manifest = {
         "config": asdict(spec),
         "summary_file": summary_path.name,
         "samples_file": samples_path.name,
+        "argon_observable_samples_file": (
+            argon_samples_path.name if summary.argon_observable is not None else None
+        ),
         "provenance": asdict(prov),
         "versions": {
             "kups": kups.__version__,
@@ -284,4 +497,15 @@ def load_trajectory_length_summary(path: Path) -> TrajectoryLengthExperimentSumm
         TrajectoryCheckpointSummary(**checkpoint)
         for checkpoint in data.pop("checkpoints")
     ]
-    return TrajectoryLengthExperimentSummary(checkpoints=checkpoints, **data)
+    argon_observable = data.pop("argon_observable", None)
+    if argon_observable is not None:
+        argon_observable = ArgonObservableSummary(
+            checkpoints=[
+                ArgonObservableCheckpointSummary(**checkpoint)
+                for checkpoint in argon_observable.pop("checkpoints")
+            ],
+            **argon_observable,
+        )
+    return TrajectoryLengthExperimentSummary(
+        checkpoints=checkpoints, argon_observable=argon_observable, **data
+    )

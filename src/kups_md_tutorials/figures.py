@@ -201,10 +201,14 @@ def generate_post06_figures(
 
     summary = json.loads((result_dir / "trajectory_length_summary.json").read_text())
     samples = _read_post06_samples(result_dir / "trajectory_length_samples.csv")
+    argon_samples_path = result_dir / "argon_observable_samples.csv"
+    argon_samples = (
+        _read_post06_samples(argon_samples_path) if argon_samples_path.exists() else None
+    )
 
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-06"}):
-        fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.6), constrained_layout=True)
-        _draw_post06_figure(fig, axes, summary, samples)
+        fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.2), constrained_layout=True)
+        _draw_post06_figure(fig, axes.ravel(), summary, samples, argon_samples)
 
         svg_path = figure_dir / f"{name}.svg"
         png_path = figure_dir / f"{name}.png"
@@ -1107,6 +1111,7 @@ def _draw_post06_figure(
     axes: np.ndarray,
     summary: dict,
     samples: dict[str, np.ndarray],
+    argon_samples: dict[str, np.ndarray] | None,
 ) -> None:
     fig.patch.set_facecolor("white")
     checkpoints = summary["checkpoints"]
@@ -1172,6 +1177,75 @@ def _draw_post06_figure(
         fontsize=8.5,
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
     )
+
+    axes[3].set_title("Argon replica uncertainty")
+    argon_summary = summary.get("argon_observable")
+    if argon_summary is not None:
+        argon_checkpoints = argon_summary["checkpoints"]
+        argon_steps = np.array(
+            [checkpoint["checkpoint_steps"] for checkpoint in argon_checkpoints],
+            dtype=float,
+        )
+        argon_means = np.array(
+            [
+                checkpoint["mean_potential_energy_per_atom"]
+                for checkpoint in argon_checkpoints
+            ],
+            dtype=float,
+        )
+        argon_ci = np.array(
+            [checkpoint["conservative_ci95_half_width"] for checkpoint in argon_checkpoints],
+            dtype=float,
+        )
+        axes[3].errorbar(
+            argon_steps,
+            argon_means,
+            yerr=argon_ci,
+            marker="o",
+            color="#2b8a6e",
+            ecolor="#6aa891",
+            capsize=3,
+            linewidth=1.4,
+        )
+        if argon_samples is not None:
+            replica_keys = sorted(
+                key
+                for key in argon_samples
+                if key.startswith("replica_") and key.endswith("_potential_energy_per_atom")
+            )
+            for key in replica_keys:
+                axes[3].plot(
+                    argon_samples["step"],
+                    argon_samples[key],
+                    color="#8bbfad",
+                    alpha=0.22,
+                    linewidth=0.8,
+                )
+        axes[3].set_xlabel("trajectory steps")
+        axes[3].set_ylabel("PE / atom")
+        axes[3].text(
+            0.03,
+            0.95,
+            f"N = {argon_summary['atom_count']}\n"
+            f"replicas = {argon_summary['replica_count']}",
+            transform=axes[3].transAxes,
+            va="top",
+            ha="left",
+            fontsize=8.5,
+            bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+        )
+    else:
+        axes[3].text(
+            0.5,
+            0.5,
+            "argon observable\nnot configured",
+            transform=axes[3].transAxes,
+            va="center",
+            ha="center",
+            fontsize=9,
+        )
+        axes[3].set_xticks([])
+        axes[3].set_yticks([])
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

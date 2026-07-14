@@ -1,4 +1,62 @@
 {
+  "argon_observable": {
+    "atom_count": 32,
+    "checkpoints": [
+      {
+        "autocorrelation_standard_error": 0.017594101830904017,
+        "checkpoint_steps": 1000,
+        "conservative_ci95_half_width": 0.06664278386574013,
+        "conservative_standard_error": 0.03400142033966333,
+        "effective_samples": 38.119376440320835,
+        "integrated_autocorrelation_time": 4.01370678871242,
+        "mean_potential_energy_per_atom": -5.234168481034949,
+        "naive_standard_error": 0.008782017126844649,
+        "replica_mean_max": -5.186395847093607,
+        "replica_mean_min": -5.299966864765365,
+        "replica_standard_error": 0.03400142033966333,
+        "samples_per_replica": 51,
+        "total_samples": 153
+      },
+      {
+        "autocorrelation_standard_error": 0.02173904030100448,
+        "checkpoint_steps": 2000,
+        "conservative_ci95_half_width": 0.061179041416516054,
+        "conservative_standard_error": 0.03121379664107962,
+        "effective_samples": 33.63654166310678,
+        "integrated_autocorrelation_time": 13.4674962883256,
+        "mean_potential_energy_per_atom": -5.207932686885576,
+        "naive_standard_error": 0.005923752914757621,
+        "replica_mean_max": -5.163243960998567,
+        "replica_mean_min": -5.268027435737027,
+        "replica_standard_error": 0.03121379664107962,
+        "samples_per_replica": 151,
+        "total_samples": 453
+      },
+      {
+        "autocorrelation_standard_error": 0.01954446363568213,
+        "checkpoint_steps": 3000,
+        "conservative_ci95_half_width": 0.08240257784422836,
+        "conservative_standard_error": 0.042042131553177736,
+        "effective_samples": 47.310443312989,
+        "integrated_autocorrelation_time": 15.916147625555332,
+        "mean_potential_energy_per_atom": -5.199106738525244,
+        "naive_standard_error": 0.004898969968101726,
+        "replica_mean_max": -5.118852976716055,
+        "replica_mean_min": -5.260962005545922,
+        "replica_standard_error": 0.042042131553177736,
+        "samples_per_replica": 251,
+        "total_samples": 753
+      }
+    ],
+    "gamma": 1.0,
+    "number_density": 0.85,
+    "observable": "potential_energy_per_atom",
+    "replica_count": 3,
+    "sample_every": 10,
+    "temperature": 0.7,
+    "time_step": 0.002,
+    "warmup_steps": 500
+  },
   "checkpoints": [
     {
       "absolute_error": 0.17015005203238676,
@@ -58,7 +116,7 @@
       "z_score": 0.9884285916140939
     }
   ],
-  "config_sha256": "65ce1a4d57e8b9450d94e2ca7e0c0000ca261df5f827a922673ad6cf18baaad4",
+  "config_sha256": "b6e41ff0ecb5885f662ebde3f8586a25a0c9703210187e511dcbd02c953e63ea",
   "correlation_time": 30.0,
   "equilibration_time": 120.0,
   "initial_bias": 2.5,

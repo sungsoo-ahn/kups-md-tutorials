@@ -558,6 +558,76 @@ class TrajectoryLengthExperimentSpec:
 
 
 @dataclass(frozen=True)
+class ArgonTrajectoryLengthSpec:
+    """Configuration for compact argon physical-observable length diagnostics."""
+
+    repetitions: int
+    number_density: float
+    temperature: float
+    gamma: float
+    time_step: float
+    max_steps: int
+    warmup_steps: int
+    sample_every: int
+    replica_count: int
+    seed: int
+    checkpoints: tuple[int, ...]
+    epsilon: float = 1.0
+    sigma: float = 1.0
+    cutoff: float = 2.5
+
+    def validate(self) -> None:
+        if self.repetitions <= 0:
+            msg = "argon trajectory repetitions must be positive"
+            raise ValueError(msg)
+        if self.number_density <= 0.0:
+            msg = "argon trajectory number_density must be positive"
+            raise ValueError(msg)
+        if self.temperature <= 0.0:
+            msg = "argon trajectory temperature must be positive"
+            raise ValueError(msg)
+        if self.gamma <= 0.0:
+            msg = "argon trajectory gamma must be positive"
+            raise ValueError(msg)
+        if self.time_step <= 0.0:
+            msg = "argon trajectory time_step must be positive"
+            raise ValueError(msg)
+        if self.max_steps <= 0:
+            msg = "argon trajectory max_steps must be positive"
+            raise ValueError(msg)
+        if self.warmup_steps < 0 or self.warmup_steps >= self.max_steps:
+            msg = "argon trajectory warmup_steps must be non-negative and smaller than max_steps"
+            raise ValueError(msg)
+        if self.sample_every <= 0:
+            msg = "argon trajectory sample_every must be positive"
+            raise ValueError(msg)
+        if self.replica_count < 2:
+            msg = "argon trajectory replica_count must be at least two"
+            raise ValueError(msg)
+        if not self.checkpoints:
+            msg = "argon trajectory checkpoints must be non-empty"
+            raise ValueError(msg)
+        if any(checkpoint <= self.warmup_steps for checkpoint in self.checkpoints):
+            msg = "argon trajectory checkpoints must exceed warmup_steps"
+            raise ValueError(msg)
+        if max(self.checkpoints) > self.max_steps:
+            msg = "argon trajectory checkpoints cannot exceed max_steps"
+            raise ValueError(msg)
+        if tuple(sorted(self.checkpoints)) != self.checkpoints:
+            msg = "argon trajectory checkpoints must be sorted"
+            raise ValueError(msg)
+        if self.epsilon <= 0.0:
+            msg = "argon trajectory epsilon must be positive"
+            raise ValueError(msg)
+        if self.sigma <= 0.0:
+            msg = "argon trajectory sigma must be positive"
+            raise ValueError(msg)
+        if self.cutoff <= self.sigma:
+            msg = "argon trajectory cutoff must be larger than sigma"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
 class TrajectoryLengthTutorialSpec:
     """Configuration for post-06 trajectory-length experiments."""
 
@@ -565,6 +635,7 @@ class TrajectoryLengthTutorialSpec:
     profile: str
     title: str
     experiment: TrajectoryLengthExperimentSpec
+    argon_observable: ArgonTrajectoryLengthSpec | None = None
 
     @property
     def result_dir_name(self) -> Path:
@@ -1437,6 +1508,83 @@ def load_trajectory_length_spec(
             seed=int(experiment["seed"]),
             checkpoints=tuple(int(value) for value in experiment["checkpoints"]),
         ),
+        argon_observable=(
+            None
+            if root.get("argon_observable") is None
+            else ArgonTrajectoryLengthSpec(
+                repetitions=int(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable")[
+                        "repetitions"
+                    ]
+                ),
+                number_density=float(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable")[
+                        "number_density"
+                    ]
+                ),
+                temperature=float(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable")[
+                        "temperature"
+                    ]
+                ),
+                gamma=float(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable")[
+                        "gamma"
+                    ]
+                ),
+                time_step=float(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable")[
+                        "time_step"
+                    ]
+                ),
+                max_steps=int(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable")[
+                        "max_steps"
+                    ]
+                ),
+                warmup_steps=int(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable")[
+                        "warmup_steps"
+                    ]
+                ),
+                sample_every=int(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable")[
+                        "sample_every"
+                    ]
+                ),
+                replica_count=int(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable")[
+                        "replica_count"
+                    ]
+                ),
+                seed=int(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable")[
+                        "seed"
+                    ]
+                ),
+                checkpoints=tuple(
+                    int(value)
+                    for value in _expect_mapping(
+                        root.get("argon_observable"), "argon_observable"
+                    )["checkpoints"]
+                ),
+                epsilon=float(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable").get(
+                        "epsilon", 1.0
+                    )
+                ),
+                sigma=float(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable").get(
+                        "sigma", 1.0
+                    )
+                ),
+                cutoff=float(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable").get(
+                        "cutoff", 2.5
+                    )
+                ),
+            )
+        ),
     )
     if spec.post != post:
         msg = f"config post {spec.post!r} does not match requested {post!r}"
@@ -1447,6 +1595,8 @@ def load_trajectory_length_spec(
         )
         raise ValueError(msg)
     spec.experiment.validate()
+    if spec.argon_observable is not None:
+        spec.argon_observable.validate()
     return spec
 
 

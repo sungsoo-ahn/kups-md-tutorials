@@ -5,10 +5,11 @@
 - Post: 06
 - Profiles reviewed: smoke and full
 - Current status: controlled correlated-observable trajectory-length workflow,
-  committed smoke/full outputs, notebook, full-profile diagnostic figure,
-  expanded hidden website draft, rendered page snapshots, and self-review
-  artifact are in place; the final argon/kUPS physical-observable diagnostic is
-  still pending.
+  compact reduced-unit argon potential-energy-per-atom trajectory-length
+  workflow, committed smoke/full outputs, notebook, full-profile diagnostic
+  figure, expanded hidden website draft, rendered page snapshots, and
+  self-review artifact are in place; larger GPU kUPS physical-observable
+  diagnostics remain pending before public release.
 
 ## Commands
 
@@ -18,8 +19,10 @@
 - `uv run kups-tutorial verify 06 --profile full`
 - `uv run python scripts/generate_post06_figures.py`
 - `uv run jupyter execute notebooks/post-06-trajectory-length.ipynb --inplace`
-- `uv run ruff check src tests scripts`
+- `uv run ruff check .`
 - `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `git diff --check`
 - `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
 - GitHub Actions deploy run `29360919260` for website commit
@@ -34,6 +37,9 @@
 - The workflow uses a deterministic correlated observable with a known
   equilibrium mean, stationary variance, equilibration decay, and correlation
   time.
+- The workflow now also writes `argon_observable_samples.csv`, a compact
+  reduced-unit FCC argon Langevin trajectory-length diagnostic for potential
+  energy per atom across independent replicas and checkpoints.
 - The manifest records config hash, Git revision, Python/platform metadata, and
   kUPS/NumPy versions.
 - `kups-tutorial run`, `verify`, and `run-all` include post 06.
@@ -42,8 +48,10 @@
 
 Open items:
 
-- Replace or augment the controlled observable with argon/kUPS observable
-  diagnostics before treating the post as final.
+- Add larger GPU kUPS observable diagnostics before treating the post as final.
+  The compact argon check exercises real atomistic coordinates and a physical
+  potential-energy observable, but it is not yet a production kUPS trajectory
+  study.
 
 ## Scientific Review
 
@@ -59,15 +67,24 @@ Open items:
 - Naive standard errors are smaller than autocorrelation-, block-, or
   replica-aware uncertainty estimates, supporting the claim that frame count is
   not the same thing as independent information.
+- The full-profile compact argon diagnostic uses 108 atoms, five replicas, and
+  potential energy per atom as the physical observable. Effective samples grow
+  from about `34.9` to `114.8`, and autocorrelation-adjusted standard error
+  falls from about `0.0186` to `0.0117`.
+- Replica standard error increases from about `0.0304` to `0.0479` across the
+  argon checkpoints, so the conservative interval does not shrink. This is not
+  hidden: it is the review signal that independent reduced-unit replicas still
+  disagree and that more production sampling or a different observable protocol
+  is needed before final claims.
 
 Open items:
 
 - The website prose should not imply that the known mean exists in real MD. In
   production, replica agreement and uncertainty diagnostics replace access to
   the answer key.
-- The final article should connect this controlled diagnostic to actual
-  observables such as energy, density, RDF coordination, or time-correlation
-  estimates from argon/kUPS runs.
+- The final article should connect this compact energy observable to larger
+  GPU kUPS observables such as density, RDF coordination, or time-correlation
+  estimates.
 
 ## Figure Snapshot Review
 
@@ -82,21 +99,26 @@ Feedback loop:
   early-history memory, uncertainty bars clearly separate naive and
   block/replica-aware estimates, and the ESS panel increases with trajectory
   length.
-- The current figure is intentionally about estimator behavior, not a physical
-  argon observable. A final post should add a production observable figure if
-  physical equilibration claims are made.
+- Compact argon physical-observable refresh: the fourth panel is visible in
+  `snapshots/post-06/trajectory_length_diagnostics_full_snapshot.png`; `PE /
+  atom` labels fit, checkpoint error bars are visible, and pale replica traces
+  show residual disagreement without obscuring the checkpoint means.
+- The current figure includes a physical reduced-unit argon observable, but it
+  does not yet show density, RDF coordination, long-time dynamics, or GPU kUPS
+  production behavior.
 
 Open items:
 
-- Add a production-observable trajectory-length figure after argon/kUPS
+- Add larger production-observable trajectory-length figures after GPU kUPS
   diagnostics are implemented.
 
 ## Notebook Review
 
 - `notebooks/post-06-trajectory-length.ipynb` executes from a clean kernel.
 - The notebook loads smoke and full configurations, displays committed summary
-  values, and regenerates the full-profile diagnostic figure from committed
-  result files.
+  values, reports compact argon potential-energy-per-atom checkpoint
+  uncertainty, and regenerates the full-profile diagnostic figure from
+  committed result files.
 - The notebook keeps the explanation focused on warmup removal,
   autocorrelation, ESS, block uncertainty, and replica agreement rather than
   becoming the implementation source.
@@ -119,9 +141,12 @@ Open items:
   expanded prose explains warmup removal, autocorrelation, effective sample
   size, block uncertainty, replica agreement, checkpoints, physical-observable
   extensions, and methods reporting.
+- Refreshed the hidden page to describe the compact reduced-unit argon
+  potential-energy-per-atom diagnostic and its residual replica disagreement.
 - The expanded prose keeps the scope clear: the committed result is a
-  controlled correlated-observable diagnostic, not a final argon/kUPS physical
-  observable trajectory-length study.
+  controlled correlated-observable diagnostic plus a compact reduced-unit argon
+  physical-observable check, not a final GPU kUPS physical-observable
+  trajectory-length study.
 - `python3 scripts/validate_kups_pages.py` passes in the website repository.
 - `python3 scripts/validate_blog.py` passes with pre-existing unused-image
   warnings in the website repository.
@@ -158,7 +183,9 @@ Open items:
 
 - Keep mobile table wrapping as a final typography-polish item after the rest
   of the articles are expanded.
-- Add argon/kUPS trajectory-length diagnostics for physical observables before
-  treating this post as final.
-- Re-run the page snapshot workflow after the final physical-observable figure
-  and citations are added.
+- Re-run the page snapshot workflow after the compact argon observable refresh
+  is deployed, then record desktop and mobile feedback.
+- Add larger GPU kUPS trajectory-length diagnostics for physical observables
+  before treating this post as final.
+- Re-run the page snapshot workflow again after the final production
+  physical-observable figures and citations are added.

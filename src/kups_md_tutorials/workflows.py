@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import numpy as np
+
 from kups_md_tutorials.config import (
     load_barostat_spec,
     load_enhanced_sampling_spec,
@@ -411,11 +413,14 @@ def _verify_post06(post: str, profile: str, output_root: Path) -> None:
     summary_path = output_dir / "trajectory_length_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "trajectory_length_samples.csv"
+    argon_samples_path = output_dir / "argon_observable_samples.csv"
     missing = [
         str(path)
         for path in (summary_path, manifest_path, samples_path)
         if not path.exists()
     ]
+    if spec.argon_observable is not None and not argon_samples_path.exists():
+        missing.append(str(argon_samples_path))
     if missing:
         msg = "missing expected output files: " + ", ".join(missing)
         raise FileNotFoundError(msg)
@@ -444,6 +449,32 @@ def _verify_post06(post: str, profile: str, output_root: Path) -> None:
     ):
         msg = "uncertainty did not shrink enough over the configured trajectory"
         raise ValueError(msg)
+    if spec.argon_observable is not None:
+        if summary.argon_observable is None:
+            msg = "argon observable summary is missing"
+            raise ValueError(msg)
+        if len(summary.argon_observable.checkpoints) != len(
+            spec.argon_observable.checkpoints
+        ):
+            msg = "argon observable summary has the wrong number of checkpoints"
+            raise ValueError(msg)
+        first = summary.argon_observable.checkpoints[0]
+        last = summary.argon_observable.checkpoints[-1]
+        if last.effective_samples <= first.effective_samples:
+            msg = "argon observable effective samples should increase"
+            raise ValueError(msg)
+        if (
+            profile == "full"
+            and last.autocorrelation_standard_error >= first.autocorrelation_standard_error
+        ):
+            msg = "argon observable autocorrelation-adjusted uncertainty should shrink"
+            raise ValueError(msg)
+        if not np.isfinite(last.conservative_ci95_half_width):
+            msg = "argon observable conservative uncertainty is not finite"
+            raise ValueError(msg)
+        if not np.isfinite(last.mean_potential_energy_per_atom):
+            msg = "argon observable mean is not finite"
+            raise ValueError(msg)
 
 
 def _verify_post07(post: str, profile: str, output_root: Path) -> None:

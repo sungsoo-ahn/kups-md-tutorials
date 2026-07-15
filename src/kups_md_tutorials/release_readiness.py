@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import json
 import re
+import subprocess
 
 from kups_md_tutorials.provenance import file_sha256
 
@@ -74,6 +75,11 @@ def audit_release_readiness(
         violations=violations,
     )
     _check_page_snapshot_ledger(review_dir / "page-snapshots.md", violations)
+    _check_website_build_ledger(
+        review_dir / "website-build.json",
+        site_root=site_root,
+        violations=violations,
+    )
     _check_required_artifact_surface(
         config_root=config_root,
         results_root=results_root,
@@ -495,6 +501,98 @@ def _check_page_snapshot_ledger(path: Path, violations: list[str]) -> None:
                     f"{path}: missing rendered page snapshot reference "
                     f"for {label} {viewport}"
                 )
+
+
+def _check_website_build_ledger(
+    path: Path,
+    *,
+    site_root: Path | None,
+    violations: list[str],
+) -> None:
+    if not path.exists():
+        violations.append(f"{path}: missing website build/deploy ledger")
+        return
+
+    text = path.read_text(encoding="utf-8")
+    try:
+        ledger = json.loads(text)
+    except json.JSONDecodeError as exc:
+        violations.append(f"{path}: invalid JSON: {exc}")
+        return
+    if not isinstance(ledger, dict):
+        violations.append(f"{path}: website build/deploy ledger must be a JSON object")
+        return
+
+    expected_pairs = {
+        "repository": "sungsoo-ahn/sungsoo-ahn.github.io",
+        "workflow": "Deploy site",
+        "status": "completed",
+        "conclusion": "success",
+    }
+    for field, expected in expected_pairs.items():
+        actual = ledger.get(field)
+        if actual != expected:
+            violations.append(
+                f"{path}: expected {field} {expected!r}, found {actual!r}"
+            )
+
+    run_id = ledger.get("run_id")
+    if not isinstance(run_id, int) or run_id <= 0:
+        violations.append(f"{path}: missing positive run_id")
+    run_url = ledger.get("run_url")
+    if not isinstance(run_url, str) or "/actions/runs/" not in run_url:
+        violations.append(f"{path}: missing GitHub Actions run_url")
+    head_sha = ledger.get("head_sha")
+    if not isinstance(head_sha, str) or not re.fullmatch(r"[0-9a-f]{40}", head_sha):
+        violations.append(f"{path}: missing 40-character head_sha")
+        head_sha = None
+
+    required_steps = (
+        "Validate blog posts",
+        "Validate hidden kUPS pages",
+        "Build site",
+        "Deploy to GitHub Pages",
+    )
+    steps = ledger.get("validated_steps")
+    if not isinstance(steps, list):
+        violations.append(f"{path}: missing validated_steps")
+    else:
+        for step in required_steps:
+            if step not in steps:
+                violations.append(f"{path}: missing validated step {step}")
+
+    required_commands = (
+        "python3 scripts/validate_blog.py",
+        "python3 scripts/validate_kups_pages.py",
+        "bundle exec jekyll build",
+    )
+    commands = ledger.get("validated_commands")
+    if not isinstance(commands, list):
+        violations.append(f"{path}: missing validated_commands")
+    else:
+        for command in required_commands:
+            if command not in commands:
+                violations.append(f"{path}: missing validated command {command}")
+
+    if site_root is None:
+        return
+
+    actual_head = _git_head_sha(site_root)
+    if head_sha is not None and actual_head is not None and actual_head != head_sha:
+        violations.append(
+            f"{path}: head_sha {head_sha} does not match site root HEAD {actual_head}"
+        )
+
+    workflow_path = site_root / ".github" / "workflows" / "deploy.yml"
+    if not workflow_path.exists():
+        violations.append(f"{workflow_path}: missing website deploy workflow")
+        return
+    workflow_text = workflow_path.read_text(encoding="utf-8")
+    for command in required_commands:
+        if command not in workflow_text:
+            violations.append(
+                f"{workflow_path}: missing release validation command {command}"
+            )
 
 
 def _check_post12_model_artifact(
@@ -1111,6 +1209,22 @@ def _site_manifest_destination(site_root: Path, destination_text: str) -> Path:
     if destination.is_absolute():
         return destination
     return site_root / destination
+
+
+def _git_head_sha(path: Path) -> str | None:
+    if not (path / ".git").exists():
+        return None
+    try:
+        completed = subprocess.run(
+            ("git", "rev-parse", "HEAD"),
+            cwd=path,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return completed.stdout.strip()
 
 
 def _path_is_within(path: Path, root: Path) -> bool:

@@ -1065,6 +1065,75 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Website Build Evidence Gate
+
+Scope:
+
+- Added a repository-side release-readiness check for
+  `reviews/website-build.json`.
+- The gate records the latest successful `Deploy site` workflow run for
+  `sungsoo-ahn/sungsoo-ahn.github.io` and requires a completed successful run,
+  a GitHub Actions run URL, a 40-character website `head_sha`, validator/build
+  step names, and the exact website validation commands from the deploy
+  workflow.
+- When `--site-root` is provided, the gate checks the ledger `head_sha` against
+  the website checkout HEAD and confirms the deploy workflow contains
+  `python3 scripts/validate_blog.py`,
+  `python3 scripts/validate_kups_pages.py`, and
+  `bundle exec jekyll build`.
+- Added a regression test that fails the ledger conclusion, removes the Jekyll
+  build command from the ledger, and removes the hidden-kUPS validator from the
+  workflow fixture.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed: 24 tests.
+- `python3 scripts/validate_blog.py` passed in the website checkout with only
+  pre-existing unused-image warnings.
+- `python3 scripts/validate_kups_pages.py` passed in the website checkout.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers`
+  passed for 12 posts.
+- `uv run pytest tests/test_release_readiness.py tests/test_cli.py -q` passed:
+  38 tests, with the existing ASE/NumPy deprecation warnings from CLI tests.
+- `git diff --check` passed.
+- `uv run kups-tutorial verify-artifacts` passed for 279 tracked files.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers for hidden pages,
+  hidden-draft notes, production GPU diagnostics, and public indexing.
+
+Code and reproducibility review:
+
+- The current website ledger points to successful workflow run `29416965348`
+  for website commit `a98e133c2576ef0e953fa04f202b8daf196de457`.
+- The GitHub Actions run completed both `build` and `deploy` jobs successfully;
+  the `build` job included `Validate blog posts`, `Validate hidden kUPS pages`,
+  `Build site`, and artifact upload before the Pages deploy job.
+- This check complements rendered snapshot evidence by proving that the current
+  exported hidden pages passed the website validators and production Jekyll
+  build before deploy.
+
+Figure and rendered-page review:
+
+- No website page source, front matter, prose, linked figures, CSS-sensitive
+  markup, assets, figures, configs, results, notebooks, or snapshot images
+  changed in this milestone.
+- Because this pass only adds build/deploy evidence validation and a review
+  ledger, no new figure snapshot or rendered desktop/mobile page capture was
+  required.
+
+Review decision:
+
+- Accepted for the website build-evidence release-surface milestone after
+  focused, site-aware, website-validator, artifact, review, and strict-readiness
+  validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

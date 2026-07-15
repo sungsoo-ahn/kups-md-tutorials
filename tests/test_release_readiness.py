@@ -92,6 +92,7 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
     _write_figure_source_ledger(root)
     _write_notebook_execution_ledger(root)
     _write_page_snapshot_ledger(root)
+    _write_website_build_ledger(root)
 
 
 def _write_figure_source_ledger(root: Path) -> None:
@@ -208,6 +209,41 @@ def _write_page_snapshot_ledger(root: Path) -> None:
     )
 
 
+def _write_website_build_ledger(root: Path) -> None:
+    review_dir = root / "reviews"
+    review_dir.mkdir(parents=True, exist_ok=True)
+    (review_dir / "website-build.json").write_text(
+        json.dumps(
+            {
+                "repository": "sungsoo-ahn/sungsoo-ahn.github.io",
+                "workflow": "Deploy site",
+                "run_id": 123456789,
+                "run_url": (
+                    "https://github.com/sungsoo-ahn/sungsoo-ahn.github.io/"
+                    "actions/runs/123456789"
+                ),
+                "head_sha": "c" * 40,
+                "status": "completed",
+                "conclusion": "success",
+                "validated_steps": [
+                    "Validate blog posts",
+                    "Validate hidden kUPS pages",
+                    "Build site",
+                    "Deploy to GitHub Pages",
+                ],
+                "validated_commands": [
+                    "python3 scripts/validate_blog.py",
+                    "python3 scripts/validate_kups_pages.py",
+                    "bundle exec jekyll build",
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
 def _manifest_fixture(post_id: str, profile: str) -> dict[str, object]:
     return {
         "config": {
@@ -265,8 +301,23 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
     pages = site_root / "_pages"
     figure_dir = site_root / "assets" / "img" / "blog"
     export_dir = site_root / "assets" / "json" / "kups-md-tutorials"
+    workflow_dir = site_root / ".github" / "workflows"
     pages.mkdir(parents=True)
     figure_dir.mkdir(parents=True)
+    workflow_dir.mkdir(parents=True)
+    (workflow_dir / "deploy.yml").write_text(
+        "name: Deploy site\n"
+        "jobs:\n"
+        "  build:\n"
+        "    steps:\n"
+        "      - name: Validate blog posts\n"
+        "        run: python3 scripts/validate_blog.py\n"
+        "      - name: Validate hidden kUPS pages\n"
+        "        run: python3 scripts/validate_kups_pages.py\n"
+        "      - name: Build site\n"
+        "        run: bundle exec jekyll build\n",
+        encoding="utf-8",
+    )
     body_words = " ".join(f"sample{idx}" for idx in range(3600))
     exported_files = []
     nav = "false" if hidden else "true"
@@ -952,6 +1003,43 @@ def test_release_readiness_reports_stale_page_snapshot_ledger(
     assert any("missing rendered page snapshot kups-md-page-snapshots" in violation for violation in result.violations)
     assert any("post-index mobile" in violation for violation in result.violations)
     assert any("post-12 desktop" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_stale_website_build_ledger(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    ledger_path = tmp_path / "reviews" / "website-build.json"
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    ledger["conclusion"] = "failure"
+    ledger["validated_commands"].remove("bundle exec jekyll build")
+    ledger_path.write_text(json.dumps(ledger) + "\n", encoding="utf-8")
+    workflow_path = tmp_path / "site" / ".github" / "workflows" / "deploy.yml"
+    workflow_text = workflow_path.read_text(encoding="utf-8")
+    workflow_path.write_text(
+        workflow_text.replace("python3 scripts/validate_kups_pages.py", ""),
+        encoding="utf-8",
+    )
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("expected conclusion 'success'" in violation for violation in result.violations)
+    assert any("missing validated command bundle exec jekyll build" in violation for violation in result.violations)
+    assert any(
+        "missing release validation command python3 scripts/validate_kups_pages.py"
+        in violation
+        for violation in result.violations
+    )
 
 
 def test_release_readiness_reports_manifest_provenance_violations(tmp_path: Path) -> None:

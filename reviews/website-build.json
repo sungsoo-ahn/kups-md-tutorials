@@ -1,0 +1,20 @@
+{
+  "repository": "sungsoo-ahn/sungsoo-ahn.github.io",
+  "workflow": "Deploy site",
+  "run_id": 29416965348,
+  "run_url": "https://github.com/sungsoo-ahn/sungsoo-ahn.github.io/actions/runs/29416965348",
+  "head_sha": "a98e133c2576ef0e953fa04f202b8daf196de457",
+  "status": "completed",
+  "conclusion": "success",
+  "validated_steps": [
+    "Validate blog posts",
+    "Validate hidden kUPS pages",
+    "Build site",
+    "Deploy to GitHub Pages"
+  ],
+  "validated_commands": [
+    "python3 scripts/validate_blog.py",
+    "python3 scripts/validate_kups_pages.py",
+    "bundle exec jekyll build"
+  ]
+}

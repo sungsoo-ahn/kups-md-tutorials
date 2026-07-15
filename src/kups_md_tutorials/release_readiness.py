@@ -1076,6 +1076,7 @@ def _check_site_source_links(
         f"results/post-{post}/smoke/": "smoke result link",
         f"results/post-{post}/full/": "full result link",
         f"results/post-{post}/full/manifest.json": "full provenance manifest link",
+        f"scripts/generate_post{post}_figures.py": "figure-generation source link",
         f"reviews/post-{post}.md": "self-review note link",
     }
     for fragment, description in required_fragments.items():

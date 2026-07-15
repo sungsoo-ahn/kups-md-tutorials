@@ -1538,6 +1538,62 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Website Figure-Source Link Gate
+
+Scope:
+
+- Expanded the site-aware blog-style release gate so every hidden kUPS post
+  must link to its committed figure-generation script:
+  `scripts/generate_postXX_figures.py`.
+- Added the missing figure-source links to website Posts 02, 03, 04, 08, 09,
+  10, 11, and 12.
+- Updated the synthetic site fixture and stale source-link regression so a
+  missing figure-generation source link is reported explicitly.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed: 29 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts after the website source-link refresh.
+- Website deploy run `29426768593` passed `Validate blog posts`, `Validate
+  hidden kUPS pages`, `Build site`, and `Deploy to GitHub Pages`.
+- Snapshot workflow run `29427006700` passed for the eight changed hidden
+  pages.
+- Live cache-busted checks with `?v=eda02e4` confirmed all eight changed pages
+  include their `scripts/generate_postXX_figures.py` link.
+- Live public `/blog/` check found no `kups-md-tutorials` or
+  `post-02-integrators` links.
+
+Code and reproducibility review:
+
+- The previous site-source-link gate enforced configs, notebook, compact
+  summaries, full manifest, and self-review links, but did not enforce the
+  PLAN requirement to link the figure-generation source from the rendered post.
+- The current gate closes that gap and keeps the rendered prose connected to
+  the committed scripts already tracked by `reviews/figure-sources.json`.
+- `reviews/website-build.json` now records website deploy run `29426768593`
+  and site commit `eda02e408bf4d268bbb2f8514b31803db7b21f93`.
+
+Figure and rendered-page review:
+
+- No figure-generation code, figure assets, numerical outputs, notebooks, or
+  figure captions changed.
+- Because website source-link lists changed, rendered desktop/mobile snapshots
+  were captured through CI and reviewed for Posts 02, 03, 04, 08, 09, 10, 11,
+  and 12.
+- Snapshot evidence and feedback are recorded in `reviews/page-snapshots.md`
+  under "Posts 02-04 And 08-12 Figure-Source Link Refresh".
+
+Review decision:
+
+- Accepted for the website figure-source link milestone after focused tests,
+  site-aware readiness validation, website deploy, live hidden/public exposure
+  checks, and desktop/mobile page snapshot review.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

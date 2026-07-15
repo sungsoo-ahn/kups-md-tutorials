@@ -563,6 +563,7 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
             f"- [smoke summary](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/results/post-{post_id}/smoke/example_summary.json)\n"
             f"- [full summary](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/results/post-{post_id}/full/example_summary.json)\n"
             f"- [full provenance manifest](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/results/post-{post_id}/full/manifest.json)\n"
+            f"- [figure-generation source](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/scripts/generate_post{post_id}_figures.py)\n"
             f"- [self-review note](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/reviews/post-{post_id}.md)\n"
             f"\n<span id=\"cite-example{post_id}\"></span>[Example {post_id}](#ref-example{post_id})\n\n"
             f'{{% include figure.liquid path="{figure_path}" class="img-fluid rounded z-depth-1" zoomable=true caption="Figure {post_id} diagnostics for the committed full profile. The caption explains the mechanism supported by the figure." %}}\n\n'
@@ -749,6 +750,7 @@ def test_release_readiness_reports_missing_site_source_links(tmp_path: Path) -> 
     text = text.replace("configs/post-02/smoke.json", "configs/post-99/smoke.json")
     text = text.replace("notebooks/post-02-example.ipynb", "notebooks/example.ipynb")
     text = text.replace("results/post-02/full/manifest.json", "results/post-99/full/manifest.json")
+    text = text.replace("scripts/generate_post02_figures.py", "scripts/generate_post99_figures.py")
     text = text.replace("reviews/post-02.md", "reviews/post-99.md")
     page.write_text(text, encoding="utf-8")
 
@@ -765,6 +767,7 @@ def test_release_readiness_reports_missing_site_source_links(tmp_path: Path) -> 
     assert any("missing smoke configuration link" in violation for violation in result.violations)
     assert any("missing notebook link" in violation for violation in result.violations)
     assert any("missing full provenance manifest link" in violation for violation in result.violations)
+    assert any("missing figure-generation source link" in violation for violation in result.violations)
     assert any("missing self-review note link" in violation for violation in result.violations)
 
 

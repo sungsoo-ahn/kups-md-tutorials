@@ -3570,3 +3570,84 @@ Revision decisions:
 - Accepted for hidden draft after the blog-list alignment.
 - No figure revision or figure snapshot was required because figure assets,
   figure captions, notebooks, configs, and result files were unchanged.
+
+## Posts 02-04 And 08-12 Figure-Source Link Refresh
+
+- Capture date: 2026-07-15.
+- Website deploy workflow: `Deploy site`.
+- Successful deploy run: `29426768593`.
+- Website commit reviewed: `eda02e4`.
+- Snapshot workflow: `Capture kUPS snapshots`.
+- Successful snapshot run: `29427006700`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-figure-source-link-snapshots/`.
+- Manifest reviewed: `/tmp/kups-figure-source-link-snapshots/manifest.json`.
+- Capture scope: hidden Posts 02, 03, 04, 08, 09, 10, 11, and 12 after adding
+  explicit links to the corresponding committed figure-generation scripts.
+
+Commands and checks:
+
+- GitHub deploy run `29426768593` passed `Validate blog posts`, `Validate
+  hidden kUPS pages`, `Build site`, and `Deploy to GitHub Pages`.
+- Snapshot workflow run `29427006700` captured desktop and mobile screenshots
+  for all eight changed hidden posts.
+- Live cache-busted checks with `?v=eda02e4` confirmed each changed page
+  contains its `scripts/generate_postXX_figures.py` link.
+- Live public `/blog/` check found no `kups-md-tutorials` or
+  `post-02-integrators` links, so the refreshed pages remain direct-link only.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-figure-source-link-snapshots/post-02-desktop.png`
+  (`1440 x 10485`)
+- `/tmp/kups-figure-source-link-snapshots/post-02-mobile.png`
+  (`416 x 16238`)
+- `/tmp/kups-figure-source-link-snapshots/post-03-desktop.png`
+  (`1440 x 11750`)
+- `/tmp/kups-figure-source-link-snapshots/post-03-mobile.png`
+  (`461 x 18732`)
+- `/tmp/kups-figure-source-link-snapshots/post-04-desktop.png`
+  (`1440 x 12231`)
+- `/tmp/kups-figure-source-link-snapshots/post-04-mobile.png`
+  (`410 x 19238`)
+- `/tmp/kups-figure-source-link-snapshots/post-08-desktop.png`
+  (`1440 x 12829`)
+- `/tmp/kups-figure-source-link-snapshots/post-08-mobile.png`
+  (`550 x 19609`)
+- `/tmp/kups-figure-source-link-snapshots/post-09-desktop.png`
+  (`1440 x 11739`)
+- `/tmp/kups-figure-source-link-snapshots/post-09-mobile.png`
+  (`573 x 17706`)
+- `/tmp/kups-figure-source-link-snapshots/post-10-desktop.png`
+  (`1440 x 12692`)
+- `/tmp/kups-figure-source-link-snapshots/post-10-mobile.png`
+  (`498 x 19694`)
+- `/tmp/kups-figure-source-link-snapshots/post-11-desktop.png`
+  (`1440 x 12552`)
+- `/tmp/kups-figure-source-link-snapshots/post-11-mobile.png`
+  (`390 x 19715`)
+- `/tmp/kups-figure-source-link-snapshots/post-12-desktop.png`
+  (`1440 x 11388`)
+- `/tmp/kups-figure-source-link-snapshots/post-12-mobile.png`
+  (`555 x 17763`)
+- Contact sheets inspected:
+  `/tmp/kups-figure-source-link-snapshots/desktop-source-link-contact.png`
+  and `/tmp/kups-figure-source-link-snapshots/mobile-source-link-contact.png`.
+
+Feedback:
+
+- Desktop: the added `figure-generation source` bullet appears in the
+  executable-artifact list for all eight changed pages. The lists remain
+  contained in the article column, and the first content section below each
+  list is not crowded or overlapped.
+- Mobile: all eight pages wrap the new link cleanly in the source-link list.
+  Post 12 has the longest artifact section, but the added link remains
+  readable and does not cause horizontal overflow. The hamburger header,
+  metadata row, note paragraph, artifact list, and first table/section remain
+  visually coherent.
+
+Revision decisions:
+
+- Accepted for hidden drafts after the figure-source link refresh.
+- No figure revision or figure snapshot was required because figure assets,
+  figure captions, notebooks, configs, and result files were unchanged.

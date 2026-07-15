@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import re
 import subprocess
+import tomllib
 
 from kups_md_tutorials.provenance import file_sha256
 
@@ -85,6 +86,7 @@ def audit_release_readiness(
         violations,
     )
     _check_gitignore_policy(review_dir.parent / ".gitignore", violations)
+    _check_pyproject_contract(review_dir.parent / "pyproject.toml", violations)
     _check_required_artifact_surface(
         config_root=config_root,
         results_root=results_root,
@@ -660,6 +662,56 @@ def _check_gitignore_policy(path: Path, violations: list[str]) -> None:
     }
     for pattern in sorted(required_patterns - patterns):
         violations.append(f"{path}: missing artifact ignore pattern {pattern}")
+
+
+def _check_pyproject_contract(path: Path, violations: list[str]) -> None:
+    if not path.exists():
+        violations.append(f"{path}: missing Python packaging contract")
+        return
+
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError as exc:
+        violations.append(f"{path}: invalid TOML: {exc}")
+        return
+
+    project = data.get("project")
+    if not isinstance(project, dict):
+        violations.append(f"{path}: missing [project] table")
+        return
+
+    if project.get("requires-python") != ">=3.13,<3.14":
+        violations.append(
+            f"{path}: expected requires-python >=3.13,<3.14, "
+            f"found {project.get('requires-python')!r}"
+        )
+
+    dependencies = _string_set(project.get("dependencies"))
+    if "kups==1.0.3" not in dependencies:
+        violations.append(f"{path}: missing pinned dependency kups==1.0.3")
+
+    optional = project.get("optional-dependencies")
+    if not isinstance(optional, dict):
+        violations.append(f"{path}: missing [project.optional-dependencies]")
+    else:
+        if "kups[cuda]==1.0.3" not in _string_set(optional.get("gpu")):
+            violations.append(f"{path}: missing gpu extra kups[cuda]==1.0.3")
+        if "kups[hf]==1.0.3" not in _string_set(optional.get("mlff")):
+            violations.append(f"{path}: missing mlff extra kups[hf]==1.0.3")
+
+    scripts = project.get("scripts")
+    if not isinstance(scripts, dict):
+        violations.append(f"{path}: missing [project.scripts]")
+    elif scripts.get("kups-tutorial") != "kups_md_tutorials.cli:main":
+        violations.append(
+            f"{path}: expected kups-tutorial script to point to "
+            "kups_md_tutorials.cli:main"
+        )
+
+    tool = data.get("tool")
+    ruff = tool.get("ruff") if isinstance(tool, dict) else None
+    if not isinstance(ruff, dict) or ruff.get("target-version") != "py313":
+        violations.append(f"{path}: expected Ruff target-version py313")
 
 
 def _check_post12_model_artifact(
@@ -1292,6 +1344,12 @@ def _git_head_sha(path: Path) -> str | None:
     except (OSError, subprocess.CalledProcessError):
         return None
     return completed.stdout.strip()
+
+
+def _string_set(value: object) -> set[str]:
+    if not isinstance(value, list):
+        return set()
+    return {item for item in value if isinstance(item, str)}
 
 
 def _path_is_within(path: Path, root: Path) -> bool:

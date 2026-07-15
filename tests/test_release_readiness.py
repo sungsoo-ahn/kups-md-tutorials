@@ -95,6 +95,7 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
     _write_website_build_ledger(root)
     _write_ci_workflow(root)
     _write_gitignore_policy(root)
+    _write_pyproject_contract(root)
 
 
 def _write_figure_source_ledger(root: Path) -> None:
@@ -308,6 +309,27 @@ def _write_gitignore_policy(root: Path) -> None:
         "*.model\n"
         "*.pt\n"
         "*.pth\n",
+        encoding="utf-8",
+    )
+
+
+def _write_pyproject_contract(root: Path) -> None:
+    (root / "pyproject.toml").write_text(
+        '[project]\n'
+        'name = "kups-tutorial"\n'
+        'version = "0.1.0"\n'
+        'requires-python = ">=3.13,<3.14"\n'
+        'dependencies = ["kups==1.0.3"]\n'
+        '\n'
+        '[project.optional-dependencies]\n'
+        'gpu = ["kups[cuda]==1.0.3"]\n'
+        'mlff = ["kups[hf]==1.0.3"]\n'
+        '\n'
+        '[project.scripts]\n'
+        'kups-tutorial = "kups_md_tutorials.cli:main"\n'
+        '\n'
+        '[tool.ruff]\n'
+        'target-version = "py313"\n',
         encoding="utf-8",
     )
 
@@ -1170,6 +1192,36 @@ def test_release_readiness_reports_stale_gitignore_policy(
     assert any("missing artifact ignore pattern *.h5" in violation for violation in result.violations)
     assert any("missing artifact ignore pattern *.model" in violation for violation in result.violations)
     assert any("missing artifact ignore pattern .ruff_cache/" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_stale_pyproject_contract(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    pyproject_path = tmp_path / "pyproject.toml"
+    text = pyproject_path.read_text(encoding="utf-8")
+    text = text.replace('requires-python = ">=3.13,<3.14"', 'requires-python = ">=3.12"')
+    text = text.replace('"kups==1.0.3"', '"kups>=1.0"')
+    text = text.replace('"kups[cuda]==1.0.3"', '"kups[cuda]>=1.0"')
+    text = text.replace('target-version = "py313"', 'target-version = "py312"')
+    pyproject_path.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("expected requires-python >=3.13,<3.14" in violation for violation in result.violations)
+    assert any("missing pinned dependency kups==1.0.3" in violation for violation in result.violations)
+    assert any("missing gpu extra kups[cuda]==1.0.3" in violation for violation in result.violations)
+    assert any("expected Ruff target-version py313" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_manifest_provenance_violations(tmp_path: Path) -> None:

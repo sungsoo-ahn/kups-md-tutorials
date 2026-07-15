@@ -435,6 +435,62 @@ Review decision:
   integrity, footnote hygiene, hidden/non-final state, and unresolved
   final-release blockers.
 
+## Update 2026-07-15: Result Manifest Provenance Gate
+
+Scope:
+
+- Added a repository-side final-publication check for result manifest
+  provenance. Every smoke/full `manifest.json` must be a JSON object with a
+  matching `config.post`, matching `config.profile`, a `provenance` object, and
+  a `versions` object.
+- The provenance object must record `config_path`, 64-character
+  `config_sha256`, `lock_path`, 64-character `lock_sha256`, non-unknown
+  `git_revision`, `python_version`, `platform`, `runtime_device`, and a
+  `precision_policy` that includes `jax_enable_x64=`.
+- The versions object must record at least `kups` and `numpy`.
+- Added a regression test that corrupts `config.post`, `git_revision`,
+  `config_sha256`, and the `kups` version and confirms each violation is
+  reported.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+- `uv run pytest tests/test_release_readiness.py -q`
+- `uv run kups-tutorial verify-release-readiness --skip-site 2>&1 | tail -n 160`
+- Pending final validation for this commit: full CLI test subset,
+  review-audit, website validators, whitespace checks, push, and CI.
+
+Code and reproducibility review:
+
+- Current committed smoke/full manifests satisfy the new provenance schema.
+  The `--skip-site` readiness audit reports the expected final-release
+  blockers only, with no manifest-provenance violations.
+- The gate does not require every deterministic post to invent a seed. Post 02
+  is a deterministic harmonic-oscillator integrator diagnostic and its
+  manifest has no random seed by design; seeded posts still preserve their
+  configured seeds in the committed config object and compact summaries.
+- The check complements the existing JSON-syntax and artifact-surface gates by
+  verifying that committed manifests are useful for source-control,
+  dependency, runtime-device, and precision provenance.
+
+Figure and rendered-page review:
+
+- No figure assets, figure-generation code, website pages, or website assets
+  changed in this pass.
+- Because this milestone only adds a repository-side verifier and synthetic
+  test fixtures, no new figure snapshot capture or rendered page snapshot
+  capture was required.
+- Existing figure and page snapshot evidence remains in the per-post review
+  files and `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone.
+- The final-publication gate now enforces artifact surface, manifest
+  provenance, blog-style metadata, article length, citation backlink integrity,
+  figure include integrity, footnote hygiene, hidden/non-final state, and
+  unresolved final-release blockers.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

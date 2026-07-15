@@ -121,10 +121,11 @@ def _check_required_artifact_surface(
                 missing_reason=f"missing {profile} configuration",
             )
             result_dir = results_root / f"post-{post}" / profile
-            _check_json_file(
+            _check_result_manifest_file(
                 result_dir / "manifest.json",
                 violations,
-                missing_reason=f"missing {profile} result manifest",
+                post=post,
+                profile=profile,
             )
             summary_paths = sorted(result_dir.glob("*_summary.json"))
             if not summary_paths:
@@ -466,6 +467,99 @@ def _check_json_text(path: Path, text: str, violations: list[str]) -> None:
         json.loads(text)
     except json.JSONDecodeError as exc:
         violations.append(f"{path}: invalid JSON: {exc}")
+
+
+def _check_result_manifest_file(
+    path: Path,
+    violations: list[str],
+    *,
+    post: str,
+    profile: str,
+) -> None:
+    if not path.exists():
+        violations.append(f"{path}: missing {profile} result manifest")
+        return
+    text = path.read_text(encoding="utf-8")
+    try:
+        manifest = json.loads(text)
+    except json.JSONDecodeError as exc:
+        violations.append(f"{path}: invalid JSON: {exc}")
+        return
+    if not isinstance(manifest, dict):
+        violations.append(f"{path}: result manifest must be a JSON object")
+        return
+    _check_manifest_provenance(path, manifest, post, profile, violations)
+
+
+def _check_manifest_provenance(
+    path: Path,
+    manifest: dict[str, object],
+    post: str,
+    profile: str,
+    violations: list[str],
+) -> None:
+    config = manifest.get("config")
+    if not isinstance(config, dict):
+        violations.append(f"{path}: missing config object")
+    else:
+        if str(config.get("post")) != post:
+            violations.append(
+                f"{path}: expected config.post {post}, found {config.get('post')!r}"
+            )
+        if config.get("profile") != profile:
+            violations.append(
+                f"{path}: expected config.profile {profile}, "
+                f"found {config.get('profile')!r}"
+            )
+
+    provenance = manifest.get("provenance")
+    if not isinstance(provenance, dict):
+        violations.append(f"{path}: missing provenance object")
+    else:
+        _check_required_string(path, provenance, "config_path", violations)
+        _check_hex_digest(path, provenance, "config_sha256", violations)
+        _check_required_string(path, provenance, "lock_path", violations)
+        _check_hex_digest(path, provenance, "lock_sha256", violations)
+        git_revision = provenance.get("git_revision")
+        if not isinstance(git_revision, str) or len(git_revision) < 7:
+            violations.append(f"{path}: missing provenance git_revision")
+        elif git_revision == "unknown":
+            violations.append(f"{path}: provenance git_revision is unknown")
+        _check_required_string(path, provenance, "python_version", violations)
+        _check_required_string(path, provenance, "platform", violations)
+        _check_required_string(path, provenance, "runtime_device", violations)
+        precision = provenance.get("precision_policy")
+        if not isinstance(precision, str) or "jax_enable_x64=" not in precision:
+            violations.append(f"{path}: missing provenance precision_policy")
+
+    versions = manifest.get("versions")
+    if not isinstance(versions, dict):
+        violations.append(f"{path}: missing versions object")
+    else:
+        for package in ("kups", "numpy"):
+            _check_required_string(path, versions, package, violations)
+
+
+def _check_required_string(
+    path: Path,
+    section: dict[str, object],
+    key: str,
+    violations: list[str],
+) -> None:
+    value = section.get(key)
+    if not isinstance(value, str) or not value:
+        violations.append(f"{path}: missing {key}")
+
+
+def _check_hex_digest(
+    path: Path,
+    section: dict[str, object],
+    key: str,
+    violations: list[str],
+) -> None:
+    value = section.get(key)
+    if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+        violations.append(f"{path}: missing {key}")
 
 
 def _check_glob_matches(

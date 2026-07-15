@@ -43,7 +43,7 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
             result_dir = root / "results" / f"post-{post_id}" / profile
             result_dir.mkdir(parents=True)
             (result_dir / "manifest.json").write_text(
-                json.dumps({"post": post_id, "profile": profile}) + "\n",
+                json.dumps(_manifest_fixture(post_id, profile)) + "\n",
                 encoding="utf-8",
             )
             (result_dir / "example_summary.json").write_text(
@@ -81,6 +81,29 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
     _write_post12_model_metadata(root, placeholder=placeholder)
 
 
+def _manifest_fixture(post_id: str, profile: str) -> dict[str, object]:
+    return {
+        "config": {
+            "post": post_id,
+            "profile": profile,
+            "experiment": {"seed": 2026071400 + int(post_id)},
+        },
+        "provenance": {
+            "config_path": f"configs/post-{post_id}/{profile}.json",
+            "config_sha256": "a" * 64,
+            "lock_path": "uv.lock",
+            "lock_sha256": "b" * 64,
+            "git_revision": "c" * 40,
+            "python_version": "3.13.0",
+            "platform": "test",
+            "runtime_device": "jax:cpu;devices:cpu",
+            "precision_policy": "jax_enable_x64=false;env_JAX_ENABLE_X64=unset",
+        },
+        "summary_file": "example_summary.json",
+        "versions": {"kups": "1.0.3", "numpy": "2.0.0"},
+    }
+
+
 def _write_post12_model_metadata(root: Path, *, placeholder: bool) -> None:
     config_dir = root / "configs" / "post-12"
     results_dir = root / "results" / "post-12" / "full"
@@ -96,15 +119,18 @@ def _write_post12_model_metadata(root: Path, *, placeholder: bool) -> None:
         f'"model_revision": "{revision}", "model_sha256": "{sha}"'
         "}\n"
     )
-    manifest = (
-        '{"config": {"experiment": {"model_artifact": {'
-        f'"revision": "{revision}", "sha256": "{sha}"'
-        "}}}}\n"
-    )
+    manifest_data = _manifest_fixture("12", "full")
+    manifest_data["config"]["experiment"]["model_artifact"] = {
+        "revision": revision,
+        "sha256": sha,
+    }
     (config_dir / "full.json").write_text(config, encoding="utf-8")
     (config_dir / "smoke.json").write_text(config, encoding="utf-8")
     (results_dir / "mlip_summary.json").write_text(summary, encoding="utf-8")
-    (results_dir / "manifest.json").write_text(manifest, encoding="utf-8")
+    (results_dir / "manifest.json").write_text(
+        json.dumps(manifest_data) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
@@ -445,6 +471,34 @@ def test_release_readiness_reports_missing_required_artifacts(tmp_path: Path) ->
         "post-08" in violation and "figure snapshot" in violation
         for violation in result.violations
     )
+
+
+def test_release_readiness_reports_manifest_provenance_violations(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    manifest_path = tmp_path / "results" / "post-07" / "full" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["config"]["post"] = "99"
+    manifest["provenance"]["git_revision"] = "unknown"
+    manifest["provenance"]["config_sha256"] = "not-a-sha"
+    manifest["versions"].pop("kups")
+    manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("expected config.post 07" in violation for violation in result.violations)
+    assert any("provenance git_revision is unknown" in violation for violation in result.violations)
+    assert any("missing config_sha256" in violation for violation in result.violations)
+    assert any("missing kups" in violation for violation in result.violations)
 
 
 def test_verify_release_readiness_cli_passes_clean_final_state(tmp_path: Path) -> None:

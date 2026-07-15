@@ -3118,6 +3118,67 @@ Review decision:
   recapturing rendered snapshots after final publication changes, and passing
   strict `verify-release-readiness`.
 
+## Update 2026-07-15: GPU Workflow Pending-Post Synchronization
+
+Scope:
+
+- Extended the release-surface audit so `.github/workflows/production-gpu.yml`
+  must include every currently pending `gpu-status` post in its manual
+  `workflow_dispatch` default post list.
+- The audit computes pending posts from `collect_gpu_status()`, including both
+  compact-summary CPU fallback records and review-derived GPU blockers, then
+  compares that set against the workflow default.
+- The check is active only when pending GPU posts exist, so a clean final-state
+  fixture with no pending GPU work still passes.
+- Broadened the GPU-status review-blocker parser so it accepts both
+  `Final-release blockers:` and `## Final-release blockers` review styles.
+- Added a regression test that creates a review-only Post 12 MACE/fcc-Al GPU
+  blocker, removes `12` from the production GPU workflow default, and confirms
+  the release audit reports the omission.
+
+Current command output reviewed:
+
+- `uv run kups-tutorial verify-release-readiness --site-root
+  ../sungsoo-ahn.github.io --allow-current-blockers` passed, proving the
+  current workflow default `03 04 05 06 07 08 10 11 12` covers the current
+  nine pending GPU posts.
+- `uv run kups-tutorial gpu-status --format json` still reports nine pending
+  GPU reruns with Post 12 included from `reviews/post-12.md`.
+
+Commands and evidence:
+
+- `uv run ruff check src/kups_md_tutorials/production_status.py
+  src/kups_md_tutorials/release_readiness.py tests/test_production_status.py
+  tests/test_release_readiness.py` passed.
+- `uv run pytest tests/test_production_status.py tests/test_release_readiness.py
+  -q` passed with 49 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root
+  ../sungsoo-ahn.github.io --allow-current-blockers` passed for 12 posts.
+- `uv run ruff check .` passed.
+- `uv run pytest tests/test_production_status.py tests/test_release_readiness.py
+  tests/test_cli.py -q` passed with 63 tests and 31 ASE deprecation warnings.
+- `uv run kups-tutorial verify-reviews && uv run kups-tutorial
+  verify-artifacts && uv run kups-tutorial verify-release-readiness --site-root
+  ../sungsoo-ahn.github.io --allow-current-blockers` passed; the artifact
+  audit counted 283 tracked files and the release-surface audit passed for 12
+  posts.
+- `git diff --check` passed.
+- `uv run pytest` passed with 123 tests and 68 ASE deprecation warnings.
+
+Review decision:
+
+- Accepted for the GPU workflow synchronization milestone. The production GPU
+  workflow default can no longer omit a currently pending GPU-status post
+  without failing the release-surface audit.
+- No figure or rendered-page snapshot was required because this change only
+  touches release-readiness tooling, tests, and review prose; no figures,
+  notebooks, configs, result files, website pages, CSS-sensitive markup, or
+  publication assets changed.
+- Final release remains blocked on executing and reviewing the real production
+  GPU diagnostics, public indexing, migrating hidden drafts to final `_posts`,
+  recapturing rendered snapshots after final publication changes, and passing
+  strict `verify-release-readiness`.
+
 ## Update 2026-07-15: Review-Derived GPU Status Coverage
 
 Scope:

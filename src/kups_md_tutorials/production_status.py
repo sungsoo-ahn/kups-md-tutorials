@@ -241,7 +241,7 @@ def _collect_review_gpu_blockers(
 
 def _final_release_blockers(text: str) -> tuple[str, ...]:
     match = re.search(
-        r"^Final-release blockers(?: after this refresh)?:\s*\n\s*\n?"
+        r"^(?:##\s+)?Final-release blockers(?: after this refresh)?:?\s*\n\s*\n?"
         r"(.*?)(?=^##\s+|\Z)",
         text,
         flags=re.MULTILINE | re.DOTALL,

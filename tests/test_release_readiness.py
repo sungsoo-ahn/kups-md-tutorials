@@ -1883,6 +1883,45 @@ def test_release_readiness_reports_stale_gpu_production_workflow(
     )
 
 
+def test_release_readiness_reports_gpu_workflow_default_missing_pending_post(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    (tmp_path / "reviews" / "post-12.md").write_text(
+        "# Review\n\n"
+        "## Open Items\n\n"
+        "Blocking items for the current hidden draft:\n\n"
+        "- None.\n\n"
+        "## Final-release blockers\n\n"
+        "- Run and review the real MACE/fcc-Al GPU capstone.\n",
+        encoding="utf-8",
+    )
+    workflow_path = tmp_path / ".github" / "workflows" / "production-gpu.yml"
+    text = workflow_path.read_text(encoding="utf-8")
+    text = text.replace(
+        'default: "03 04 05 06 07 08 10 11 12"',
+        'default: "03 04 05 06 07 08 10 11"',
+    )
+    workflow_path.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "production GPU default post list omits pending posts: 12" in violation
+        for violation in result.violations
+    )
+
+
 def test_release_readiness_reports_misordered_ci_workflow(
     tmp_path: Path,
 ) -> None:

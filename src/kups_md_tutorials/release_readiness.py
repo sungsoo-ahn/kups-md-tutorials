@@ -8,6 +8,7 @@ import subprocess
 import tomllib
 
 from kups_md_tutorials.provenance import file_sha256
+from kups_md_tutorials.production_status import collect_gpu_status
 
 SUPPORTED_POSTS = tuple(f"{post:02d}" for post in range(1, 13))
 MIN_POST_WORDS = 3500
@@ -94,7 +95,9 @@ def audit_release_readiness(
     )
     _check_gpu_production_workflow(
         review_dir.parent / ".github" / "workflows" / "production-gpu.yml",
-        violations,
+        results_root=results_root,
+        review_dir=review_dir,
+        violations=violations,
     )
     _check_gitignore_policy(review_dir.parent / ".gitignore", violations)
     _check_pyproject_contract(review_dir.parent / "pyproject.toml", violations)
@@ -1100,7 +1103,13 @@ def _check_ci_workflow(path: Path, violations: list[str]) -> None:
             previous_description = description
 
 
-def _check_gpu_production_workflow(path: Path, violations: list[str]) -> None:
+def _check_gpu_production_workflow(
+    path: Path,
+    *,
+    results_root: Path,
+    review_dir: Path,
+    violations: list[str],
+) -> None:
     if not path.exists():
         violations.append(f"{path}: missing production GPU rerun workflow")
         return
@@ -1176,6 +1185,55 @@ def _check_gpu_production_workflow(path: Path, violations: list[str]) -> None:
             violations.append(
                 f"{path}: production GPU {before_label} must run before {after_label}"
             )
+
+    _check_gpu_workflow_default_posts(
+        path,
+        text,
+        results_root=results_root,
+        review_dir=review_dir,
+        violations=violations,
+    )
+
+
+def _check_gpu_workflow_default_posts(
+    path: Path,
+    text: str,
+    *,
+    results_root: Path,
+    review_dir: Path,
+    violations: list[str],
+) -> None:
+    records = collect_gpu_status(results_root=results_root, review_dir=review_dir)
+    pending_posts = {
+        record.post
+        for record in records
+        if record.target_requests_gpu and not record.production_gpu_ready
+    }
+    if not pending_posts:
+        return
+
+    workflow_posts = _gpu_workflow_default_posts(text)
+    if workflow_posts is None:
+        violations.append(f"{path}: missing production GPU default post list")
+        return
+
+    missing = sorted(pending_posts - workflow_posts)
+    if missing:
+        violations.append(
+            f"{path}: production GPU default post list omits pending posts: "
+            + ", ".join(missing)
+        )
+
+
+def _gpu_workflow_default_posts(text: str) -> set[str] | None:
+    match = re.search(
+        r"^\s+posts:\s*\n(?:^[ \t]+.*\n)*?^\s+default:\s+['\"]([^'\"]+)['\"]",
+        text,
+        flags=re.MULTILINE,
+    )
+    if match is None:
+        return None
+    return {post.zfill(2) for post in re.findall(r"\d+", match.group(1))}
 
 
 def _check_gitignore_policy(path: Path, violations: list[str]) -> None:

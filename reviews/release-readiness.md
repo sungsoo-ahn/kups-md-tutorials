@@ -1962,6 +1962,52 @@ Review decision:
   migrating hidden drafts to final blog-native `_posts`, recapturing rendered
   snapshots after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Exact Site Page Coverage Gate
+
+Scope:
+
+- Tightened the site-aware publication-state audit so each kUPS post number may
+  have at most one matching final `_posts` article and at most one matching
+  hidden `_pages` draft.
+- Added regression coverage for duplicate final `_posts` entries and duplicate
+  hidden `_pages` drafts.
+- No configs, results, notebooks, figures, snapshots, website pages, website
+  assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 35 tests.
+
+Code and reproducibility review:
+
+- The previous audit selected the first matching file for a post number. That
+  was too weak for final publication because duplicate pages could leave two
+  URLs with conflicting prose, dates, figures, or metadata.
+- The new audit reports duplicate final article matches under `_posts` and
+  duplicate hidden draft matches under `_pages` before continuing to run the
+  normal blog-style checks on the selected primary file.
+- The current real website state has one hidden draft per post and no final
+  `_posts` kUPS articles yet, so the accepted blocker set remains unchanged.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or CSS-sensitive
+  markup changed, so no rendered desktop/mobile page snapshots were required.
+  Existing rendered-page evidence remains in `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone after focused lint and
+  release-readiness regression tests.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to exactly one blog-native `_posts` article per post,
+  recapturing rendered snapshots after that migration, and passing strict
+  `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

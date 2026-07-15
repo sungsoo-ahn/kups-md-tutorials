@@ -889,9 +889,19 @@ def _check_site_publication_state(
         post_matches = sorted(posts_dir.glob(f"*-kups-md-post-{post}-*.md"))
         if post_matches:
             final_post_paths[post] = post_matches[0]
+        if len(post_matches) > 1:
+            violations.append(
+                f"{posts_dir}: expected one final _posts blog post for post {post}, "
+                f"found {len(post_matches)}"
+            )
         page_matches = sorted(pages_dir.glob(f"kups-md-post-{post}-*.md"))
         if page_matches:
             hidden_page_paths[post] = page_matches[0]
+        if len(page_matches) > 1:
+            violations.append(
+                f"{pages_dir}: expected one hidden _pages draft for post {post}, "
+                f"found {len(page_matches)}"
+            )
 
     _check_site_series_index(
         site_root,

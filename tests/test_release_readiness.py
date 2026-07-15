@@ -711,6 +711,58 @@ def test_release_readiness_reports_hidden_site_pages(tmp_path: Path) -> None:
         )
 
 
+def test_release_readiness_reports_duplicate_site_pages(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    first_final_post = _site_post_page_path(tmp_path / "site", "03")
+    duplicate_final_post = (
+        tmp_path / "site" / "_posts" / "2026-07-14-kups-md-post-03-copy.md"
+    )
+    duplicate_final_post.write_text(
+        first_final_post.read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+    _write_site_pages(tmp_path / "hidden-site", hidden=True)
+    first_hidden_page = _site_post_page_path(tmp_path / "hidden-site", "04")
+    duplicate_hidden_page = (
+        tmp_path / "hidden-site" / "_pages" / "kups-md-post-04-copy.md"
+    )
+    duplicate_hidden_page.write_text(
+        first_hidden_page.read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+    hidden_result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "hidden-site",
+    )
+
+    assert any(
+        "expected one final _posts blog post for post 03, found 2" in violation
+        for violation in result.violations
+    )
+    assert any(
+        "expected one hidden _pages draft for post 04, found 2" in violation
+        for violation in hidden_result.violations
+    )
+
+
 def test_release_readiness_reports_stale_site_export_manifest(tmp_path: Path) -> None:
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)

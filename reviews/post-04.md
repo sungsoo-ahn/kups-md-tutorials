@@ -321,10 +321,65 @@ Figure feedback:
 
 Website review status:
 
-- Pending in this pass: commit the tutorial provenance update, re-export the
-  hidden website assets so the manifest points at that commit, deploy the
-  hidden page, capture rendered desktop/mobile snapshots, and record page
-  feedback.
+- Complete for this pass. Tutorial commit
+  `ff0df9deae3cde52ae647e7e88e862839046f16e` was exported to the website and
+  deployed as website commit `b4f424f`.
+- GitHub Pages deploy `29391896848` succeeded for the hidden post 04 refresh.
+- GitHub Actions snapshot workflow `29392014572` captured the deployed hidden
+  page. The artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post04-runtime-provenance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/manifest.json`.
+  It contains desktop and mobile captures for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-04-thermostats/`, both
+  HTTP 200, with title
+  `How Do Thermostats Change Sampling and Dynamics? | Sungsoo Ahn`.
+
+Rendered snapshots reviewed:
+
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-desktop.png`
+  (`1440 x 12111`).
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-mobile.png`
+  (`410 x 19022`).
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-desktop-runtime-table-crop.png`.
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-desktop-figure-crop.png`.
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-desktop-status-check-2.png`.
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-mobile-runtime-table-check-2.png`.
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-mobile-figure-crop.png`.
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-mobile-status-check-3.png`.
+
+Rendered feedback:
+
+- Desktop capture renders the hidden draft end to end with sidebar table of
+  contents, the new runtime-device/GPU-readiness table, refreshed diagnostic
+  figure, reproduction block, Current Status section, references, and footer
+  present. No missing figure, clipped table, blank region, or broken page
+  chrome was found in the inspected snapshot.
+- Desktop runtime-table crop shows `cuda_or_cpu_fallback`,
+  `jax:cpu;devices:cpu`, `false`, and the blocking reason in a readable table.
+  The crop cuts below the final row, but the full-page capture confirms the
+  table remains in the content column.
+- Desktop figure crop shows the embedded four-panel figure with the `runtime:
+  CPU fallback` label in the handoff panel and the revised caption naming a
+  CPU-fallback handoff protocol. The label is small but readable and does not
+  cover the bars or uncertainty bars.
+- Mobile runtime-table crop confirms the long blocking reason wraps inside the
+  table rather than overflowing the viewport.
+- Mobile figure crop shows the figure contained within the article column. The
+  figure text is small at mobile width, but the caption and adjacent prose
+  explicitly carry the CPU-fallback limitation.
+- Mobile Current Status crop confirms the implemented-list item for
+  machine-readable target-device, runtime-device, GPU-readiness, and blocking
+  reason provenance, plus the remaining-list item for a larger GPU kUPS
+  production thermostat/NVE-handoff diagnostic.
+- Live cache-busted checks on
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-04-thermostats/?v=b4f424f`
+  confirmed the deployed HTML contains `production GPU ready`,
+  `runtime device`, `jax:cpu;devices:cpu`, `CPU fallback`,
+  `cuda_or_cpu_fallback`, and `machine-readable`.
+- Live checks of `/` and `/blog/` found no `kups-md-tutorials` or
+  `post-04-thermostats` links, so the page remains direct-link reachable and
+  hidden from public navigation.
 
 Blocking items for current hidden draft:
 

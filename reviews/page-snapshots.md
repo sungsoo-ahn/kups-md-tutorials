@@ -401,6 +401,81 @@ Revision decisions:
   04.
 - The page remains hidden from public navigation and direct-link reachable.
 
+## Post 04 Runtime Provenance Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29392014572`.
+- Tutorial commit:
+  `ff0df9deae3cde52ae647e7e88e862839046f16e`.
+- Website commit: `b4f424f`.
+- Deploy run for that commit: `29391896848`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post04-runtime-provenance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/manifest.json`.
+- Capture scope: post 04 only, after adding runtime-device and GPU-readiness
+  provenance to the argon thermostat/NVE-handoff protocol summary and hidden
+  article.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-04-thermostats/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Thermostats Change Sampling and Dynamics? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-desktop.png`
+  (`1440 x 12111`).
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-mobile.png`
+  (`410 x 19022`).
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-desktop-runtime-table-crop.png`.
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-desktop-figure-crop.png`.
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-desktop-status-check-2.png`.
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-mobile-runtime-table-check-2.png`.
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-mobile-figure-crop.png`.
+- `/tmp/kups-post04-runtime-provenance-snapshots/kups-md-page-snapshots/post-04-mobile-status-check-3.png`.
+
+Feedback:
+
+- Desktop capture renders the hidden draft end to end with sidebar table of
+  contents, runtime-device/GPU-readiness table, refreshed diagnostic figure,
+  reproduction block, Current Status section, references, and footer present.
+  No blank page, missing figure, obvious text clipping, or broken page chrome
+  was found in the inspected snapshot.
+- Desktop runtime-table crop shows the target device, runtime device,
+  production GPU readiness, and blocking reason in a readable table.
+- Desktop figure crop shows the embedded handoff panel with `runtime: CPU
+  fallback`; the label does not cover the bars or uncertainty bars, and the
+  caption names the CPU-fallback scope.
+- Mobile runtime-table crop confirms the long blocking reason wraps inside the
+  table instead of overflowing the viewport.
+- Mobile figure crop shows the figure contained in the article column. The
+  embedded figure text is small at mobile width, but the caption and adjacent
+  prose explicitly state the CPU-fallback limitation.
+- Mobile status crop confirms the implemented-list item for
+  machine-readable target-device, runtime-device, GPU-readiness, and blocking
+  reason provenance, and the remaining-list item for the larger GPU kUPS
+  production thermostat/NVE-handoff diagnostic.
+- Live cache-busted checks on the hidden post confirmed the deployed HTML
+  contains `production GPU ready`, `runtime device`, `jax:cpu;devices:cpu`,
+  `CPU fallback`, `cuda_or_cpu_fallback`, and `machine-readable`.
+- Live checks of `/` and `/blog/` found no `kups-md-tutorials` or
+  `post-04-thermostats` links.
+
+Revision decisions:
+
+- No blocking layout issue was found for the runtime-provenance hidden draft.
+- The hidden post remains direct-link reachable and absent from public
+  homepage/blog navigation.
+- Real CUDA/GPU kUPS production thermostat and NVE handoff remain
+  final-release blockers for post 04.
+
 ## Expanded Post 05 Snapshot Capture
 
 - Capture date: 2026-07-14.

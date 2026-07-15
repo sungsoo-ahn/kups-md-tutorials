@@ -109,10 +109,14 @@ def _write_post12_model_metadata(root: Path, *, placeholder: bool) -> None:
 
 def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
     pages = site_root / "_pages"
+    figure_dir = site_root / "assets" / "img" / "blog"
     pages.mkdir(parents=True)
+    figure_dir.mkdir(parents=True)
     body_words = " ".join(f"sample{idx}" for idx in range(3600))
     for post in range(1, 13):
         post_id = f"{post:02d}"
+        figure_path = f"assets/img/blog/kups_md_post{post_id}_diagnostics.svg"
+        (site_root / figure_path).write_text("<svg></svg>\n", encoding="utf-8")
         nav = "false" if hidden else "true"
         note_context = (
             "This page is not the final article. "
@@ -147,6 +151,7 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
             '<a href="https://github.com/sungsoo-ahn/kups-md-tutorials">sungsoo-ahn/kups-md-tutorials</a>.</em>\n'
             "</p>\n"
             f"\n<span id=\"cite-example{post_id}\"></span>[Example {post_id}](#ref-example{post_id})\n\n"
+            f'{{% include figure.liquid path="{figure_path}" class="img-fluid rounded z-depth-1" zoomable=true caption="Figure {post_id} diagnostics for the committed full profile. The caption explains the mechanism supported by the figure." %}}\n\n'
             f"{body_words}\n\n"
             "## References\n\n"
             f"- <span id=\"ref-example{post_id}\"></span>Example {post_id}. "
@@ -324,6 +329,42 @@ def test_release_readiness_reports_missing_reference_backlink(tmp_path: Path) ->
         "ref-example05 missing reverse backlink(s) to cite-example05" in violation
         for violation in result.violations
     )
+
+
+def test_release_readiness_reports_site_figure_violations(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = tmp_path / "site" / "_pages" / "kups-md-post-06-example.md"
+    text = page.read_text(encoding="utf-8")
+    text = text.replace(
+        'path="assets/img/blog/kups_md_post06_diagnostics.svg"',
+        'path="assets/img/other.svg"',
+    )
+    text = text.replace('class="img-fluid rounded z-depth-1"', 'class="bad"')
+    text = text.replace("zoomable=true", "zoomable=false")
+    text = text.replace(
+        "Figure 06 diagnostics for the committed full profile. "
+        "The caption explains the mechanism supported by the figure.",
+        "Short caption with $x$.",
+    )
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("path is not under assets/img/blog/" in violation for violation in result.violations)
+    assert any('expected class="img-fluid rounded z-depth-1"' in violation for violation in result.violations)
+    assert any("expected zoomable=true" in violation for violation in result.violations)
+    assert any("caption uses dollar math delimiters" in violation for violation in result.violations)
+    assert any("caption should have at least two sentences" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_placeholder_model_metadata(tmp_path: Path) -> None:

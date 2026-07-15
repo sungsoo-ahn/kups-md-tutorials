@@ -273,6 +273,7 @@ def _check_site_blog_style(
     if "sungsoo-ahn/kups-md-tutorials" not in body:
         violations.append(f"{page_path}: missing source repository link text")
     _check_site_references(page_path, body, violations)
+    _check_site_figures(page_path, body, violations)
     word_count = _body_word_count(body)
     if not MIN_POST_WORDS <= word_count <= MAX_POST_WORDS:
         violations.append(
@@ -336,6 +337,59 @@ def _matching_ref_key(cite_key: str, ref_keys: set[str]) -> str | None:
     if len(cite_key) > 1 and cite_key[-1].isalpha() and cite_key[:-1] in ref_keys:
         return cite_key[:-1]
     return None
+
+
+def _check_site_figures(
+    page_path: Path,
+    body: str,
+    violations: list[str],
+) -> None:
+    includes = re.findall(r"{%\s*include\s+figure\.liquid\s+(.+?)\s*%}", body)
+    if not includes:
+        violations.append(f"{page_path}: missing figure.liquid include")
+        return
+
+    site_root = page_path.parent.parent
+    for index, include in enumerate(includes, start=1):
+        attrs = _liquid_include_attrs(include)
+        label = f"{page_path}: figure include {index}"
+        figure_path = attrs.get("path")
+        if figure_path is None:
+            violations.append(f"{label} missing path")
+        elif not figure_path.startswith("assets/img/blog/"):
+            violations.append(f"{label} path is not under assets/img/blog/")
+        elif not (site_root / figure_path).exists():
+            violations.append(f"{label} path does not exist: {figure_path}")
+
+        expected_class = "img-fluid rounded z-depth-1"
+        if attrs.get("class") != expected_class:
+            violations.append(
+                f'{label} expected class="{expected_class}", '
+                f"found {attrs.get('class') or 'missing'}"
+            )
+        if attrs.get("zoomable") != "true":
+            violations.append(f"{label} expected zoomable=true")
+
+        caption = attrs.get("caption")
+        if caption is None:
+            violations.append(f"{label} missing caption")
+        else:
+            if "$" in caption:
+                violations.append(f"{label} caption uses dollar math delimiters")
+            if _sentence_count(caption) < 2:
+                violations.append(f"{label} caption should have at least two sentences")
+
+
+def _liquid_include_attrs(include: str) -> dict[str, str]:
+    attrs: dict[str, str] = {}
+    pattern = re.compile(r'([A-Za-z_][A-Za-z0-9_-]*)=("([^"]*)"|(\S+))')
+    for match in pattern.finditer(include):
+        attrs[match.group(1)] = match.group(3) if match.group(3) is not None else match.group(4)
+    return attrs
+
+
+def _sentence_count(text: str) -> int:
+    return len(re.findall(r"[.!?](?:\s|$)", text))
 
 
 def _front_matter(text: str) -> str | None:

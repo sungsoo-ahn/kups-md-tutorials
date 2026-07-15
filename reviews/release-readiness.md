@@ -331,6 +331,61 @@ Review decision:
   metadata, article length, citation backlink integrity, hidden/non-final
   state, and unresolved final-release blockers.
 
+## Update 2026-07-15: Website Figure Include Gate
+
+Scope:
+
+- Added a site-aware final-publication check for the PLAN figure-embed
+  contract: each kUPS page must include at least one `{% include
+  figure.liquid ... %}` figure, the figure path must live under
+  `assets/img/blog/`, the referenced asset must exist in the website repo, the
+  include must use `class="img-fluid rounded z-depth-1"`, `zoomable=true`, and
+  a caption.
+- The caption gate rejects dollar-delimited math and requires at least two
+  sentences, matching the PLAN expectation that captions state both what the
+  figure shows and the interpretation or mechanism it supports.
+- Updated the clean final-state site fixture in
+  `tests/test_release_readiness.py` to include a real blog figure asset and a
+  valid figure include.
+- Added a regression test that breaks the figure path, class, zoomable flag,
+  and caption requirements and confirms each violation is reported.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+- `uv run pytest tests/test_release_readiness.py -q`
+- `uv run kups-tutorial verify-release-readiness 2>&1 | tail -n 140`
+- Pending final validation for this commit: full CLI test subset,
+  review-audit, whitespace check, push, and CI.
+
+Code and reproducibility review:
+
+- The figure audit is scoped to site-aware release readiness; repository-only
+  checks with `--skip-site` remain focused on configs, results, notebooks,
+  figure files, snapshots, and review blockers.
+- Current hidden website pages satisfy the figure-include gate. The
+  site-aware audit reports intended hidden/non-final page state and production
+  blockers, but no missing or malformed figure include violations.
+- Asset existence is checked against the website repository root inferred from
+  the page path, so stale `assets/img/blog/...` references become final-release
+  blockers.
+
+Figure and rendered-page review:
+
+- No figure assets, figure-generation code, figure captions, website pages, or
+  website assets changed in this pass.
+- Because this milestone only adds a verifier and synthetic test fixtures, no
+  new figure snapshot capture or rendered page snapshot capture was required.
+- Existing figure and page snapshot evidence remains in the per-post review
+  files and `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone.
+- The final-publication gate now enforces artifact surface, blog-style
+  metadata, article length, citation backlink integrity, figure include
+  integrity, hidden/non-final state, and unresolved final-release blockers.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

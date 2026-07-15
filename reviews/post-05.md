@@ -462,11 +462,12 @@ Release-readiness decision:
   inspection, website validation, and rendered page snapshot review.
 - Non-blocking items accepted until the final article pass: mobile tables and
   compact figure density remain acceptable for the hidden page state.
-- Final-release blockers:
-  - Run and review a real kUPS production NPT diagnostic with full atomistic
-    thermostat/barostat settings, GPU provenance, and production stress/cell
-    checks.
-  - Add final citations for NPT ensemble fluctuations, compressibility,
-    barostat coupling, and finite-size pressure fluctuations.
-  - Re-run rendered desktop/mobile page snapshots after final production NPT
-    diagnostics or public-indexing changes.
+Final-release blockers:
+
+- Run and review a real kUPS production NPT diagnostic with full atomistic
+  thermostat/barostat settings, GPU provenance, and production stress/cell
+  checks.
+- Add final citations for NPT ensemble fluctuations, compressibility,
+  barostat coupling, and finite-size pressure fluctuations.
+- Re-run rendered desktop/mobile page snapshots after final production NPT
+  diagnostics or public-indexing changes.

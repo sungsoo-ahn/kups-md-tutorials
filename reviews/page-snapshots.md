@@ -3651,3 +3651,78 @@ Revision decisions:
 - Accepted for hidden drafts after the figure-source link refresh.
 - No figure revision or figure snapshot was required because figure assets,
   figure captions, notebooks, configs, and result files were unchanged.
+
+## kUPS Blog-Style Post Layout Refresh
+
+- Capture date: 2026-07-15.
+- Website deploy workflow: `Deploy site`.
+- Successful deploy run: `29436872074`.
+- Website commit reviewed: `7b4bdd6`.
+- Snapshot workflow: `Capture kUPS snapshots`.
+- Successful snapshot run: `29437067139`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-blog-style-snapshots-7b4bdd6/`.
+- Manifest reviewed:
+  `/tmp/kups-blog-style-snapshots-7b4bdd6/manifest.json`.
+- Capture scope: hidden kUPS index and Posts 01-12 after changing the shared
+  `post` layout so `/kups-md-tutorials/...` pages use the same blog-style
+  article header, metadata row, summary text, and abstract/block treatment as
+  `/blog/...` posts.
+
+Commands and checks:
+
+- GitHub deploy run `29436872074` passed `Validate blog posts`, `Validate
+  hidden kUPS pages`, `Build site`, and `Deploy to GitHub Pages`.
+- Snapshot workflow run `29437067139` captured desktop and mobile screenshots
+  for the hidden index and all 12 hidden posts.
+- Manifest coverage confirms HTTP 200 for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/` and all 12 direct-link
+  tutorial pages.
+- Local checks before commit: `python3 scripts/validate_kups_pages.py`,
+  `python3 scripts/validate_blog.py`, and `git diff --check`.
+- Local `bundle exec jekyll build` could not run because Ruby/Bundler are not
+  installed on this host; Docker validation was also unavailable because the
+  user cannot access the Docker daemon socket. The GitHub Actions build above
+  is the authoritative Jekyll validation for this change.
+- Local `npx prettier --check _layouts/post.liquid _pages/kups-md-tutorials.md`
+  could not run because the host Node version is older than Prettier's minimum
+  supported version.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-blog-style-snapshots-7b4bdd6/post-index-desktop.png`
+  (`1440 x 1763`)
+- `/tmp/kups-blog-style-snapshots-7b4bdd6/post-index-mobile.png`
+  (`390 x 2609`)
+- `/tmp/kups-blog-style-snapshots-7b4bdd6/post-01-desktop.png`
+  (`1440 x 12187`)
+- `/tmp/kups-blog-style-snapshots-7b4bdd6/post-01-mobile.png`
+  (`428 x 19090`)
+- `/tmp/kups-blog-style-snapshots-7b4bdd6/post-11-mobile.png`
+  (`390 x 22090`)
+- `/tmp/kups-blog-style-snapshots-7b4bdd6/post-12-desktop.png`
+  (`1440 x 12703`)
+
+Feedback:
+
+- Index desktop/mobile: the hidden series page matches the public blog-list
+  rhythm: centered page title, muted description, compact type summary, linked
+  titles, descriptions, and metadata lines. The page remains direct-link only;
+  navigation still exposes only `blog` and `publications`.
+- Post 01 desktop/mobile: the page now uses the blog-style title block with
+  summary, metadata badge, and abstract panel. The table of contents, hidden
+  draft note, source links, equations, tables, figure, reproduction block,
+  current status, and references remain visible without clipping or overlap.
+- Post 11 mobile: the long title wraps cleanly in the blog-style header. The
+  metadata row, abstract panel, source links, long body, tables, figure, and
+  footer stay within the mobile viewport with no horizontal overflow found in
+  the inspected capture.
+- Post 12 desktop: the blog-style header and dense MLIP capstone body remain
+  aligned in the article column, and the navigation/header/footer chrome stays
+  consistent with the public blog pages.
+
+Revision decisions:
+
+- Accepted for hidden drafts after the blog-style post-layout refresh.
+- No figure revision or figure snapshot was required because figure assets,
+  figure captions, notebooks, configs, and result files were unchanged.

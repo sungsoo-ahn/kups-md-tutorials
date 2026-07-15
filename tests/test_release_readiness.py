@@ -541,10 +541,16 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
             if hidden
             else f"2026-07-14-kups-md-post-{post:02d}-example.md"
         )
-        (page_dir / page_name).write_text(
+        permalink_front_matter = (
+            f"permalink: /kups-md-tutorials/post-{post_id}-example/\n"
+            if hidden
+            else ""
+        )
+        nav_front_matter = f"nav: {nav}\n" if hidden else ""
+        page_front_matter = (
             "---\n"
             "layout: post\n"
-            f"permalink: /kups-md-tutorials/post-{post_id}-example/\n"
+            f"{permalink_front_matter}"
             f'title: "Post {post_id}"\n'
             "date: 2026-07-14\n"
             "last_updated: 2026-07-15\n"
@@ -561,8 +567,11 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
             "toc:\n"
             "  sidebar: left\n"
             "related_posts: false\n"
-            f"nav: {nav}\n"
+            f"{nav_front_matter}"
             "---\n\n"
+        )
+        (page_dir / page_name).write_text(
+            page_front_matter +
             '<p style="color: #666; font-size: 0.9em; margin-bottom: 1.5em;">\n'
             f"<em>Note: {note_context}Corrections and replication issues should be tracked in "
             '<a href="https://github.com/sungsoo-ahn/kups-md-tutorials">sungsoo-ahn/kups-md-tutorials</a>.</em>\n'
@@ -783,6 +792,41 @@ def test_release_readiness_reports_blog_style_violations(tmp_path: Path) -> None
     assert any("post_type: tutorial" in violation for violation in result.violations)
     assert any("toc sidebar: left" in violation for violation in result.violations)
     assert any("author-note Note text" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_final_post_page_front_matter(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = _site_post_page_path(tmp_path / "site", "03")
+    text = page.read_text(encoding="utf-8")
+    text = text.replace(
+        "related_posts: false\n",
+        "related_posts: false\n"
+        "permalink: /kups-md-tutorials/post-03-example/\n"
+        "nav: false\n"
+        "nav_order: 4\n"
+        "pagination:\n"
+        "  enabled: false\n",
+    )
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("page-only front matter permalink" in violation for violation in result.violations)
+    assert any("page-only front matter nav" in violation for violation in result.violations)
+    assert any("page-only front matter nav_order" in violation for violation in result.violations)
+    assert any("page-only front matter pagination" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_publication_date_violations(

@@ -912,7 +912,13 @@ def _check_site_publication_state(
             violations.append(f"{pages_dir}: missing website page for post {post}")
             continue
         text = page_path.read_text(encoding="utf-8")
-        _check_site_blog_style(page_path, post, text, violations)
+        _check_site_blog_style(
+            page_path,
+            post,
+            text,
+            violations,
+            final_post=post in final_post_paths,
+        )
         if re.search(r"(?m)^nav:\s*false\s*$", text):
             violations.append(f"{page_path}: page remains hidden with nav: false")
         if "This page is not the final article" in text:
@@ -1152,6 +1158,8 @@ def _check_site_blog_style(
     post: str,
     text: str,
     violations: list[str],
+    *,
+    final_post: bool,
 ) -> None:
     front_matter = _front_matter(text)
     if front_matter is None:
@@ -1188,7 +1196,16 @@ def _check_site_blog_style(
             f"{page_path}: expected front matter order: {int(post)}, "
             f"found {_front_matter_value(front_matter, 'order') or 'missing'}"
         )
-    if f"post-{post}" not in (_front_matter_value(front_matter, "permalink") or ""):
+    if final_post:
+        if f"kups-md-post-{post}" not in page_path.name:
+            violations.append(f"{page_path}: _posts filename does not include kups-md-post-{post}")
+        for page_only_key in ("permalink", "nav", "nav_order", "pagination"):
+            if _front_matter_value(front_matter, page_only_key) is not None:
+                violations.append(
+                    f"{page_path}: final _posts article should not set "
+                    f"page-only front matter {page_only_key}"
+                )
+    elif f"post-{post}" not in (_front_matter_value(front_matter, "permalink") or ""):
         violations.append(f"{page_path}: permalink does not include post-{post}")
     if not re.search(r"(?m)^toc:\s*\n\s+sidebar:\s*left\s*$", front_matter):
         violations.append(f"{page_path}: missing toc sidebar: left front matter")

@@ -1913,6 +1913,55 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Final Blog-Native Front Matter Gate
+
+Scope:
+
+- Tightened the site-aware final-publication gate so final `_posts` articles
+  cannot carry page-only front matter from hidden drafts.
+- Final `_posts` now reject `permalink`, `nav`, `nav_order`, and `pagination`
+  fields, matching the existing blog-post front matter shape in
+  `../sungsoo-ahn.github.io/_posts`.
+- Hidden `_pages` drafts still require their direct-link `permalink` and may
+  keep `nav: false` while the series is intentionally unpublished.
+- Updated the clean final-state fixture to omit page-navigation fields from
+  synthetic `_posts`, and added regression coverage that reintroduces those
+  fields on Post 03.
+- No configs, results, notebooks, figures, snapshots, website pages, website
+  assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 34 tests.
+
+Code and reproducibility review:
+
+- The checker now passes `final_post=True` only for posts found under `_posts`;
+  hidden `_pages` drafts continue to use the existing permalink check.
+- The new regression test proves that `permalink`, `nav`, `nav_order`, and
+  `pagination` in a final `_posts` article are reported as page-only front
+  matter violations.
+- This gate keeps the final migration from becoming a renamed page dump; the
+  final articles must be true blog-collection posts.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or CSS-sensitive
+  markup changed, so no rendered desktop/mobile page snapshots were required.
+  Existing rendered-page evidence remains in `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone after focused lint and
+  release-readiness regression tests.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final blog-native `_posts`, recapturing rendered
+  snapshots after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

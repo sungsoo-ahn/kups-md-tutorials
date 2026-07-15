@@ -130,8 +130,10 @@ Open items:
 
 Open items:
 
-- Add citations for autocorrelation, effective sample size, blocking analysis,
-  and equilibration diagnostics before final publication.
+- Citation coverage for autocorrelation, effective sample size, blocking
+  analysis, equilibration diagnostics, and physical-observable convergence is
+  now implemented in the hidden website page. Keep the citations synchronized
+  with any final production-observable rewrite.
 
 ## Website Draft Review
 
@@ -210,7 +212,7 @@ Open items:
 - Add larger GPU kUPS trajectory-length diagnostics for physical observables
   before treating this post as final.
 - Re-run the page snapshot workflow again after the final production
-  physical-observable figures and citations are added.
+  physical-observable figures are added.
 
 ## Coordination-Observable Refresh
 
@@ -317,10 +319,8 @@ Final-release blockers:
   before public indexing. The compact reduced-unit argon diagnostic now covers
   potential energy per atom and coordination number, but it is not a
   production GPU kUPS trajectory-length study.
-- Add final citations for autocorrelation, effective sample size, blocking
-  analysis, equilibration diagnostics, and physical-observable convergence.
 - Re-run rendered desktop and mobile page snapshots after the production
-  physical-observable figures and citations are added.
+  physical-observable figures are added.
 
 ## Runtime Provenance Gate
 
@@ -455,7 +455,93 @@ Final-release blockers:
 
 - Run larger GPU kUPS trajectory-length diagnostics for physical observables
   before public indexing.
-- Add final citations for autocorrelation, effective sample size, blocking
-  analysis, equilibration diagnostics, and physical-observable convergence.
 - Re-run rendered desktop and mobile page snapshots after the production
-  physical-observable figures and citations are added.
+  physical-observable figures are added.
+
+## Citation Completion Refresh
+
+- Date: 2026-07-15.
+- Scope: resolve the Post 06 citation blocker for the hidden draft without
+  changing simulations, committed results, notebooks, or figures.
+- Website page updated:
+  `../sungsoo-ahn.github.io/_pages/kups-md-post-06-trajectory-length.md`.
+- Hidden page URL:
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`.
+
+Citation review:
+
+- Added inline citation anchors for standard molecular-simulation reporting
+  practice, integrated autocorrelation/effective-sample-size reasoning,
+  block-averaging uncertainty, and automated equilibration detection.
+- Added reverse backlinks in the `## References` section for Frenkel & Smit,
+  Tuckerman, Allen & Tildesley, Flyvbjerg & Petersen, Sokal, and Chodera.
+- The page's Current Status now lists final citations as implemented and no
+  longer lists citations as a missing piece.
+- No figure snapshot was required for this citation-only pass because
+  `figures/post-06/`, `snapshots/post-06/`, notebooks, configs, and results
+  were unchanged. The existing reviewed figure snapshots remain
+  `snapshots/post-06/trajectory_length_diagnostics_snapshot.png` and
+  `snapshots/post-06/trajectory_length_diagnostics_full_snapshot.png`.
+
+Validation and page-review:
+
+- Website validation passed with `python3 scripts/validate_kups_pages.py`,
+  `python3 scripts/validate_blog.py`, and `git diff --check` in
+  `../sungsoo-ahn.github.io`.
+- Tutorial review validation passed with `uv run kups-tutorial
+  verify-reviews`, `uv run kups-tutorial verify-release-readiness --skip-site`
+  and `git diff --check`. Release readiness still fails, as expected, on the
+  remaining final-release blockers; Post 06 no longer reports a citation
+  blocker.
+- Website commit `6e8f8ab` deployed in GitHub Actions run `29403141778`.
+- Snapshot workflow `Capture kUPS snapshots` run `29403358584` captured the
+  citation refresh.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post06-citation-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post06-citation-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`;
+  both returned HTTP 200 with page title
+  `When Is a Trajectory Long Enough to Trust? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post06-citation-snapshots/post-06-desktop.png`
+  (`1440 x 13007`) and
+  `/tmp/kups-post06-citation-snapshots/post-06-mobile.png`
+  (`629 x 19898`).
+- Focused crops inspected:
+  `desktop-top-citations.png`, `desktop-mid-methods.png`,
+  `desktop-status-refs.png`, `mobile-top-citations.png`,
+  `mobile-mid-methods.png`, and `mobile-status-start.png`.
+
+Rendered page feedback:
+
+- Desktop top-section crop: the title, hidden-draft note, table of contents,
+  source links, and new introductory citation cluster render without overflow.
+- Desktop methods crop: the Chodera, Sokal, and Flyvbjerg/Petersen citations
+  wrap cleanly; the equilibration table, ESS equation, and diagnostic figure
+  remain contained.
+- Desktop status/reference crop: Current Status lists final citations as
+  implemented, the missing-pieces list no longer contains citation work, and
+  reference backlinks render without horizontal overflow.
+- Mobile top crop: the long title, author note, citation cluster, source
+  links, and first tables stay contained. The narrow left table of contents is
+  unchanged from prior accepted hidden-draft captures.
+- Mobile methods crop: the equation, citation links, and figure are contained.
+  The figure remains dense but acceptable for the hidden draft.
+- Mobile status/reference crop: Current Status, references, backlinks, and
+  footer render without clipping.
+- Live hidden-page check with cache-buster `?v=6e8f8ab` confirmed the page
+  contains `final citations`, `Chodera`, `Sokal`, `Flyvbjerg`, and the
+  remaining `larger GPU kUPS` blocker. The citation text now appears in the
+  implemented list rather than the missing-pieces list.
+- Live homepage and `/blog/` checks with cache-buster `?v=6e8f8ab` found no
+  `kups-md-tutorials` or `post-06-trajectory-length` links, preserving the
+  direct-link-only status.
+
+Final-release blockers after this refresh:
+
+- Run larger GPU kUPS trajectory-length diagnostics for physical observables
+  before public indexing.
+- Re-run rendered desktop and mobile page snapshots after the production
+  physical-observable figures are added or any public-indexing change is made.

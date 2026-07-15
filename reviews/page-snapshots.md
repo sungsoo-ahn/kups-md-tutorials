@@ -2869,3 +2869,81 @@ Revision decisions:
   behavior.
 - If a later public article adds a chemistry-specific estimator figure or makes
   this page public, rerun desktop/mobile snapshots and update this ledger.
+
+## Post 06 Citation Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29403358584`.
+- Website commit reviewed:
+  `6e8f8ab`.
+- Website deploy run:
+  `29403141778`.
+- Tutorial review state: working tree after Post 06 citation-review update on
+  top of tutorial commit `0efcd40`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post06-citation-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post06-citation-snapshots/manifest.json`.
+- Capture scope: hidden Post 06 page after adding final citations for
+  molecular-simulation trajectory observables, automated equilibration
+  detection, integrated autocorrelation/effective sample size, and blocking
+  analysis.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `When Is a Trajectory Long Enough to Trust? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post06-citation-snapshots/post-06-desktop.png`
+  (`1440 x 13007`)
+- `/tmp/kups-post06-citation-snapshots/post-06-mobile.png`
+  (`629 x 19898`)
+- Focused crops:
+  `/tmp/kups-post06-citation-snapshots/desktop-top-citations.png`,
+  `/tmp/kups-post06-citation-snapshots/desktop-mid-methods.png`,
+  `/tmp/kups-post06-citation-snapshots/desktop-status-refs.png`,
+  `/tmp/kups-post06-citation-snapshots/mobile-top-citations.png`,
+  `/tmp/kups-post06-citation-snapshots/mobile-mid-methods.png`, and
+  `/tmp/kups-post06-citation-snapshots/mobile-status-start.png`.
+
+Feedback:
+
+- Desktop top-section capture renders the new Frenkel/Smit, Tuckerman, and
+  Allen/Tildesley citation cluster without overflow. Title, hidden-draft note,
+  source links, and sidebar table of contents remain intact.
+- Desktop methods capture renders the Chodera equilibration citation, Sokal
+  autocorrelation citation, Flyvbjerg/Petersen blocking citation, ESS equation,
+  and diagnostic figure in the article column without clipping.
+- Desktop status/reference capture confirms final citations moved to the
+  implemented list; the missing-pieces list no longer includes citation work.
+  All reference entries and reverse backlinks are contained.
+- Mobile top capture keeps the long title, author note, citation cluster,
+  source links, and first diagnostic tables contained. The left table of
+  contents remains narrow but unchanged from prior accepted hidden-draft
+  captures.
+- Mobile methods capture keeps the equation, citation links, and figure
+  contained. The figure is dense but acceptable for the hidden draft.
+- Mobile status/reference capture renders Current Status, references,
+  backlinks, and footer without clipping.
+- Live check with cache-buster `?v=6e8f8ab` confirmed the deployed page
+  contains the new citation names and the remaining larger GPU kUPS blocker.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-06-trajectory-length` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after citation refresh.
+- No figure revision was required because figures and figure captions were
+  unchanged.
+- The Post 06 citation blocker is resolved; the remaining final-release
+  blocker is the larger GPU kUPS trajectory-length diagnostic for physical
+  observables, followed by new desktop/mobile snapshots after that production
+  update or any public-indexing change.

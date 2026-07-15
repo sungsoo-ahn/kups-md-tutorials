@@ -450,6 +450,9 @@ def _verify_post05(post: str, profile: str, output_root: Path) -> None:
         if summary.argon_npt_dynamics.samples <= 0:
             msg = "argon NPT dynamics summary contains no samples"
             raise ValueError(msg)
+        if summary.argon_npt_dynamics.replica_count != spec.argon_npt_dynamics.replica_count:
+            msg = "argon NPT dynamics replica count does not match config"
+            raise ValueError(msg)
         if summary.argon_npt_dynamics.volume_factor_span <= 0.005:
             msg = "argon NPT moving-cell span is too small"
             raise ValueError(msg)
@@ -458,6 +461,15 @@ def _verify_post05(post: str, profile: str, output_root: Path) -> None:
             raise ValueError(msg)
         if summary.argon_npt_dynamics.volume_effective_samples <= 5.0:
             msg = "argon NPT effective sample count is too small"
+            raise ValueError(msg)
+        if abs(
+            summary.argon_npt_dynamics.mean_kinetic_temperature
+            - spec.argon_npt_dynamics.temperature
+        ) > 0.15:
+            msg = "argon NPT kinetic temperature is outside the review threshold"
+            raise ValueError(msg)
+        if summary.argon_npt_dynamics.max_abs_total_energy_drift_per_atom > 1.0:
+            msg = "argon NPT total-energy drift is outside the review threshold"
             raise ValueError(msg)
 
 

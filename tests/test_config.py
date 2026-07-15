@@ -86,6 +86,7 @@ def test_load_barostat_spec() -> None:
     assert spec.argon_cell_response.number_density == 1.0
     assert spec.argon_npt_dynamics is not None
     assert spec.argon_npt_dynamics.initial_volume_factor < 1.0
+    assert spec.argon_npt_dynamics.replica_count == 2
 
 
 def test_load_trajectory_length_spec() -> None:

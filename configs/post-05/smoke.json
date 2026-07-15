@@ -28,6 +28,7 @@
   },
   "argon_npt_dynamics": {
     "repetitions": 2,
+    "replica_count": 2,
     "number_density": 1.0,
     "target_pressure": 1.0,
     "temperature": 0.70,

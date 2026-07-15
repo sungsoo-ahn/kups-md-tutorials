@@ -526,6 +526,7 @@ class ArgonNPTDynamicsSpec:
     """Configuration for compact reduced-unit argon moving-cell checks."""
 
     repetitions: int
+    replica_count: int
     number_density: float
     target_pressure: float
     temperature: float
@@ -544,6 +545,9 @@ class ArgonNPTDynamicsSpec:
     def validate(self) -> None:
         if self.repetitions <= 0:
             msg = "argon NPT repetitions must be positive"
+            raise ValueError(msg)
+        if self.replica_count <= 0:
+            msg = "argon NPT replica_count must be positive"
             raise ValueError(msg)
         if self.number_density <= 0.0:
             msg = "argon NPT number_density must be positive"
@@ -1692,6 +1696,9 @@ def load_barostat_spec(
             if npt_dynamics is None
             else ArgonNPTDynamicsSpec(
                 repetitions=int(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["repetitions"]),
+                replica_count=int(
+                    _expect_mapping(npt_dynamics, "argon_npt_dynamics").get("replica_count", 1)
+                ),
                 number_density=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["number_density"]),
                 target_pressure=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["target_pressure"]),
                 temperature=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["temperature"]),

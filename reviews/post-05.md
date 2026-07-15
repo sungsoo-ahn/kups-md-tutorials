@@ -311,3 +311,135 @@ Release-readiness decision:
 - Final public release still requires a real kUPS production NPT diagnostic
   with full thermostat/barostat settings, energy/temperature checks, final
   citations, and another desktop/mobile snapshot pass.
+
+## Update 2026-07-15: Replica Moving-Cell Temperature/Energy Refresh
+
+Scope:
+
+- Strengthened the optional `argon_npt_dynamics` configuration block for Post
+  05 smoke and full profiles with explicit `replica_count`.
+- Regenerated `results/post-05/`, `figures/post-05/`,
+  `snapshots/post-05/`, and `notebooks/post-05-barostats.ipynb`.
+- Refreshed the hidden website page prose and exported Post 05 website assets
+  in `../sungsoo-ahn.github.io`.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/barostats.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py tests/test_config.py` passed.
+- `uv run pytest tests/test_config.py::test_load_barostat_spec -q` passed.
+- `uv run kups-tutorial run 05 --profile smoke` passed with CPU fallback.
+- `uv run kups-tutorial verify 05 --profile smoke` passed.
+- `uv run kups-tutorial run 05 --profile full` was interrupted after the
+  first four-replica attempt proved too slow for the pure-NumPy pair-pressure
+  loop.
+- `uv run kups-tutorial run 05 --profile full` passed after scaling the full
+  moving-cell diagnostic to three replicas and 10,000 steps.
+- `uv run kups-tutorial verify 05 --profile full` passed.
+- `uv run python scripts/generate_post05_figures.py` passed.
+- `uv run jupyter execute notebooks/post-05-barostats.ipynb --inplace` passed.
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q` passed with 49 tests and 62 warnings.
+- `uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io --profile full --posts 5` passed.
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_kups_pages.py`
+  passed.
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_blog.py` passed
+  with pre-existing unused-image warnings.
+- In both repositories, `git diff --check` passed after fixing Post 05 CSV
+  line endings.
+- `uv run kups-tutorial verify-artifacts` passed.
+- `uv run kups-tutorial verify-reviews` passed.
+
+Code and reproducibility review:
+
+- `configs/post-05/smoke.json` now sets `argon_npt_dynamics.replica_count` to
+  `2`.
+- `configs/post-05/full.json` now sets `argon_npt_dynamics.replica_count` to
+  `3`, `num_steps` to `10000`, and `warmup_steps` to `2000`. This preserves a
+  replica uncertainty check while keeping the O(N^2) reduced-unit pressure loop
+  practical for CI.
+- `results/post-05/full/argon_npt_dynamics.csv` now records `time`,
+  `replica_index`, `volume_factor`, `number_density`, `pressure`,
+  `kinetic_temperature`, `potential_energy_per_atom`, and
+  `total_energy_per_atom`.
+- `results/post-05/full/barostat_summary.json` records `argon_npt_dynamics`
+  with `1200` samples, `N = 108`, `3` replicas, initial `V/V0 = 0.90`, mean
+  `V/V0 = 0.9315 +/- 0.00008`, mean density `1.0736 +/- 0.00009`, mean
+  pressure `0.9255 +/- 0.0052` against target `1.0`, mean kinetic temperature
+  `0.6988 +/- 0.0009` against target `0.70`, volume-factor effective samples
+  `96.0`, and maximum absolute sampled total-energy change `0.1205` per atom.
+- The local run reported CPU fallback because CUDA-enabled `jaxlib` is not
+  installed. This remains acceptable for the hidden reduced-unit diagnostic and
+  insufficient for final public NPT claims.
+
+Scientific review:
+
+- The refreshed moving-cell diagnostic now distinguishes within-run samples
+  from independent replicas. Pressure and density claims use replica-level
+  standard errors rather than a single trajectory mean.
+- The kinetic-temperature trace tests the thermostat side of the NPT review
+  habit: the full-profile mean is close to the configured target, but the
+  trace remains noisy, as expected for a small reduced-unit system.
+- The total-energy-per-atom trace is not an NVE conservation claim because the
+  moving-cell update is stochastic and pressure-coupled. It is retained as a
+  sanity signal for hidden integration or pressure-feedback pathologies.
+- The pressure mean remains below the target by about `0.075` reduced pressure
+  units. This is accepted for the hidden draft because the diagnostic is a
+  compact pressure-feedback wiring check, not a calibrated equation-of-state
+  result. The prose now states this limitation explicitly.
+- The final public article still requires a real kUPS production NPT run with
+  full atomistic thermostat/barostat settings, GPU provenance, and production
+  stress/cell diagnostics.
+
+Figure feedback:
+
+- Source data inspected:
+  `results/post-05/full/barostat_summary.json` and
+  `results/post-05/full/argon_npt_dynamics.csv`.
+- Figure assets inspected:
+  `figures/post-05/barostat_diagnostics_full.svg` and
+  `figures/post-05/barostat_diagnostics.svg`.
+- Snapshot paths inspected:
+  `snapshots/post-05/barostat_diagnostics_full_snapshot.png` (`1728 x 1152`)
+  and `snapshots/post-05/barostat_diagnostics_snapshot.png` (`1728 x 1152`).
+- Intended visual claim: the figure should show scalar fluctuation targets and
+  barostat memory together with a compact atomistic moving-cell check that
+  includes replica volume uncertainty and kinetic-temperature behavior.
+- Full snapshot feedback: labels and tick marks fit in all four panels. The
+  fourth panel now shows mean `V/V0` with a pale replica-spread band, a
+  right-axis kinetic-temperature trace, a `V/V0 = 1` reference line, and an
+  annotation with `replicas = 3`, `Neff = 96.0`, and `P = 0.93 +/- 0.01`. The
+  annotation does not obscure the main trajectory, and the right-axis label is
+  readable.
+- Smoke snapshot feedback: the same visual structure remains readable with the
+  smaller 32-atom, two-replica run. The kinetic-temperature trace is noisier
+  and the pressure mean is farther from the target, which is acceptable for a
+  smoke profile and not used for final prose claims.
+- Revision decision: accepted for hidden draft. No blocking figure layout issue
+  was found. The figure still does not show a real kUPS production NPT
+  trajectory or flexible-cell behavior, so that remains a final-release
+  blocker.
+
+Website review:
+
+- Hidden website page updated at
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/` in the
+  working tree of `../sungsoo-ahn.github.io`.
+- The prose now states the three-replica full-profile metrics, pressure SEM,
+  kinetic-temperature mean, and total-energy sanity signal.
+- Rendered desktop/mobile page snapshots for this refreshed page state are
+  pending until the website update is committed, deployed, captured, inspected,
+  and recorded.
+
+Release-readiness decision:
+
+- Blocking items for the current hidden draft: none found after local figure
+  inspection and source validation.
+- Non-blocking items accepted until the final article pass: mobile tables and
+  compact figure density remain acceptable for the hidden page state.
+- Final-release blockers:
+  - Run and review a real kUPS production NPT diagnostic with full atomistic
+    thermostat/barostat settings, GPU provenance, and production stress/cell
+    checks.
+  - Add final citations for NPT ensemble fluctuations, compressibility,
+    barostat coupling, and finite-size pressure fluctuations.
+  - Re-run rendered desktop/mobile page snapshots after final production NPT
+    diagnostics or public-indexing changes.

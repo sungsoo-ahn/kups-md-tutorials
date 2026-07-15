@@ -1177,26 +1177,70 @@ def _draw_post05_figure(
 
     axes[3].set_title("Argon moving-cell check")
     if argon_npt is not None:
+        unique_times = np.unique(argon_npt["time"])
+        volume_mean = []
+        volume_std = []
+        temperature_mean = []
+        for time in unique_times:
+            mask = argon_npt["time"] == time
+            volume_values = argon_npt["volume_factor"][mask]
+            temperature_values = argon_npt["kinetic_temperature"][mask]
+            volume_mean.append(float(np.mean(volume_values)))
+            volume_std.append(
+                float(np.std(volume_values, ddof=1)) if len(volume_values) > 1 else 0.0
+            )
+            temperature_mean.append(float(np.mean(temperature_values)))
+        volume_mean_array = np.asarray(volume_mean, dtype=float)
+        volume_std_array = np.asarray(volume_std, dtype=float)
+        temperature_mean_array = np.asarray(temperature_mean, dtype=float)
+        axes[3].fill_between(
+            unique_times,
+            volume_mean_array - volume_std_array,
+            volume_mean_array + volume_std_array,
+            color="#2b8a6e",
+            alpha=0.16,
+            linewidth=0,
+        )
         axes[3].plot(
-            argon_npt["time"],
-            argon_npt["volume_factor"],
+            unique_times,
+            volume_mean_array,
             color="#2b8a6e",
             linewidth=1.4,
-            label="V / V0",
+            label="mean V / V0",
         )
         axes[3].axhline(1.0, color="#333333", linewidth=0.8, linestyle=":")
         axes[3].set_xlabel("time")
         axes[3].set_ylabel("volume factor")
+        temp_axis = axes[3].twinx()
+        temp_axis.plot(
+            unique_times,
+            temperature_mean_array,
+            color="#b55339",
+            linewidth=1.0,
+            alpha=0.82,
+            label="mean Tkin",
+        )
+        temp_axis.axhline(
+            summary["argon_npt_dynamics"]["mean_kinetic_temperature"],
+            color="#b55339",
+            linewidth=0.7,
+            linestyle=":",
+            alpha=0.75,
+        )
+        temp_axis.set_ylabel("kinetic temperature", color="#b55339")
+        temp_axis.tick_params(axis="y", labelcolor="#b55339", labelsize=8)
         dynamics = summary.get("argon_npt_dynamics") or {}
         axes[3].text(
             0.04,
             0.95,
+            f"replicas = {dynamics.get('replica_count', 1)}\n"
             f"Neff = {dynamics.get('volume_effective_samples', float('nan')):.1f}\n"
-            f"Pmean = {dynamics.get('mean_pressure', float('nan')):.2f}",
+            f"P = {dynamics.get('mean_pressure', float('nan')):.2f} +/- "
+            f"{dynamics.get('pressure_standard_error', float('nan')):.2f}",
             transform=axes[3].transAxes,
             va="top",
             ha="left",
-            fontsize=8.5,
+            fontsize=8.0,
             bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
         )
     elif argon_samples is not None:

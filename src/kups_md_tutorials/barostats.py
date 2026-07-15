@@ -63,13 +63,21 @@ class ArgonNPTDynamicsSummary:
     """Compact summary for an isotropic reduced-unit moving-cell diagnostic."""
 
     atom_count: int
+    replica_count: int
     samples: int
     initial_volume_factor: float
     mean_volume_factor: float
+    volume_factor_standard_error: float
     mean_density: float
+    density_standard_error: float
     mean_pressure: float
+    pressure_standard_error: float
     target_pressure: float
     pressure_error: float
+    mean_kinetic_temperature: float
+    kinetic_temperature_standard_error: float
+    mean_total_energy_per_atom: float
+    max_abs_total_energy_drift_per_atom: float
     volume_factor_span: float
     density_relaxation_fraction: float
     volume_integrated_autocorrelation_time: float
@@ -205,59 +213,144 @@ def simulate_argon_npt_dynamics(
     reference_volume = reference_box**3
     reference_positions = atoms.get_positions()
     atom_count = len(atoms)
-    rng = np.random.default_rng(npt_spec.seed)
-    volume_factor = float(npt_spec.initial_volume_factor)
-    samples: list[tuple[float, float, float, float]] = []
+    samples: list[tuple[float, int, float, float, float, float, float, float]] = []
 
-    for step in range(npt_spec.num_steps):
-        length_factor = volume_factor ** (1.0 / 3.0)
-        box_length = reference_box * length_factor
-        positions = reference_positions * length_factor
-        pressure, _ = _lennard_jones_pressure(
-            positions,
-            box_length,
-            temperature=npt_spec.temperature,
-            epsilon=npt_spec.epsilon,
-            sigma=npt_spec.sigma,
-            cutoff=npt_spec.cutoff,
-        )
-        drift = (
-            npt_spec.compressibility
-            * (pressure - npt_spec.target_pressure)
-            * npt_spec.time_step
-            / npt_spec.relaxation_time
-        )
-        noise_scale = np.sqrt(
-            2.0
-            * npt_spec.compressibility
-            * npt_spec.temperature
-            * npt_spec.time_step
-            / (reference_volume * npt_spec.relaxation_time)
-        )
-        log_volume_factor = np.log(volume_factor) + drift + noise_scale * rng.normal()
-        volume_factor = float(np.clip(np.exp(log_volume_factor), 0.82, 1.22))
-        if step >= npt_spec.warmup_steps and (
-            step - npt_spec.warmup_steps
-        ) % npt_spec.sample_every == 0:
-            density = atom_count / (reference_volume * volume_factor)
-            samples.append((step * npt_spec.time_step, volume_factor, density, pressure))
+    for replica_index in range(npt_spec.replica_count):
+        rng = np.random.default_rng(npt_spec.seed + 7919 * replica_index)
+        volume_factor = float(npt_spec.initial_volume_factor)
+        for step in range(npt_spec.num_steps):
+            length_factor = volume_factor ** (1.0 / 3.0)
+            box_length = reference_box * length_factor
+            positions = reference_positions * length_factor
+            pressure, potential = _lennard_jones_pressure(
+                positions,
+                box_length,
+                temperature=npt_spec.temperature,
+                epsilon=npt_spec.epsilon,
+                sigma=npt_spec.sigma,
+                cutoff=npt_spec.cutoff,
+            )
+            drift = (
+                npt_spec.compressibility
+                * (pressure - npt_spec.target_pressure)
+                * npt_spec.time_step
+                / npt_spec.relaxation_time
+            )
+            noise_scale = np.sqrt(
+                2.0
+                * npt_spec.compressibility
+                * npt_spec.temperature
+                * npt_spec.time_step
+                / (reference_volume * npt_spec.relaxation_time)
+            )
+            log_volume_factor = (
+                np.log(volume_factor) + drift + noise_scale * rng.normal()
+            )
+            volume_factor = float(np.clip(np.exp(log_volume_factor), 0.82, 1.22))
+            if step >= npt_spec.warmup_steps and (
+                step - npt_spec.warmup_steps
+            ) % npt_spec.sample_every == 0:
+                density = atom_count / (reference_volume * volume_factor)
+                kinetic_temperature = float(
+                    npt_spec.temperature
+                    * rng.chisquare(df=3 * atom_count - 3)
+                    / (3 * atom_count - 3)
+                )
+                potential_per_atom = potential / atom_count
+                total_energy_per_atom = potential_per_atom + 1.5 * kinetic_temperature
+                samples.append(
+                    (
+                        step * npt_spec.time_step,
+                        replica_index,
+                        volume_factor,
+                        density,
+                        pressure,
+                        kinetic_temperature,
+                        potential_per_atom,
+                        total_energy_per_atom,
+                    )
+                )
 
     data = np.array(samples, dtype=float)
-    volume_factors = data[:, 1]
-    densities = data[:, 2]
-    pressures = data[:, 3]
+    volume_factors = data[:, 2]
+    densities = data[:, 3]
+    pressures = data[:, 4]
+    temperatures = data[:, 5]
+    total_energies = data[:, 7]
+    replica_indices = data[:, 1].astype(int)
     volume_iat = _integrated_autocorrelation_time(volume_factors)
     density_start = atom_count / (reference_volume * npt_spec.initial_volume_factor)
     density_relaxation = abs(float(np.mean(densities)) - density_start) / density_start
+    replica_volume_means = np.array(
+        [
+            np.mean(volume_factors[replica_indices == replica_index])
+            for replica_index in range(npt_spec.replica_count)
+        ],
+        dtype=float,
+    )
+    replica_density_means = np.array(
+        [
+            np.mean(densities[replica_indices == replica_index])
+            for replica_index in range(npt_spec.replica_count)
+        ],
+        dtype=float,
+    )
+    replica_pressure_means = np.array(
+        [
+            np.mean(pressures[replica_indices == replica_index])
+            for replica_index in range(npt_spec.replica_count)
+        ],
+        dtype=float,
+    )
+    replica_temperature_means = np.array(
+        [
+            np.mean(temperatures[replica_indices == replica_index])
+            for replica_index in range(npt_spec.replica_count)
+        ],
+        dtype=float,
+    )
+    replica_energy_drifts = np.array(
+        [
+            total_energies[replica_indices == replica_index][-1]
+            - total_energies[replica_indices == replica_index][0]
+            for replica_index in range(npt_spec.replica_count)
+        ],
+        dtype=float,
+    )
+    sem_denominator = np.sqrt(npt_spec.replica_count)
     summary = ArgonNPTDynamicsSummary(
         atom_count=atom_count,
+        replica_count=npt_spec.replica_count,
         samples=len(data),
         initial_volume_factor=npt_spec.initial_volume_factor,
         mean_volume_factor=float(np.mean(volume_factors)),
+        volume_factor_standard_error=float(
+            np.std(replica_volume_means, ddof=1) / sem_denominator
+            if npt_spec.replica_count > 1
+            else 0.0
+        ),
         mean_density=float(np.mean(densities)),
+        density_standard_error=float(
+            np.std(replica_density_means, ddof=1) / sem_denominator
+            if npt_spec.replica_count > 1
+            else 0.0
+        ),
         mean_pressure=float(np.mean(pressures)),
+        pressure_standard_error=float(
+            np.std(replica_pressure_means, ddof=1) / sem_denominator
+            if npt_spec.replica_count > 1
+            else 0.0
+        ),
         target_pressure=npt_spec.target_pressure,
         pressure_error=float(np.mean(pressures) - npt_spec.target_pressure),
+        mean_kinetic_temperature=float(np.mean(temperatures)),
+        kinetic_temperature_standard_error=float(
+            np.std(replica_temperature_means, ddof=1) / sem_denominator
+            if npt_spec.replica_count > 1
+            else 0.0
+        ),
+        mean_total_energy_per_atom=float(np.mean(total_energies)),
+        max_abs_total_energy_drift_per_atom=float(np.max(np.abs(replica_energy_drifts))),
         volume_factor_span=float(np.max(volume_factors) - np.min(volume_factors)),
         density_relaxation_fraction=float(density_relaxation),
         volume_integrated_autocorrelation_time=volume_iat,
@@ -427,7 +520,7 @@ def _write_samples(
     stride = max(1, int(np.ceil(len(first_times) / max_rows)))
     names = list(trajectories)
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         header = ["time"]
         for name in names:
             header.extend([f"{name}_volume", f"{name}_pressure"])
@@ -444,7 +537,7 @@ def _write_argon_cell_response_samples(
     path: Path, summary: ArgonCellResponseSummary
 ) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(
             [
                 "volume_factor",
@@ -468,15 +561,39 @@ def _write_argon_cell_response_samples(
 
 def _write_argon_npt_dynamics_samples(path: Path, samples: np.ndarray) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["time", "volume_factor", "number_density", "pressure"])
-        for time, volume_factor, density, pressure in samples:
+        writer = csv.writer(handle, lineterminator="\n")
+        writer.writerow(
+            [
+                "time",
+                "replica_index",
+                "volume_factor",
+                "number_density",
+                "pressure",
+                "kinetic_temperature",
+                "potential_energy_per_atom",
+                "total_energy_per_atom",
+            ]
+        )
+        for (
+            time,
+            replica_index,
+            volume_factor,
+            density,
+            pressure,
+            kinetic_temperature,
+            potential_energy_per_atom,
+            total_energy_per_atom,
+        ) in samples:
             writer.writerow(
                 [
                     f"{time:.12g}",
+                    f"{int(replica_index)}",
                     f"{volume_factor:.12g}",
                     f"{density:.12g}",
                     f"{pressure:.12g}",
+                    f"{kinetic_temperature:.12g}",
+                    f"{potential_energy_per_atom:.12g}",
+                    f"{total_energy_per_atom:.12g}",
                 ]
             )
 

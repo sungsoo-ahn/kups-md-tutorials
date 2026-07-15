@@ -1229,7 +1229,7 @@ def _check_site_blog_style(
         violations.append(f"{page_path}: missing source repository link text")
     _check_site_source_links(page_path, post, body, violations)
     _check_site_references(page_path, body, violations)
-    _check_site_figures(page_path, body, violations)
+    _check_site_figures(page_path, post, body, violations)
     _check_site_footnotes(page_path, body, violations)
     _check_site_notebook_transcript_markers(page_path, body, violations)
     word_count = _body_word_count(body)
@@ -1344,6 +1344,7 @@ def _matching_ref_key(cite_key: str, ref_keys: set[str]) -> str | None:
 
 def _check_site_figures(
     page_path: Path,
+    post: str,
     body: str,
     violations: list[str],
 ) -> None:
@@ -1361,6 +1362,10 @@ def _check_site_figures(
             violations.append(f"{label} missing path")
         elif not figure_path.startswith("assets/img/blog/"):
             violations.append(f"{label} path is not under assets/img/blog/")
+        elif not figure_path.endswith((".svg", ".png")):
+            violations.append(f"{label} path should reference a static SVG/PNG asset")
+        elif f"post{post}" not in figure_path and f"post-{post}" not in figure_path:
+            violations.append(f"{label} path does not identify post {post}")
         elif not (site_root / figure_path).exists():
             violations.append(f"{label} path does not exist: {figure_path}")
 

@@ -2054,6 +2054,50 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Static Post-Specific Figure Include Gate
+
+Scope:
+
+- Tightened the site-aware figure include audit so every included publication
+  figure must reference a static `.svg` or `.png` asset.
+- Added a post-specific figure-path check so a Post XX page cannot accidentally
+  include a diagnostic asset named for another post.
+- Added regression coverage for a `.gif` include and a Post 06 page that
+  points at a Post 07 figure asset.
+- No configs, results, notebooks, figure assets, snapshots, website pages,
+  website assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 37 tests.
+
+Code and reproducibility review:
+
+- The previous figure gate checked `assets/img/blog/`, class, zoomable state,
+  caption dollar delimiters, and caption sentence count, but it did not
+  constrain file type or post identity.
+- The new check keeps the final website contract aligned with static
+  publication SVG/PNG figures and prevents copy-paste mistakes across posts.
+- The current hidden website pages already satisfy these checks.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or CSS-sensitive
+  markup changed, so no rendered desktop/mobile page snapshots were required.
+  Existing rendered-page evidence remains in `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone after focused lint and
+  release-readiness regression tests.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

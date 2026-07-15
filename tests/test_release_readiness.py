@@ -1136,6 +1136,54 @@ def test_release_readiness_reports_site_figure_violations(tmp_path: Path) -> Non
     assert any("caption should have at least two sentences" in violation for violation in result.violations)
 
 
+def test_release_readiness_reports_site_figure_path_violations(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = _site_post_page_path(tmp_path / "site", "06")
+    text = page.read_text(encoding="utf-8")
+    text = text.replace(
+        'path="assets/img/blog/kups_md_post06_diagnostics.svg"',
+        'path="assets/img/blog/kups_md_post06_diagnostics.gif"',
+    )
+    page.write_text(text, encoding="utf-8")
+
+    wrong_extension_result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    text = text.replace(
+        'path="assets/img/blog/kups_md_post06_diagnostics.gif"',
+        'path="assets/img/blog/kups_md_post07_diagnostics.svg"',
+    )
+    page.write_text(text, encoding="utf-8")
+
+    wrong_post_result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "path should reference a static SVG/PNG asset" in violation
+        for violation in wrong_extension_result.violations
+    )
+    assert any(
+        "path does not identify post 06" in violation
+        for violation in wrong_post_result.violations
+    )
+
+
 def test_release_readiness_reports_site_footnote_violations(tmp_path: Path) -> None:
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)

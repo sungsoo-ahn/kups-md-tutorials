@@ -1766,7 +1766,9 @@ def test_release_readiness_reports_manifest_output_file_violations(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["summary_file"] = "missing_summary.json"
     manifest["samples_file"] = "../escaped.csv"
+    manifest["raw_trajectory_file"] = "trajectory.traj"
     manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+    (manifest_path.parent / "trajectory.traj").write_text("raw\n", encoding="utf-8")
 
     result = audit_release_readiness(
         review_dir=tmp_path / "reviews",
@@ -1784,6 +1786,10 @@ def test_release_readiness_reports_manifest_output_file_violations(
     )
     assert any(
         "manifest samples_file escapes result directory" in violation
+        for violation in result.violations
+    )
+    assert any(
+        "manifest raw_trajectory_file should reference compact output" in violation
         for violation in result.violations
     )
 

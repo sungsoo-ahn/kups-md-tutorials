@@ -2307,6 +2307,57 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Compact Manifest Output Gate
+
+Scope:
+
+- Tightened `verify-release-readiness` so result manifests may only reference
+  compact committed output files with `.json`, `.csv`, or `.extxyz` suffixes.
+- Added regression coverage for a manifest `raw_trajectory_file` pointing at a
+  `.traj` file, which is rejected even if the file exists in the result
+  directory.
+- Kept `.extxyz` allowed for the intentional Post 01 initial-state structure
+  files already committed as compact initialization artifacts.
+- No configs, results, notebooks, figure assets, snapshots, website pages,
+  website assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 38 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed.
+
+Code and reproducibility review:
+
+- The previous manifest-output gate required result-relative paths and
+  existing files, but it did not distinguish compact committed outputs from raw
+  trajectory or model-like outputs.
+- The new check aligns manifest references with the PLAN requirement to commit
+  compact summaries, manifests, and reusable small artifacts while keeping raw
+  trajectories out of release artifacts.
+- Current committed result manifests satisfy the stricter compact-output
+  suffix rule.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or
+  CSS-sensitive markup changed, so no rendered desktop/mobile page snapshots
+  were required. Existing rendered-page evidence remains in
+  `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone after focused lint,
+  release-readiness regression tests, and a site-aware audit against the real
+  website checkout.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

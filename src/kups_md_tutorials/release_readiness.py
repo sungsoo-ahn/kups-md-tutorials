@@ -12,6 +12,7 @@ from kups_md_tutorials.provenance import file_sha256
 SUPPORTED_POSTS = tuple(f"{post:02d}" for post in range(1, 13))
 MIN_POST_WORDS = 3500
 MAX_POST_WORDS = 10000
+ALLOWED_MANIFEST_OUTPUT_SUFFIXES = (".csv", ".extxyz", ".json")
 PLACEHOLDER_MARKERS = (
     "pending-gpu-artifact-hash",
     "pinned-placeholder",
@@ -1692,6 +1693,13 @@ def _check_manifest_output_files(
         output_path = Path(value)
         if output_path.is_absolute():
             violations.append(f"{path}: manifest {field} should be result-relative")
+            continue
+        if output_path.suffix not in ALLOWED_MANIFEST_OUTPUT_SUFFIXES:
+            allowed = ", ".join(ALLOWED_MANIFEST_OUTPUT_SUFFIXES)
+            violations.append(
+                f"{path}: manifest {field} should reference compact output "
+                f"({allowed}), found {value}"
+            )
             continue
         resolved_path = result_dir / output_path
         if not _path_is_within(resolved_path, result_dir):

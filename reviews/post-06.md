@@ -211,3 +211,82 @@ Open items:
   before treating this post as final.
 - Re-run the page snapshot workflow again after the final production
   physical-observable figures and citations are added.
+
+## Coordination-Observable Refresh
+
+- Date: 2026-07-15.
+- Scope: strengthen the compact argon physical-observable diagnostic so post 06
+  is not limited to potential energy per atom.
+- Added `coordination_cutoff` to the post 06 argon-observable config and
+  validation. The committed smoke and full profiles use `rc = 1.5` in
+  reduced Lennard-Jones units.
+- The argon sample CSV now records both potential energy per atom and
+  per-replica coordination number. The summary JSON now reports independent
+  naive, autocorrelation-aware, replica-aware, conservative, and 95 percent
+  half-width diagnostics for both observables.
+- The fourth figure panel now overlays potential-energy checkpoint uncertainty
+  with coordination-number checkpoint uncertainty on a right-hand axis.
+- The hidden website draft now describes the compact physical-observable check
+  as potential energy per atom plus coordination number, while still stating
+  that this is not the final GPU kUPS production trajectory-length study.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/trajectory_length.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py tests/test_config.py`
+- `uv run pytest tests/test_config.py::test_load_trajectory_length_spec -q`
+- `uv run kups-tutorial run 06 --profile smoke`
+- `uv run kups-tutorial verify 06 --profile smoke`
+- `uv run kups-tutorial run 06 --profile full`
+- `uv run kups-tutorial verify 06 --profile full`
+- `uv run python scripts/generate_post06_figures.py`
+- `uv run jupyter execute notebooks/post-06-trajectory-length.ipynb --inplace`
+
+Scientific review:
+
+- Smoke profile: 32 atoms, three replicas, `rc = 1.5`. Coordination effective
+  samples increase from about `34.4` at 1000 steps to about `97.3` at 3000
+  steps.
+- Full profile: 108 atoms, five replicas, `rc = 1.5`.
+- Full potential-energy effective samples increase from about `34.9` at 3000
+  steps to about `114.8` at 12000 steps.
+- Full coordination-number effective samples increase from about `55.2` at
+  3000 steps to about `368.1` at 12000 steps.
+- Full coordination means remain near `12.30`, with checkpoint means
+  `12.307`, `12.308`, and `12.292`.
+- Full coordination conservative 95 percent half-widths are about `0.074`,
+  `0.100`, and `0.115`. The interval does not shrink monotonically because
+  the conservative review interval follows the largest uncertainty signal, not
+  only the autocorrelation estimate.
+
+Figure feedback:
+
+- Reviewed
+  `snapshots/post-06/trajectory_length_diagnostics_snapshot.png`.
+- Reviewed
+  `snapshots/post-06/trajectory_length_diagnostics_full_snapshot.png`.
+- The full-profile snapshot shows the right-hand coordination axis, the
+  `rc = 1.50` annotation, visible potential-energy and coordination
+  checkpoint error bars, and no blocking label overlap or clipped panel text.
+- The smoke-profile snapshot gives the same visual structure on shorter
+  trajectories. The coordination error bars are visible and the fourth panel
+  remains readable.
+
+Website review status:
+
+- The hidden website page has been updated in
+  `../sungsoo-ahn.github.io/_pages/kups-md-post-06-trajectory-length.md`.
+- `nav: false` remains set, so the page stays hidden from normal navigation
+  and direct-link reachable only.
+- Rendered desktop and mobile page snapshots still need to be rerun after this
+  coordination refresh is deployed.
+
+Final-release blockers:
+
+- Run larger GPU kUPS trajectory-length diagnostics for physical observables
+  before public indexing. The compact reduced-unit argon diagnostic now covers
+  potential energy per atom and coordination number, but it is not a
+  production GPU kUPS trajectory-length study.
+- Add final citations for autocorrelation, effective sample size, blocking
+  analysis, equilibration diagnostics, and physical-observable convergence.
+- Re-run rendered desktop and mobile page snapshots after the production
+  physical-observable figures and citations are added.

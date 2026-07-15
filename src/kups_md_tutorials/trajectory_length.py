@@ -55,6 +55,16 @@ class ArgonObservableCheckpointSummary:
     replica_standard_error: float
     conservative_standard_error: float
     conservative_ci95_half_width: float
+    mean_coordination_number: float
+    coordination_naive_standard_error: float
+    coordination_integrated_autocorrelation_time: float
+    coordination_effective_samples: float
+    coordination_autocorrelation_standard_error: float
+    coordination_replica_standard_error: float
+    coordination_conservative_standard_error: float
+    coordination_conservative_ci95_half_width: float
+    coordination_replica_mean_min: float
+    coordination_replica_mean_max: float
     replica_mean_min: float
     replica_mean_max: float
 
@@ -72,7 +82,22 @@ class ArgonObservableSummary:
     sample_every: int
     replica_count: int
     observable: str
+    coordination_cutoff: float
     checkpoints: list[ArgonObservableCheckpointSummary]
+
+
+@dataclass(frozen=True)
+class _ObservableStats:
+    mean: float
+    naive_standard_error: float
+    integrated_autocorrelation_time: float
+    effective_samples: float
+    autocorrelation_standard_error: float
+    replica_standard_error: float
+    conservative_standard_error: float
+    conservative_ci95_half_width: float
+    replica_mean_min: float
+    replica_mean_max: float
 
 
 @dataclass(frozen=True)
@@ -209,17 +234,9 @@ def _checkpoint_summary(
     )
 
 
-def _argon_observable_checkpoint_summary(
-    *,
-    checkpoint: int,
-    warmup_steps: int,
-    sample_every: int,
-    trajectories: list[tuple[np.ndarray, np.ndarray]],
-) -> ArgonObservableCheckpointSummary:
-    values_by_replica = [
-        values[(times >= warmup_steps) & (times <= checkpoint)]
-        for times, values in trajectories
-    ]
+def _observable_stats(values_by_replica: list[np.ndarray]) -> _ObservableStats:
+    """Return uncertainty diagnostics for checkpointed replica values."""
+
     pooled = np.concatenate(values_by_replica)
     replica_means = np.array([np.mean(values) for values in values_by_replica], dtype=float)
     iats = np.array(
@@ -236,11 +253,8 @@ def _argon_observable_checkpoint_summary(
         autocorrelation_standard_error,
         replica_standard_error,
     )
-    return ArgonObservableCheckpointSummary(
-        checkpoint_steps=checkpoint,
-        samples_per_replica=len(values_by_replica[0]),
-        total_samples=len(pooled),
-        mean_potential_energy_per_atom=float(np.mean(pooled)),
+    return _ObservableStats(
+        mean=float(np.mean(pooled)),
         naive_standard_error=naive_standard_error,
         integrated_autocorrelation_time=iat,
         effective_samples=effective_samples,
@@ -253,10 +267,70 @@ def _argon_observable_checkpoint_summary(
     )
 
 
+def _argon_observable_checkpoint_summary(
+    *,
+    checkpoint: int,
+    warmup_steps: int,
+    trajectories: list[tuple[np.ndarray, np.ndarray, np.ndarray]],
+) -> ArgonObservableCheckpointSummary:
+    values_by_replica = [
+        values[(times >= warmup_steps) & (times <= checkpoint)]
+        for times, values, _ in trajectories
+    ]
+    coordination_by_replica = [
+        coordination[(times >= warmup_steps) & (times <= checkpoint)]
+        for times, _, coordination in trajectories
+    ]
+    energy = _observable_stats(values_by_replica)
+    coordination = _observable_stats(coordination_by_replica)
+    return ArgonObservableCheckpointSummary(
+        checkpoint_steps=checkpoint,
+        samples_per_replica=len(values_by_replica[0]),
+        total_samples=sum(len(values) for values in values_by_replica),
+        mean_potential_energy_per_atom=energy.mean,
+        naive_standard_error=energy.naive_standard_error,
+        integrated_autocorrelation_time=energy.integrated_autocorrelation_time,
+        effective_samples=energy.effective_samples,
+        autocorrelation_standard_error=energy.autocorrelation_standard_error,
+        replica_standard_error=energy.replica_standard_error,
+        conservative_standard_error=energy.conservative_standard_error,
+        conservative_ci95_half_width=energy.conservative_ci95_half_width,
+        mean_coordination_number=coordination.mean,
+        coordination_naive_standard_error=coordination.naive_standard_error,
+        coordination_integrated_autocorrelation_time=coordination.integrated_autocorrelation_time,
+        coordination_effective_samples=coordination.effective_samples,
+        coordination_autocorrelation_standard_error=coordination.autocorrelation_standard_error,
+        coordination_replica_standard_error=coordination.replica_standard_error,
+        coordination_conservative_standard_error=coordination.conservative_standard_error,
+        coordination_conservative_ci95_half_width=coordination.conservative_ci95_half_width,
+        coordination_replica_mean_min=coordination.replica_mean_min,
+        coordination_replica_mean_max=coordination.replica_mean_max,
+        replica_mean_min=energy.replica_mean_min,
+        replica_mean_max=energy.replica_mean_max,
+    )
+
+
+def _coordination_number(
+    positions: np.ndarray,
+    box_length: float,
+    cutoff: float,
+) -> float:
+    """Estimate mean coordination from pair counts inside a cutoff."""
+
+    cutoff_squared = cutoff**2
+    pair_count = 0
+    for i in range(len(positions) - 1):
+        displacement = positions[i] - positions[i + 1 :]
+        displacement -= box_length * np.rint(displacement / box_length)
+        distance_squared = np.sum(displacement * displacement, axis=1)
+        pair_count += int(np.count_nonzero(distance_squared < cutoff_squared))
+    return float(2.0 * pair_count / len(positions))
+
+
 def _simulate_argon_observable_replica(
     spec: TrajectoryLengthTutorialSpec,
     replica_index: int,
-) -> tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     argon = spec.argon_observable
     if argon is None:
         msg = "argon_observable config is required"
@@ -282,6 +356,7 @@ def _simulate_argon_observable_replica(
     rng = np.random.default_rng(argon.seed + replica_index * 1009 + 17)
     times: list[float] = []
     potential_energy_per_atom: list[float] = []
+    coordination_number: list[float] = []
 
     for step in range(1, argon.max_steps + 1):
         velocities += 0.5 * argon.time_step * forces
@@ -301,13 +376,20 @@ def _simulate_argon_observable_replica(
         if step >= argon.warmup_steps and (step - argon.warmup_steps) % argon.sample_every == 0:
             times.append(float(step))
             potential_energy_per_atom.append(float(potential / len(atoms)))
+            coordination_number.append(
+                _coordination_number(positions, box, argon.coordination_cutoff)
+            )
 
-    return np.asarray(times, dtype=float), np.asarray(potential_energy_per_atom, dtype=float)
+    return (
+        np.asarray(times, dtype=float),
+        np.asarray(potential_energy_per_atom, dtype=float),
+        np.asarray(coordination_number, dtype=float),
+    )
 
 
 def run_argon_observable_experiment(
     spec: TrajectoryLengthTutorialSpec,
-) -> tuple[ArgonObservableSummary | None, list[tuple[np.ndarray, np.ndarray]]]:
+) -> tuple[ArgonObservableSummary | None, list[tuple[np.ndarray, np.ndarray, np.ndarray]]]:
     """Run optional compact argon physical-observable trajectory-length checks."""
 
     argon = spec.argon_observable
@@ -323,7 +405,6 @@ def run_argon_observable_experiment(
         _argon_observable_checkpoint_summary(
             checkpoint=checkpoint,
             warmup_steps=argon.warmup_steps,
-            sample_every=argon.sample_every,
             trajectories=trajectories,
         )
         for checkpoint in argon.checkpoints
@@ -339,6 +420,7 @@ def run_argon_observable_experiment(
             sample_every=argon.sample_every,
             replica_count=argon.replica_count,
             observable="potential_energy_per_atom",
+            coordination_cutoff=argon.coordination_cutoff,
             checkpoints=checkpoints,
         ),
         trajectories,
@@ -351,7 +433,7 @@ def run_trajectory_length_experiment(
 ) -> tuple[
     TrajectoryLengthExperimentSummary,
     list[tuple[np.ndarray, np.ndarray]],
-    list[tuple[np.ndarray, np.ndarray]],
+    list[tuple[np.ndarray, np.ndarray, np.ndarray]],
 ]:
     """Run all configured trajectory-length diagnostics."""
 
@@ -407,7 +489,7 @@ def _write_samples(
     first_times = trajectories[0][0][::sample_every]
     stride = max(1, int(np.ceil(len(first_times) / max_rows)))
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         header = ["time"]
         header.extend(f"replica_{idx}_observable" for idx in range(len(trajectories)))
         writer.writerow(header)
@@ -421,7 +503,7 @@ def _write_samples(
 
 def _write_argon_observable_samples(
     path: Path,
-    trajectories: list[tuple[np.ndarray, np.ndarray]],
+    trajectories: list[tuple[np.ndarray, np.ndarray, np.ndarray]],
     max_rows: int = 900,
 ) -> None:
     if not trajectories:
@@ -429,17 +511,23 @@ def _write_argon_observable_samples(
     first_times = trajectories[0][0]
     stride = max(1, int(np.ceil(len(first_times) / max_rows)))
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         header = ["step"]
         header.extend(
             f"replica_{idx}_potential_energy_per_atom"
             for idx in range(len(trajectories))
         )
+        header.extend(
+            f"replica_{idx}_coordination_number"
+            for idx in range(len(trajectories))
+        )
         writer.writerow(header)
         for row_idx in range(0, len(first_times), stride):
             row: list[str] = [f"{first_times[row_idx]:.12g}"]
-            for _, values in trajectories:
+            for _, values, _ in trajectories:
                 row.append(f"{values[row_idx]:.12g}")
+            for _, _, coordination in trajectories:
+                row.append(f"{coordination[row_idx]:.12g}")
             writer.writerow(row)
 
 

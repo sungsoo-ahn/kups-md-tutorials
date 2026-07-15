@@ -674,6 +674,7 @@ class ArgonTrajectoryLengthSpec:
     replica_count: int
     seed: int
     checkpoints: tuple[int, ...]
+    coordination_cutoff: float = 1.5
     epsilon: float = 1.0
     sigma: float = 1.0
     cutoff: float = 2.5
@@ -726,6 +727,12 @@ class ArgonTrajectoryLengthSpec:
             raise ValueError(msg)
         if self.cutoff <= self.sigma:
             msg = "argon trajectory cutoff must be larger than sigma"
+            raise ValueError(msg)
+        if self.coordination_cutoff <= 0.0:
+            msg = "argon trajectory coordination_cutoff must be positive"
+            raise ValueError(msg)
+        if self.coordination_cutoff >= self.cutoff:
+            msg = "argon trajectory coordination_cutoff must be smaller than cutoff"
             raise ValueError(msg)
 
 
@@ -1824,6 +1831,11 @@ def load_trajectory_length_spec(
                     for value in _expect_mapping(
                         root.get("argon_observable"), "argon_observable"
                     )["checkpoints"]
+                ),
+                coordination_cutoff=float(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable").get(
+                        "coordination_cutoff", 1.5
+                    )
                 ),
                 epsilon=float(
                     _expect_mapping(root.get("argon_observable"), "argon_observable").get(

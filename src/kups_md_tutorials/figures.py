@@ -1376,6 +1376,17 @@ def _draw_post06_figure(
             [checkpoint["conservative_ci95_half_width"] for checkpoint in argon_checkpoints],
             dtype=float,
         )
+        coordination_means = np.array(
+            [checkpoint["mean_coordination_number"] for checkpoint in argon_checkpoints],
+            dtype=float,
+        )
+        coordination_ci = np.array(
+            [
+                checkpoint["coordination_conservative_ci95_half_width"]
+                for checkpoint in argon_checkpoints
+            ],
+            dtype=float,
+        )
         axes[3].errorbar(
             argon_steps,
             argon_means,
@@ -1402,11 +1413,26 @@ def _draw_post06_figure(
                 )
         axes[3].set_xlabel("trajectory steps")
         axes[3].set_ylabel("PE / atom")
+        coordination_axis = axes[3].twinx()
+        coordination_axis.errorbar(
+            argon_steps,
+            coordination_means,
+            yerr=coordination_ci,
+            marker="s",
+            color="#b55339",
+            ecolor="#d38a76",
+            capsize=3,
+            linewidth=1.0,
+            label="coordination",
+        )
+        coordination_axis.set_ylabel("coordination", color="#b55339")
+        coordination_axis.tick_params(axis="y", labelcolor="#b55339", labelsize=8)
         axes[3].text(
             0.03,
             0.95,
             f"N = {argon_summary['atom_count']}\n"
-            f"replicas = {argon_summary['replica_count']}",
+            f"replicas = {argon_summary['replica_count']}\n"
+            f"rc = {argon_summary['coordination_cutoff']:.2f}",
             transform=axes[3].transAxes,
             va="top",
             ha="left",

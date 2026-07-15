@@ -541,6 +541,18 @@ def _verify_post06(post: str, profile: str, output_root: Path) -> None:
         if not np.isfinite(last.mean_potential_energy_per_atom):
             msg = "argon observable mean is not finite"
             raise ValueError(msg)
+        if last.mean_coordination_number <= 0.0:
+            msg = "argon coordination mean must be positive"
+            raise ValueError(msg)
+        if (
+            profile == "full"
+            and last.coordination_effective_samples <= first.coordination_effective_samples
+        ):
+            msg = "argon coordination effective samples should increase"
+            raise ValueError(msg)
+        if not np.isfinite(last.coordination_conservative_ci95_half_width):
+            msg = "argon coordination conservative uncertainty is not finite"
+            raise ValueError(msg)
 
 
 def _verify_post07(post: str, profile: str, output_root: Path) -> None:

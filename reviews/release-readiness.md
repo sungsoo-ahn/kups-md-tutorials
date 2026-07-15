@@ -3167,3 +3167,79 @@ Review decision:
   GPU diagnostics, public indexing, migrating hidden drafts to final `_posts`,
   recapturing rendered snapshots after final publication changes, and passing
   strict `verify-release-readiness`.
+
+## Update 2026-07-15: Production GPU Workflow Contract
+
+Scope:
+
+- Added `.github/workflows/production-gpu.yml` as a manual GitHub Actions
+  workflow for the final CUDA production rerun pass.
+- The workflow accepts a space-separated post list and JSON runner labels,
+  installs `uv` dependencies with `--extra gpu --extra mlff`, captures
+  `gpu-status --format json` before and after reruns, loops over selected
+  posts with `kups-tutorial run XX --profile full`, verifies each selected
+  post, runs `verify-release-readiness --skip-site --allow-current-blockers`,
+  and uploads compact JSON/CSV/EXTXYZ results plus publication/full-profile
+  figures.
+- Extended `verify-release-readiness` so the release-surface audit now requires
+  the production GPU workflow contract and reports stale or missing workflow
+  steps as structural regressions.
+- Added a regression test that removes GPU extras, the post-rerun JSON status
+  capture, and the stable artifact name from a synthetic workflow and confirms
+  the readiness audit reports all three violations.
+- Updated README documentation with the dispatch purpose and expected post
+  list.
+
+Current command output reviewed:
+
+- `uv run kups-tutorial gpu-status --format json` still reported eight records,
+  zero production-ready records, and eight pending full-profile GPU reruns:
+  Posts 03, 04, 05, 06, 07, 08, 10, and 11.
+- `uv run kups-tutorial verify-release-readiness --site-root
+  ../sungsoo-ahn.github.io --allow-current-blockers` passed, confirming the new
+  workflow check is satisfied while the accepted final blockers remain.
+- Strict `uv run kups-tutorial verify-release-readiness --site-root
+  ../sungsoo-ahn.github.io` still failed only on unresolved final-release
+  blockers, hidden/non-final pages, missing final `_posts`, and public-indexing
+  snapshot recapture requirements.
+
+Commands and evidence:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 44 tests.
+- `git diff --check` passed.
+- `uv run kups-tutorial verify-release-readiness --site-root
+  ../sungsoo-ahn.github.io --allow-current-blockers` passed for 12 posts.
+- `uv run kups-tutorial gpu-status --format json` passed and reported eight
+  records, zero production-ready records, and eight pending GPU reruns.
+- `uv run pytest tests/test_release_readiness.py tests/test_cli.py
+  tests/test_production_status.py -q` passed with 61 tests and 31 ASE
+  deprecation warnings.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run ruff check .` passed.
+- `uv run pytest` passed with 121 tests and 68 ASE deprecation warnings.
+- `uv run kups-tutorial verify-artifacts && uv run kups-tutorial
+  verify-release-readiness --site-root ../sungsoo-ahn.github.io
+  --allow-current-blockers` passed; the artifact audit counted 282 tracked
+  files and the release-surface audit passed for 12 posts.
+- `ruby -e "require 'yaml';
+  YAML.load_file('.github/workflows/production-gpu.yml'); puts
+  'production-gpu.yml parses'"` was intentionally not used as validation
+  evidence because `ruby` is not installed in this environment. Workflow
+  coverage is instead enforced by the release-readiness fragment/order checks
+  and regression tests above.
+
+Review decision:
+
+- Accepted for the GPU-runner automation milestone. This does not claim that
+  production GPU diagnostics are complete; it makes the remaining production
+  pass executable and audited.
+- No figure or rendered-page snapshot was required because this change only
+  touches GitHub Actions automation, release-readiness tooling, tests, README
+  documentation, and review prose; no figures, notebooks, configs, result
+  files, website pages, CSS-sensitive markup, or publication assets changed.
+- Final release remains blocked on executing and reviewing the real production
+  GPU diagnostics, public indexing, migrating hidden drafts to final `_posts`,
+  recapturing rendered snapshots after final publication changes, and passing
+  strict `verify-release-readiness`.

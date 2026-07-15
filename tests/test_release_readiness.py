@@ -107,6 +107,7 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
     _write_page_snapshot_ledger(root)
     _write_website_build_ledger(root)
     _write_ci_workflow(root)
+    _write_gpu_production_workflow(root)
     _write_gitignore_policy(root)
     _write_pyproject_contract(root)
 
@@ -309,6 +310,48 @@ def _write_ci_workflow(root: Path) -> None:
         "        run: uv run kups-tutorial verify-notebooks --output-dir /tmp/kups-md-notebooks\n"
         "      - name: Whitespace check\n"
         "        run: git diff --check\n",
+        encoding="utf-8",
+    )
+
+
+def _write_gpu_production_workflow(root: Path) -> None:
+    workflow_dir = root / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True, exist_ok=True)
+    (workflow_dir / "production-gpu.yml").write_text(
+        "name: Production GPU reruns\n"
+        "on:\n"
+        "  workflow_dispatch:\n"
+        "    inputs:\n"
+        "      posts:\n"
+        "        default: \"03 04 05 06 07 08 10 11 12\"\n"
+        "      runner_labels:\n"
+        "        default: '[\"self-hosted\",\"linux\",\"x64\",\"gpu\"]'\n"
+        "jobs:\n"
+        "  production-gpu:\n"
+        "    runs-on: ${{ fromJSON(inputs.runner_labels) }}\n"
+        "    steps:\n"
+        "      - name: Install GPU dependencies\n"
+        "        run: uv sync --locked --extra gpu --extra mlff\n"
+        "      - name: Record pending GPU status before rerun\n"
+        "        run: uv run kups-tutorial gpu-status --format json | tee gpu-status-before.json\n"
+        "      - name: Run selected full-profile tutorials\n"
+        "        run: uv run kups-tutorial run \"${post}\" --profile full\n"
+        "      - name: Verify selected full-profile tutorials\n"
+        "        run: uv run kups-tutorial verify \"${post}\" --profile full\n"
+        "      - name: Record pending GPU status after rerun\n"
+        "        run: uv run kups-tutorial gpu-status --format json | tee gpu-status-after.json\n"
+        "      - name: Audit release surface after GPU rerun\n"
+        "        run: uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers\n"
+        "      - name: Upload compact production artifacts\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        "          name: production-gpu-rerun-artifacts\n"
+        "          path: |\n"
+        "            gpu-status-before.json\n"
+        "            gpu-status-after.json\n"
+        "            results/post-*/full/*.json\n"
+        "            results/post-*/full/*.csv\n"
+        "            figures/post-*/*_diagnostics_full.*\n",
         encoding="utf-8",
     )
 
@@ -1798,6 +1841,46 @@ def test_release_readiness_reports_stale_ci_workflow(
     assert any("missing CI smoke reproduction" in violation for violation in result.violations)
     assert any("missing CI release-surface audit" in violation for violation in result.violations)
     assert any("missing CI clean notebook execution" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_stale_gpu_production_workflow(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    workflow_path = tmp_path / ".github" / "workflows" / "production-gpu.yml"
+    text = workflow_path.read_text(encoding="utf-8")
+    text = text.replace("uv sync --locked --extra gpu --extra mlff", "uv sync --locked")
+    text = text.replace(
+        "uv run kups-tutorial gpu-status --format json | tee gpu-status-after.json",
+        "uv run kups-tutorial gpu-status",
+    )
+    text = text.replace("production-gpu-rerun-artifacts", "gpu-output")
+    workflow_path.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "missing production GPU GPU dependency installation" in violation
+        for violation in result.violations
+    )
+    assert any(
+        "missing production GPU post-rerun GPU status capture" in violation
+        for violation in result.violations
+    )
+    assert any(
+        "missing production GPU stable artifact name" in violation
+        for violation in result.violations
+    )
 
 
 def test_release_readiness_reports_misordered_ci_workflow(

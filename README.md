@@ -31,6 +31,13 @@ target CUDA/GPU but currently record CPU fallback, including the exact
 `uv run kups-tutorial gpu-status --format json` when a GPU runner or release
 script needs a machine-readable pending-rerun list.
 
+The manual GitHub Actions workflow `Production GPU reruns` runs the same
+full-profile production pass on a CUDA-capable self-hosted runner. Dispatch it
+with a space-separated post list such as `03 04 05 06 07 08 10 11 12`; it
+installs the `gpu` and `mlff` extras, captures GPU status before and after the
+reruns, verifies each selected full-profile post, runs the release-surface
+audit, and uploads compact production artifacts for review.
+
 See `PLAN.md` for the twelve-post curriculum, scientific requirements,
 progress, and final verification checklist.
 

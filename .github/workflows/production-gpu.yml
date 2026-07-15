@@ -1,0 +1,80 @@
+name: Production GPU reruns
+
+on:
+  workflow_dispatch:
+    inputs:
+      posts:
+        description: Space-separated post IDs to rerun with the full profile.
+        required: true
+        default: "03 04 05 06 07 08 10 11 12"
+      runner_labels:
+        description: JSON array of runner labels for a CUDA-capable runner.
+        required: true
+        default: '["self-hosted","linux","x64","gpu"]'
+
+permissions:
+  contents: read
+
+jobs:
+  production-gpu:
+    runs-on: ${{ fromJSON(inputs.runner_labels) }}
+    timeout-minutes: 720
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install GPU dependencies
+        run: uv sync --locked --extra gpu --extra mlff
+
+      - name: Record pending GPU status before rerun
+        run: uv run kups-tutorial gpu-status --format json | tee gpu-status-before.json
+
+      - name: Run selected full-profile tutorials
+        env:
+          KUPS_POSTS: ${{ inputs.posts }}
+        run: |
+          set -euo pipefail
+          for post in ${KUPS_POSTS}; do
+            uv run kups-tutorial run "${post}" --profile full
+          done
+
+      - name: Verify selected full-profile tutorials
+        env:
+          KUPS_POSTS: ${{ inputs.posts }}
+        run: |
+          set -euo pipefail
+          for post in ${KUPS_POSTS}; do
+            uv run kups-tutorial verify "${post}" --profile full
+          done
+
+      - name: Record pending GPU status after rerun
+        run: uv run kups-tutorial gpu-status --format json | tee gpu-status-after.json
+
+      - name: Audit release surface after GPU rerun
+        run: uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers
+
+      - name: Upload compact production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-gpu-rerun-artifacts
+          path: |
+            gpu-status-before.json
+            gpu-status-after.json
+            results/post-*/full/*.json
+            results/post-*/full/*.csv
+            results/post-*/full/*.extxyz
+            figures/post-*/*_diagnostics.*
+            figures/post-*/*_diagnostics_full.*
+          if-no-files-found: error

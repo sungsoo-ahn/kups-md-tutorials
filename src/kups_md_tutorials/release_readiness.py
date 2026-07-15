@@ -92,6 +92,10 @@ def audit_release_readiness(
         review_dir.parent / ".github" / "workflows" / "verify.yml",
         violations,
     )
+    _check_gpu_production_workflow(
+        review_dir.parent / ".github" / "workflows" / "production-gpu.yml",
+        violations,
+    )
     _check_gitignore_policy(review_dir.parent / ".gitignore", violations)
     _check_pyproject_contract(review_dir.parent / "pyproject.toml", violations)
     _check_required_artifact_surface(
@@ -1094,6 +1098,84 @@ def _check_ci_workflow(path: Path, violations: list[str]) -> None:
         else:
             previous_index = index
             previous_description = description
+
+
+def _check_gpu_production_workflow(path: Path, violations: list[str]) -> None:
+    if not path.exists():
+        violations.append(f"{path}: missing production GPU rerun workflow")
+        return
+
+    text = path.read_text(encoding="utf-8")
+    required_fragments = {
+        "workflow_dispatch:": "manual dispatch trigger",
+        "posts:": "post-selection input",
+        "runner_labels:": "CUDA runner-label input",
+        "fromJSON(inputs.runner_labels)": "dynamic GPU runner selection",
+        "uv sync --locked --extra gpu --extra mlff": "GPU dependency installation",
+        "uv run kups-tutorial gpu-status --format json | tee gpu-status-before.json": (
+            "pre-rerun GPU status capture"
+        ),
+        "uv run kups-tutorial run \"${post}\" --profile full": "full-profile rerun loop",
+        "uv run kups-tutorial verify \"${post}\" --profile full": (
+            "full-profile verification loop"
+        ),
+        "uv run kups-tutorial gpu-status --format json | tee gpu-status-after.json": (
+            "post-rerun GPU status capture"
+        ),
+        (
+            "uv run kups-tutorial verify-release-readiness --skip-site "
+            "--allow-current-blockers"
+        ): "post-rerun release-surface audit",
+        "actions/upload-artifact@v4": "compact artifact upload",
+        "production-gpu-rerun-artifacts": "stable artifact name",
+        "gpu-status-before.json": "uploaded pre-rerun status",
+        "gpu-status-after.json": "uploaded post-rerun status",
+        "results/post-*/full/*.json": "uploaded compact JSON results",
+        "results/post-*/full/*.csv": "uploaded compact CSV results",
+        "figures/post-*/*_diagnostics_full.*": "uploaded full-profile figures",
+    }
+    for fragment, description in required_fragments.items():
+        if fragment not in text:
+            violations.append(
+                f"{path}: missing production GPU {description}: {fragment}"
+            )
+
+    required_order = (
+        (
+            "uv run kups-tutorial gpu-status --format json | tee gpu-status-before.json",
+            "uv run kups-tutorial run \"${post}\" --profile full",
+            "pre-rerun GPU status capture",
+            "full-profile rerun loop",
+        ),
+        (
+            "uv run kups-tutorial run \"${post}\" --profile full",
+            "uv run kups-tutorial verify \"${post}\" --profile full",
+            "full-profile rerun loop",
+            "full-profile verification loop",
+        ),
+        (
+            "uv run kups-tutorial verify \"${post}\" --profile full",
+            "uv run kups-tutorial gpu-status --format json | tee gpu-status-after.json",
+            "full-profile verification loop",
+            "post-rerun GPU status capture",
+        ),
+        (
+            "uv run kups-tutorial gpu-status --format json | tee gpu-status-after.json",
+            (
+                "uv run kups-tutorial verify-release-readiness --skip-site "
+                "--allow-current-blockers"
+            ),
+            "post-rerun GPU status capture",
+            "post-rerun release-surface audit",
+        ),
+    )
+    for before, after, before_label, after_label in required_order:
+        before_index = text.find(before)
+        after_index = text.find(after)
+        if before_index != -1 and after_index != -1 and before_index > after_index:
+            violations.append(
+                f"{path}: production GPU {before_label} must run before {after_label}"
+            )
 
 
 def _check_gitignore_policy(path: Path, violations: list[str]) -> None:

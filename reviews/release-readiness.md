@@ -1642,6 +1642,53 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Review Protocol Split Gate
+
+Scope:
+
+- Tightened `verify-reviews` so every post-level self-review must include the
+  PLAN-level `## Prose And Style Review` and `## Open Items` sections.
+- Added a review-audit gate for the hidden-draft open-item split: blocking
+  items for the current hidden draft, non-blocking items accepted until the
+  final article pass, and final-release blockers.
+- Normalized `reviews/post-01.md` through `reviews/post-08.md` with explicit
+  prose/style and open-item sections. Posts 09-12 already used the newer
+  section structure.
+- Added regression coverage proving that a generic open-items note without the
+  hidden-draft split is rejected.
+
+Commands:
+
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run pytest tests/test_review_audit.py -q` passed: 4 tests.
+- `uv run ruff check src/kups_md_tutorials/review_audit.py tests/test_review_audit.py`
+  passed.
+
+Code and reproducibility review:
+
+- The previous review audit accepted old section aliases and general open-item
+  language, which was weaker than the `/goal` protocol in `PLAN.md`.
+- The new gate makes the split review status machine-checkable before any post
+  can be treated as reviewed, while still preserving historical review entries.
+- The synthetic regression runs in a temporary checkout so snapshot references
+  are resolved without touching real committed snapshot assets.
+
+Figure and rendered-page review:
+
+- No tutorial configs, results, notebooks, figure-generation code, figure
+  assets, website pages, website assets, or CSS-sensitive markup changed.
+- No new figure snapshot or rendered desktop/mobile page snapshot was required
+  for this validation-only milestone.
+- Existing figure and rendered-page snapshot evidence remains in the per-post
+  review files and `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the review-protocol split gate after focused review-audit tests
+  and lint.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

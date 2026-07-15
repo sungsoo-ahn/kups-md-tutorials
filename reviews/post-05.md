@@ -687,3 +687,34 @@ Final-release blockers after this refresh:
   checks.
 - Re-run rendered desktop/mobile page snapshots after final production NPT
   diagnostics or any public-indexing change.
+
+## Prose And Style Review
+
+- The hidden website draft follows the blog-native post layout with
+  `nav: false`, shared `kups-md-tutorials` series metadata, the author-note
+  paragraph, compact reproduction commands, source links, and references.
+- The prose is concept-led for MLIP-aware ML researchers: it treats pressure
+  and cell degrees of freedom as ensemble-control diagnostics, then explains
+  scalar-volume checks, moving-cell behavior, fluctuation limits, uncertainty,
+  and why the current reduced-unit protocol is not yet a production NPT claim.
+
+## Open Items
+
+Blocking items for the current hidden draft:
+
+- None. The hidden draft states the CPU-fallback/non-production status and has
+  rendered desktop/mobile snapshot evidence.
+
+Non-blocking items accepted until the final article pass:
+
+- Mobile figure/table density remains accepted for the hidden draft.
+- The reduced-unit moving-cell protocol remains a teaching diagnostic rather
+  than a final GPU kUPS production NPT study.
+
+Final-release blockers:
+
+- Run and review the real kUPS production NPT diagnostic with full atomistic
+  thermostat/barostat settings, GPU provenance, and production stress/cell
+  checks.
+- Re-run rendered desktop/mobile page snapshots after final production NPT
+  diagnostics or any public-indexing change.

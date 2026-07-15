@@ -545,3 +545,33 @@ Final-release blockers after this refresh:
   before public indexing.
 - Re-run rendered desktop and mobile page snapshots after the production
   physical-observable figures are added or any public-indexing change is made.
+
+## Prose And Style Review
+
+- The hidden website draft follows the blog-native post layout with
+  `nav: false`, shared `kups-md-tutorials` series metadata, the author-note
+  paragraph, compact reproduction commands, source links, and references.
+- The prose is concept-led for MLIP-aware ML researchers: it frames trajectory
+  length as an uncertainty and independence question, then connects warmup
+  removal, autocorrelation, effective sample size, block uncertainty, replica
+  checks, coordination observables, and CPU-fallback limits.
+
+## Open Items
+
+Blocking items for the current hidden draft:
+
+- None. The hidden draft states the CPU-fallback/non-production status and has
+  rendered desktop/mobile snapshot evidence.
+
+Non-blocking items accepted until the final article pass:
+
+- Mobile table and figure density remain accepted for the hidden draft.
+- The compact reduced-unit argon protocol remains a teaching diagnostic rather
+  than a final GPU kUPS production trajectory-length study.
+
+Final-release blockers:
+
+- Run larger GPU kUPS trajectory-length diagnostics for physical observables
+  before public indexing.
+- Re-run rendered desktop and mobile page snapshots after the production
+  physical-observable figures are added or any public-indexing change is made.

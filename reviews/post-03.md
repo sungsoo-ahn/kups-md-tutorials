@@ -413,3 +413,33 @@ Rendered feedback:
 Revision decision:
 
 - Accepted for the hidden draft citation-backlink pass.
+
+## Prose And Style Review
+
+- The hidden website draft follows the blog-native post layout with
+  `nav: false`, shared `kups-md-tutorials` series metadata, the author-note
+  paragraph, compact reproduction commands, source links, and references.
+- The prose is concept-led for MLIP-aware ML researchers: it separates bounded
+  integrator error, drift, precision limits, force-error bias, compact argon
+  NVE diagnostics, and CPU-fallback limitations without implying that the
+  current reduced-unit diagnostic is a final GPU production study.
+
+## Open Items
+
+Blocking items for the current hidden draft:
+
+- None. The hidden draft explicitly states the CPU-fallback status and has
+  rendered desktop/mobile snapshot evidence.
+
+Non-blocking items accepted until the final article pass:
+
+- Mobile figure/table density remains accepted for the hidden draft.
+- The reduced-unit LJ protocol remains a teaching diagnostic rather than a
+  final GPU production study.
+
+Final-release blockers:
+
+- Run and review the real CUDA/GPU kUPS production NVE diagnostic before
+  public indexing.
+- Re-run rendered desktop/mobile snapshots after the production GPU NVE
+  diagnostic or any public-indexing change.

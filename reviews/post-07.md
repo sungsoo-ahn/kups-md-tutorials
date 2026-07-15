@@ -422,6 +422,36 @@ Final-release blockers:
 - Re-run rendered desktop/mobile snapshots after final production-observable
   figures or any public-indexing change.
 
+## Prose And Style Review
+
+- The hidden website draft follows the blog-native post layout with
+  `nav: false`, shared `kups-md-tutorials` series metadata, the author-note
+  paragraph, compact reproduction commands, source links, and references.
+- The prose is concept-led for MLIP-aware ML researchers: it treats RDFs,
+  coordination integrals, VACFs, and uncertainty as estimators from finite
+  trajectories rather than as notebook endpoints, while keeping the compact
+  argon evidence separate from final GPU production claims.
+
+## Open Items
+
+Blocking items for the current hidden draft:
+
+- None. The hidden draft states the CPU-fallback/non-production status and has
+  rendered desktop/mobile snapshot evidence.
+
+Non-blocking items accepted until the final article pass:
+
+- Mobile table and figure density remain accepted for the hidden draft.
+- The compact reduced-unit argon trajectory remains a teaching diagnostic
+  rather than a final GPU kUPS production observable study.
+
+Final-release blockers:
+
+- Add larger GPU kUPS trajectory diagnostics for physical observables before
+  treating this post as final.
+- Re-run rendered desktop/mobile snapshots after final production-observable
+  figures or any public-indexing change.
+
 ## Update 2026-07-15: Observable Citation Completion
 
 Scope:

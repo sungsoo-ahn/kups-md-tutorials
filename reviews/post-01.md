@@ -196,3 +196,34 @@ Rendered feedback:
 Revision decision:
 
 - Accepted for the hidden draft citation-backlink pass.
+
+## Prose And Style Review
+
+- The hidden website draft follows the blog-native post layout with
+  `nav: false`, shared `kups-md-tutorials` series metadata, the author-note
+  paragraph, compact reproduction commands, source links, and references.
+- The prose is concept-led for MLIP-aware ML researchers: it starts from
+  simulation initialization as a reproducibility contract, then explains cell
+  construction, seeded velocities, center-of-mass removal, warmup boundaries,
+  provenance, and why initialization choices affect later integrator,
+  thermostat, and free-energy claims.
+
+## Open Items
+
+Blocking items for the current hidden draft:
+
+- None. The hidden draft has source links, rendered desktop/mobile snapshot
+  evidence, and an explicit direct-link-only status.
+
+Non-blocking items accepted until the final article pass:
+
+- The page remains intentionally hidden from public navigation while the full
+  series is still under review.
+- Table wrapping and final typography can be revisited after the public-index
+  pass, but the captured hidden draft is readable and contained.
+
+Final-release blockers:
+
+- Make the page public only after the series-level final production and
+  public-indexing pass.
+- Re-run rendered desktop/mobile snapshots after any public-indexing change.

@@ -13,6 +13,8 @@ REQUIRED_SECTION_ALIASES = {
     "figure": ("## Figure Snapshot Review", "## Figure Feedback Review"),
     "notebook": ("## Notebook Review",),
     "website": ("## Website Draft Review", "## Website Page Review"),
+    "prose_style": ("## Prose And Style Review", "## Prose and Style Review"),
+    "open_items": ("## Open Items",),
 }
 
 
@@ -37,6 +39,7 @@ def audit_reviews(review_dir: Path = Path("reviews")) -> ReviewAuditResult:
         _check_sections(review_path, text, violations)
         _check_required_references(post, review_path, text, violations)
         _check_open_item_language(review_path, text, violations)
+        _check_hidden_draft_open_item_split(review_path, text, violations)
     return ReviewAuditResult(
         reviewed_posts=len(SUPPORTED_POSTS),
         violations=tuple(violations),
@@ -91,3 +94,28 @@ def _check_open_item_language(path: Path, text: str, violations: list[str]) -> N
         violations.append(f"{path}: missing open items language")
     if "rendered" not in lowered or "snapshot" not in lowered:
         violations.append(f"{path}: missing rendered page snapshot status")
+
+
+def _check_hidden_draft_open_item_split(
+    path: Path,
+    text: str,
+    violations: list[str],
+) -> None:
+    lowered = text.lower()
+    required_phrases = {
+        "blocking items for current hidden draft": (
+            "blocking items for current hidden draft",
+            "blocking items for the current hidden draft",
+        ),
+        "non-blocking items accepted until final article pass": (
+            "non-blocking items accepted until final article pass",
+            "non-blocking items accepted until the final article pass",
+        ),
+        "final-release blockers": (
+            "final-release blockers",
+            "final-release blockers after this refresh",
+        ),
+    }
+    for label, aliases in required_phrases.items():
+        if not any(alias in lowered for alias in aliases):
+            violations.append(f"{path}: missing {label} language")

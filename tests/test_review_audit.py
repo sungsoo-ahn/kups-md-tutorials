@@ -26,8 +26,91 @@ def test_review_audit_reports_missing_evidence(tmp_path: Path) -> None:
 
     assert result.violations
     assert any("missing commands" in violation for violation in result.violations)
+    assert any("missing prose_style" in violation for violation in result.violations)
+    assert any("missing open_items" in violation for violation in result.violations)
     with pytest.raises(ValueError, match="review audit failed"):
         verify_reviews(review_dir)
+
+
+def test_review_audit_requires_hidden_draft_open_item_split(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    review_dir = tmp_path / "reviews"
+    review_dir.mkdir()
+    for post in range(1, 13):
+        (review_dir / f"post-{post:02d}.md").write_text(
+            "\n".join(
+                [
+                    "# Review",
+                    "",
+                    "## Scope",
+                    "",
+                    f"- configs/post-{post:02d}/",
+                    f"- results/post-{post:02d}/",
+                    f"- notebooks/post-{post:02d}",
+                    f"- snapshots/post-{post:02d}/figure_snapshot.png",
+                    "- https://sungsoo-ahn.github.io/kups-md-tutorials/",
+                    "- validate_blog.py",
+                    "",
+                    "## Commands",
+                    "",
+                    "- rendered page snapshot command passed.",
+                    "",
+                    "## Code And Reproducibility Review",
+                    "",
+                    "- checked.",
+                    "",
+                    "## Scientific Review",
+                    "",
+                    "- checked.",
+                    "",
+                    "## Figure Snapshot Review",
+                    "",
+                    f"- `snapshots/post-{post:02d}/figure_snapshot.png`",
+                    f"- `snapshots/post-{post:02d}/figure_full_snapshot.png`",
+                    "",
+                    "## Notebook Review",
+                    "",
+                    "- checked.",
+                    "",
+                    "## Website Draft Review",
+                    "",
+                    "- rendered desktop/mobile snapshots checked.",
+                    "",
+                    "## Prose And Style Review",
+                    "",
+                    "- checked.",
+                    "",
+                    "## Open Items",
+                    "",
+                    "- Generic open items only.",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        snapshot_dir = Path(f"snapshots/post-{post:02d}")
+        snapshot_dir.mkdir(parents=True, exist_ok=True)
+        (snapshot_dir / "figure_snapshot.png").touch()
+        (snapshot_dir / "figure_full_snapshot.png").touch()
+
+    result = audit_reviews(review_dir)
+
+    assert any(
+        "missing blocking items for current hidden draft language" in violation
+        for violation in result.violations
+    )
+    assert any(
+        "missing non-blocking items accepted until final article pass language"
+        in violation
+        for violation in result.violations
+    )
+    assert any(
+        "missing final-release blockers language" in violation
+        for violation in result.violations
+    )
 
 
 def test_verify_reviews_cli() -> None:

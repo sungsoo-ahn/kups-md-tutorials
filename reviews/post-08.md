@@ -770,3 +770,32 @@ Final-release blockers after this refresh:
 - Add larger GPU kUPS RDF-derived PMF diagnostics before public indexing.
 - Re-run rendered snapshots after final production RDF-PMF figures or any
   public-indexing change.
+
+## Prose And Style Review
+
+- The hidden website draft follows the blog-native post layout with
+  `nav: false`, shared `kups-md-tutorials` series metadata, the author-note
+  paragraph, compact reproduction commands, source links, and references.
+- The prose is concept-led for MLIP-aware ML researchers: it starts from the
+  collective variable and sampled probability measure, then connects histogram
+  PMFs, RDF-derived PMFs, binning/support sensitivity, reweighting,
+  block/replica uncertainty, and CPU-fallback limitations.
+
+## Open Items
+
+Blocking items for the current hidden draft:
+
+- None. The hidden draft has source links, rendered desktop/mobile snapshot
+  evidence, and explicit CPU-fallback/non-production status.
+
+Non-blocking items accepted until the final article pass:
+
+- Mobile title, table, and figure density remain accepted for the hidden draft.
+- The compact reduced-unit argon RDF-PMF remains a teaching diagnostic rather
+  than a final GPU kUPS production free-energy study.
+
+Final-release blockers:
+
+- Add larger GPU kUPS RDF-derived PMF diagnostics before public indexing.
+- Re-run rendered snapshots after final production RDF-PMF figures or any
+  public-indexing change.

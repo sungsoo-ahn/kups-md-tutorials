@@ -501,12 +501,13 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
         post_id = f"{post:02d}"
         figure_path = f"assets/img/blog/kups_md_post{post_id}_diagnostics.svg"
         figure_file = site_root / figure_path
-        figure_file.write_text("<svg></svg>\n", encoding="utf-8")
+        figure_source = f"figures/post-{post_id}/example_diagnostics_full.svg"
+        shutil.copyfile(site_root.parent / figure_source, figure_file)
         exported_files.append(
             {
                 "post": post_id,
                 "kind": "figure",
-                "source": f"figures/post-{post_id}/example_diagnostics_full.svg",
+                "source": figure_source,
                 "destination": figure_path,
                 "sha256": _sha256(figure_file),
             }
@@ -514,12 +515,13 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
         result_path = f"assets/json/kups-md-tutorials/post-{post_id}/full/manifest.json"
         result_file = site_root / result_path
         result_file.parent.mkdir(parents=True, exist_ok=True)
-        result_file.write_text(json.dumps(_manifest_fixture(post_id, "full")) + "\n")
+        result_source = f"results/post-{post_id}/full/manifest.json"
+        shutil.copyfile(site_root.parent / result_source, result_file)
         exported_files.append(
             {
                 "post": post_id,
                 "kind": "compact-result",
-                "source": f"results/post-{post_id}/full/manifest.json",
+                "source": result_source,
                 "destination": result_path,
                 "sha256": _sha256(result_file),
             }
@@ -711,6 +713,30 @@ def test_release_readiness_reports_stale_site_export_manifest(tmp_path: Path) ->
     assert any("sha256 mismatch" in violation for violation in result.violations)
     assert any(
         "missing exported figure entries for posts 08" in violation
+        for violation in result.violations
+    )
+
+
+def test_release_readiness_reports_stale_site_export_source(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    source_path = tmp_path / "figures" / "post-01" / "example_diagnostics_full.svg"
+    source_path.write_text("<svg>changed source</svg>\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "source sha256 mismatch for figures/post-01/example_diagnostics_full.svg"
+        in violation
         for violation in result.violations
     )
 

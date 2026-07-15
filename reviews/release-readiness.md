@@ -1594,6 +1594,54 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Website Export Source Hash Gate
+
+Scope:
+
+- Expanded the website export-manifest audit so every exported file must match
+  both the website destination hash and the current repository source hash.
+- The gate now rejects source paths that escape the repository root, missing
+  source files, and source/destination hash drift after export.
+- Updated the synthetic website fixture to copy from generated source artifacts
+  instead of creating unrelated dummy website files.
+- Added a regression test that mutates a source figure after export and
+  verifies the release-readiness checker reports a source SHA-256 mismatch.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed: 30 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+
+Code and reproducibility review:
+
+- The previous export-manifest gate proved that website destinations existed
+  and matched the recorded hash, but it did not prove that the source artifact
+  in this repository still matched the exported copy.
+- The current gate uses `review_dir.parent` as the audited source root, so
+  isolated test fixtures and the real checkout use the same repository-relative
+  source-path semantics.
+- This protects the PLAN ownership boundary: simulations, compact summaries,
+  and figures remain owned by this repository, while the website repository
+  carries synchronized copies.
+
+Figure and rendered-page review:
+
+- No figure-generation code, figure assets, numerical outputs, notebooks,
+  website pages, website assets, or CSS-sensitive markup changed in this
+  milestone.
+- No figure or rendered-page snapshot was required because this pass only
+  changes release-readiness validation and synthetic test fixtures.
+
+Review decision:
+
+- Accepted for the website export source-hash milestone after focused tests and
+  site-aware readiness validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

@@ -97,7 +97,11 @@ def audit_release_readiness(
     )
     _check_post12_model_artifact(config_root, results_root, violations)
     if site_root is not None:
-        _check_site_publication_state(site_root, violations)
+        _check_site_publication_state(
+            site_root,
+            source_root=review_dir.parent,
+            violations=violations,
+        )
     return ReleaseReadinessResult(
         checked_posts=len(SUPPORTED_POSTS),
         violations=tuple(violations),
@@ -838,8 +842,17 @@ def _check_post12_model_artifact(
             _check_json_text(path, text, violations)
 
 
-def _check_site_publication_state(site_root: Path, violations: list[str]) -> None:
-    _check_site_export_manifest(site_root, violations)
+def _check_site_publication_state(
+    site_root: Path,
+    *,
+    source_root: Path,
+    violations: list[str],
+) -> None:
+    _check_site_export_manifest(
+        site_root,
+        source_root=source_root,
+        violations=violations,
+    )
     _check_site_series_index(site_root, violations)
     pages_dir = site_root / "_pages"
     for post in SUPPORTED_POSTS:
@@ -910,7 +923,12 @@ def _check_site_series_index(site_root: Path, violations: list[str]) -> None:
             violations.append(f"{index_path}: missing {description}")
 
 
-def _check_site_export_manifest(site_root: Path, violations: list[str]) -> None:
+def _check_site_export_manifest(
+    site_root: Path,
+    *,
+    source_root: Path,
+    violations: list[str],
+) -> None:
     manifest_path = site_root / "assets" / "json" / "kups-md-tutorials" / "manifest.json"
     if not manifest_path.exists():
         violations.append(f"{manifest_path}: missing website export manifest")
@@ -964,6 +982,20 @@ def _check_site_export_manifest(site_root: Path, violations: list[str]) -> None:
         if not isinstance(sha256, str) or re.fullmatch(r"[0-9a-f]{64}", sha256) is None:
             violations.append(f"{label} missing sha256")
             continue
+
+        if isinstance(source, str) and source:
+            source_path = source_root / source
+            if not _path_is_within(source_path.resolve(), source_root.resolve()):
+                violations.append(f"{label} source escapes source root: {source}")
+            elif not source_path.exists():
+                violations.append(f"{label} source does not exist: {source}")
+            else:
+                source_sha256 = file_sha256(source_path)
+                if source_sha256 != sha256:
+                    violations.append(
+                        f"{label} source sha256 mismatch for {source}: "
+                        f"expected {sha256}, found {source_sha256}"
+                    )
 
         destination = _site_manifest_destination(site_root, destination_text)
         if not _path_is_within(destination, site_root):

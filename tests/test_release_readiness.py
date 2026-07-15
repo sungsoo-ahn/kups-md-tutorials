@@ -26,6 +26,7 @@ def _write_clean_reviews(review_dir: Path) -> None:
 
 
 def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
+    (root / "uv.lock").write_text("locked test dependencies\n", encoding="utf-8")
     for post in range(1, 13):
         post_id = f"{post:02d}"
         config_dir = root / "configs" / f"post-{post_id}"
@@ -42,10 +43,20 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
                 Path("configs") / f"post-{post_id}" / f"{profile}.json",
                 config_dir / f"{profile}.json",
             )
+            config_sha256 = _sha256(config_dir / f"{profile}.json")
+            lock_sha256 = _sha256(root / "uv.lock")
             result_dir = root / "results" / f"post-{post_id}" / profile
             result_dir.mkdir(parents=True)
             (result_dir / "manifest.json").write_text(
-                json.dumps(_manifest_fixture(post_id, profile)) + "\n",
+                json.dumps(
+                    _manifest_fixture(
+                        post_id,
+                        profile,
+                        config_sha256=config_sha256,
+                        lock_sha256=lock_sha256,
+                    )
+                )
+                + "\n",
                 encoding="utf-8",
             )
             (result_dir / "example_summary.json").write_text(
@@ -334,7 +345,13 @@ def _write_pyproject_contract(root: Path) -> None:
     )
 
 
-def _manifest_fixture(post_id: str, profile: str) -> dict[str, object]:
+def _manifest_fixture(
+    post_id: str,
+    profile: str,
+    *,
+    config_sha256: str = "a" * 64,
+    lock_sha256: str = "b" * 64,
+) -> dict[str, object]:
     return {
         "config": {
             "post": post_id,
@@ -343,9 +360,9 @@ def _manifest_fixture(post_id: str, profile: str) -> dict[str, object]:
         },
         "provenance": {
             "config_path": f"configs/post-{post_id}/{profile}.json",
-            "config_sha256": "a" * 64,
+            "config_sha256": config_sha256,
             "lock_path": "uv.lock",
-            "lock_sha256": "b" * 64,
+            "lock_sha256": lock_sha256,
             "git_revision": "c" * 40,
             "python_version": "3.13.0",
             "platform": "test",
@@ -375,16 +392,23 @@ def _write_post12_model_metadata(root: Path, *, placeholder: bool) -> None:
         artifact["sha256"] = sha
         config_path.write_text(json.dumps(config_data) + "\n", encoding="utf-8")
 
-    manifest_data = _manifest_fixture("12", "full")
-    manifest_data["config"]["experiment"]["model_artifact"] = {
-        "revision": revision,
-        "sha256": sha,
-    }
     (results_dir / "mlip_summary.json").write_text(summary, encoding="utf-8")
-    (results_dir / "manifest.json").write_text(
-        json.dumps(manifest_data) + "\n",
-        encoding="utf-8",
-    )
+    for profile in ("smoke", "full"):
+        manifest_data = _manifest_fixture(
+            "12",
+            profile,
+            config_sha256=_sha256(config_dir / f"{profile}.json"),
+            lock_sha256=_sha256(root / "uv.lock"),
+        )
+        manifest_data["config"]["experiment"]["model_artifact"] = {
+            "revision": revision,
+            "sha256": sha,
+        }
+        manifest_path = root / "results" / "post-12" / profile / "manifest.json"
+        manifest_path.write_text(
+            json.dumps(manifest_data) + "\n",
+            encoding="utf-8",
+        )
 
 
 def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
@@ -1250,6 +1274,36 @@ def test_release_readiness_reports_manifest_provenance_violations(tmp_path: Path
     assert any("provenance git_revision is unknown" in violation for violation in result.violations)
     assert any("missing config_sha256" in violation for violation in result.violations)
     assert any("missing kups" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_stale_manifest_file_hashes(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    manifest_path = tmp_path / "results" / "post-04" / "full" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["provenance"]["config_sha256"] = "0" * 64
+    manifest["provenance"]["lock_sha256"] = "1" * 64
+    manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "provenance config_sha256 mismatch" in violation
+        for violation in result.violations
+    )
+    assert any(
+        "provenance lock_sha256 mismatch" in violation
+        for violation in result.violations
+    )
 
 
 def test_verify_release_readiness_cli_passes_clean_final_state(tmp_path: Path) -> None:

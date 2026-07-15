@@ -223,6 +223,7 @@ def _check_required_artifact_surface(
             _check_result_manifest_file(
                 result_dir / "manifest.json",
                 violations,
+                config_root=config_root,
                 post=post,
                 profile=profile,
             )
@@ -1173,6 +1174,7 @@ def _check_result_manifest_file(
     path: Path,
     violations: list[str],
     *,
+    config_root: Path,
     post: str,
     profile: str,
 ) -> None:
@@ -1188,16 +1190,26 @@ def _check_result_manifest_file(
     if not isinstance(manifest, dict):
         violations.append(f"{path}: result manifest must be a JSON object")
         return
-    _check_manifest_provenance(path, manifest, post, profile, violations)
+    _check_manifest_provenance(
+        path,
+        manifest,
+        config_root=config_root,
+        post=post,
+        profile=profile,
+        violations=violations,
+    )
 
 
 def _check_manifest_provenance(
     path: Path,
     manifest: dict[str, object],
+    *,
+    config_root: Path,
     post: str,
     profile: str,
     violations: list[str],
 ) -> None:
+    repo_root = config_root.parent
     config = manifest.get("config")
     if not isinstance(config, dict):
         violations.append(f"{path}: missing config object")
@@ -1220,6 +1232,24 @@ def _check_manifest_provenance(
         _check_hex_digest(path, provenance, "config_sha256", violations)
         _check_required_string(path, provenance, "lock_path", violations)
         _check_hex_digest(path, provenance, "lock_sha256", violations)
+        _check_manifest_file_hash(
+            path,
+            provenance,
+            repo_root=repo_root,
+            path_key="config_path",
+            sha_key="config_sha256",
+            expected_path=config_root / f"post-{post}" / f"{profile}.json",
+            violations=violations,
+        )
+        _check_manifest_file_hash(
+            path,
+            provenance,
+            repo_root=repo_root,
+            path_key="lock_path",
+            sha_key="lock_sha256",
+            expected_path=repo_root / "uv.lock",
+            violations=violations,
+        )
         git_revision = provenance.get("git_revision")
         if not isinstance(git_revision, str) or len(git_revision) < 7:
             violations.append(f"{path}: missing provenance git_revision")
@@ -1238,6 +1268,46 @@ def _check_manifest_provenance(
     else:
         for package in ("kups", "numpy"):
             _check_required_string(path, versions, package, violations)
+
+
+def _check_manifest_file_hash(
+    path: Path,
+    provenance: dict[str, object],
+    *,
+    repo_root: Path,
+    path_key: str,
+    sha_key: str,
+    expected_path: Path,
+    violations: list[str],
+) -> None:
+    path_text = provenance.get(path_key)
+    expected_sha = provenance.get(sha_key)
+    if not isinstance(path_text, str) or not isinstance(expected_sha, str):
+        return
+
+    provenance_path = Path(path_text)
+    if provenance_path.is_absolute():
+        violations.append(f"{path}: provenance {path_key} should be repository-relative")
+        return
+    resolved_path = repo_root / provenance_path
+    if not _path_is_within(resolved_path, repo_root):
+        violations.append(f"{path}: provenance {path_key} escapes repository root")
+        return
+    if resolved_path != expected_path:
+        violations.append(
+            f"{path}: expected provenance {path_key} "
+            f"{expected_path.relative_to(repo_root).as_posix()}, found {path_text}"
+        )
+        return
+    if not resolved_path.exists():
+        violations.append(f"{path}: provenance {path_key} does not exist: {path_text}")
+        return
+    actual_sha = file_sha256(resolved_path)
+    if expected_sha != actual_sha:
+        violations.append(
+            f"{path}: provenance {sha_key} mismatch for {path_text}: "
+            f"expected {expected_sha!r}, found {actual_sha}"
+        )
 
 
 def _check_required_string(

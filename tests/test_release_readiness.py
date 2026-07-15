@@ -91,6 +91,7 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
     _write_post12_model_metadata(root, placeholder=placeholder)
     _write_figure_source_ledger(root)
     _write_notebook_execution_ledger(root)
+    _write_page_snapshot_ledger(root)
 
 
 def _write_figure_source_ledger(root: Path) -> None:
@@ -154,6 +155,55 @@ def _write_notebook_execution_ledger(root: Path) -> None:
             indent=2,
         )
         + "\n",
+        encoding="utf-8",
+    )
+
+
+def _write_page_snapshot_ledger(root: Path) -> None:
+    review_dir = root / "reviews"
+    review_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_lines = [
+        "# Rendered Page Snapshot Review",
+        "",
+        "## Synthetic Release Snapshot Pass",
+        "",
+        "- Website workflow: `Capture kUPS snapshots`.",
+        "- Snapshot run: `123456789`.",
+        "- Artifact name: `kups-md-page-snapshots`.",
+        "- Manifest reviewed: `/tmp/kups-snapshots/manifest.json`.",
+        "",
+        "Manifest coverage:",
+        "",
+        "- Desktop and mobile snapshots were captured for the hidden index and Posts 01-12.",
+        "- All captured URLs returned HTTP 200.",
+        "",
+        "Snapshots visually inspected:",
+        "",
+        "- `/tmp/kups-snapshots/post-index-desktop.png`",
+        "- `/tmp/kups-snapshots/post-index-mobile.png`",
+    ]
+    for post in range(1, 13):
+        post_id = f"{post:02d}"
+        snapshot_lines.extend(
+            [
+                f"- `/tmp/kups-snapshots/post-{post_id}-desktop.png`",
+                f"- `/tmp/kups-snapshots/post-{post_id}-mobile.png`",
+            ]
+        )
+    snapshot_lines.extend(
+        [
+            "",
+            "Feedback:",
+            "",
+            "- Desktop and mobile captures were inspected for page chrome, figures, tables, code blocks, references, and footer spacing.",
+            "",
+            "Revision decisions:",
+            "",
+            "- Accepted for the synthetic clean final-state fixture.",
+        ]
+    )
+    (review_dir / "page-snapshots.md").write_text(
+        "\n".join(snapshot_lines) + "\n",
         encoding="utf-8",
     )
 
@@ -838,6 +888,34 @@ def test_release_readiness_reports_stale_notebook_execution_ledger(
         "missing notebook execution entries for posts 08" in violation
         for violation in result.violations
     )
+
+
+def test_release_readiness_reports_stale_page_snapshot_ledger(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    ledger_path = tmp_path / "reviews" / "page-snapshots.md"
+    text = ledger_path.read_text(encoding="utf-8")
+    text = text.replace("- Artifact name: `kups-md-page-snapshots`.\n", "")
+    text = text.replace("- `/tmp/kups-snapshots/post-index-mobile.png`\n", "")
+    text = text.replace("- `/tmp/kups-snapshots/post-12-desktop.png`\n", "")
+    ledger_path.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("missing rendered page snapshot kups-md-page-snapshots" in violation for violation in result.violations)
+    assert any("post-index mobile" in violation for violation in result.violations)
+    assert any("post-12 desktop" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_manifest_provenance_violations(tmp_path: Path) -> None:

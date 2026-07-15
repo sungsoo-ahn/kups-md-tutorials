@@ -73,6 +73,7 @@ def audit_release_readiness(
         notebook_root=notebook_root,
         violations=violations,
     )
+    _check_page_snapshot_ledger(review_dir / "page-snapshots.md", violations)
     _check_required_artifact_surface(
         config_root=config_root,
         results_root=results_root,
@@ -463,6 +464,37 @@ def _check_notebook_execution_ledger(
             f"{path}: missing notebook execution entries for posts "
             + ", ".join(missing_posts)
         )
+
+
+def _check_page_snapshot_ledger(path: Path, violations: list[str]) -> None:
+    if not path.exists():
+        violations.append(f"{path}: missing rendered page snapshot ledger")
+        return
+
+    text = path.read_text(encoding="utf-8")
+    required_fragments = (
+        "Website workflow",
+        "kups-md-page-snapshots",
+        "Manifest reviewed",
+        "Manifest coverage",
+        "Snapshots visually inspected",
+        "Feedback",
+        "Revision decisions",
+    )
+    for fragment in required_fragments:
+        if fragment not in text:
+            violations.append(f"{path}: missing rendered page snapshot {fragment}")
+
+    required_pages = ("index", *SUPPORTED_POSTS)
+    for page in required_pages:
+        label = "post-index" if page == "index" else f"post-{page}"
+        for viewport in ("desktop", "mobile"):
+            snapshot_name = f"{label}-{viewport}.png"
+            if snapshot_name not in text:
+                violations.append(
+                    f"{path}: missing rendered page snapshot reference "
+                    f"for {label} {viewport}"
+                )
 
 
 def _check_post12_model_artifact(

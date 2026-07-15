@@ -946,6 +946,67 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Rendered Page Snapshot Ledger Gate
+
+Scope:
+
+- Added a repository-side release-readiness check for
+  `reviews/page-snapshots.md`.
+- The gate now requires rendered page snapshot evidence to include the website
+  workflow, `kups-md-page-snapshots` artifact name, reviewed manifest,
+  manifest coverage, inspected snapshot list, feedback, and revision decisions.
+- The gate requires desktop and mobile rendered snapshot references for the
+  direct-link series index (`post-index`) and for all twelve hidden tutorial
+  posts (`post-01` through `post-12`).
+- Updated the synthetic release-readiness fixture to include a page snapshot
+  ledger and added a regression test for missing artifact, index-mobile, and
+  post-12 desktop evidence.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed: 22 tests.
+- `uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers`
+  passed for 12 posts.
+- `uv run pytest tests/test_release_readiness.py tests/test_review_audit.py tests/test_cli.py -q`
+  passed: 39 tests, with the existing ASE/NumPy deprecation warnings from CLI
+  tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `uv run kups-tutorial verify-artifacts` passed for 279 tracked files.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `git diff --check` passed.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers for hidden pages,
+  hidden-draft notes, production GPU diagnostics, and public indexing.
+
+Code and reproducibility review:
+
+- The new check is independent of browser availability and validates committed
+  review evidence from the CI/browser snapshot workflow.
+- The check covers the user-facing direct-link index as well as all twelve post
+  pages, so a missing or stale desktop/mobile snapshot reference becomes a
+  release-readiness violation before public publication.
+- The current ledger already records the required index and post snapshot
+  evidence, so `--allow-current-blockers` remains green while strict readiness
+  continues to fail on the intended hidden/final-production blockers.
+
+Figure and rendered-page review:
+
+- No website page source, front matter, prose, linked figures, CSS-sensitive
+  markup, assets, figures, configs, results, notebooks, or snapshot images
+  changed in this milestone.
+- Because this pass only adds verifier coverage for existing rendered-page
+  snapshot evidence, no new desktop/mobile page capture was required.
+
+Review decision:
+
+- Accepted for the rendered-page snapshot-ledger milestone after focused,
+  site-aware, and strict-readiness validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

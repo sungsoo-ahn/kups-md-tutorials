@@ -323,9 +323,16 @@ def _verify_post04(post: str, profile: str, output_root: Path) -> None:
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "thermostat_samples.csv"
     argon_samples_path = output_dir / "argon_langevin_samples.csv"
+    argon_handoff_samples_path = output_dir / "argon_handoff_samples.csv"
     missing = [
         str(path)
-        for path in (summary_path, manifest_path, samples_path, argon_samples_path)
+        for path in (
+            summary_path,
+            manifest_path,
+            samples_path,
+            argon_samples_path,
+            argon_handoff_samples_path,
+        )
         if not path.exists()
     ]
     if missing:
@@ -349,8 +356,17 @@ def _verify_post04(post: str, profile: str, output_root: Path) -> None:
         msg = "thermostat effective sample count is too small"
         raise ValueError(msg)
     if spec.argon_langevin is not None:
-        if len(summary.argon_langevin_runs) != len(spec.argon_langevin.cases):
+        expected_argon_runs = (
+            len(spec.argon_langevin.cases) * spec.argon_langevin.replica_count
+        )
+        if len(summary.argon_langevin_runs) != expected_argon_runs:
             msg = "summary does not contain the expected argon thermostat cases"
+            raise ValueError(msg)
+        if summary.argon_langevin_protocol is None:
+            msg = "summary is missing the argon thermostat protocol aggregate"
+            raise ValueError(msg)
+        if summary.argon_langevin_protocol.replica_count != spec.argon_langevin.replica_count:
+            msg = "argon thermostat protocol replica count does not match config"
             raise ValueError(msg)
         if min(run.samples for run in summary.argon_langevin_runs) <= 0:
             msg = "argon thermostat summary contains no samples"
@@ -363,6 +379,12 @@ def _verify_post04(post: str, profile: str, output_root: Path) -> None:
             1.5 * ordered[0].velocity_integrated_autocorrelation_time
         ):
             msg = "strong argon thermostat did not reduce velocity-temperature memory"
+            raise ValueError(msg)
+        if summary.argon_langevin_protocol.unstable_handoff_count != 0:
+            msg = "argon NVE handoff contains an unstable run"
+            raise ValueError(msg)
+        if summary.argon_langevin_protocol.max_abs_nve_handoff_drift > 1.0e-3:
+            msg = "argon NVE handoff drift is outside the review threshold"
             raise ValueError(msg)
 
 

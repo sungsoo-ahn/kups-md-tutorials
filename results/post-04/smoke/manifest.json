@@ -1,4 +1,5 @@
 {
+  "argon_handoff_samples_file": "argon_handoff_samples.csv",
   "argon_langevin_samples_file": "argon_langevin_samples.csv",
   "config": {
     "argon_langevin": {
@@ -16,10 +17,15 @@
       "epsilon": 1.0,
       "num_steps": 1200,
       "number_density": 0.65,
+      "nve_handoff_sample_every": 5,
+      "nve_handoff_steps": 300,
+      "protocol_label": "smoke_langevin_nve_handoff",
       "repetitions": 2,
+      "replica_count": 2,
       "sample_every": 5,
       "seed": 4041,
       "sigma": 1.0,
+      "target_device": "cpu",
       "temperature": 0.7,
       "time_step": 0.003,
       "warmup_steps": 200
@@ -57,8 +63,8 @@
   },
   "provenance": {
     "config_path": "configs/post-04/smoke.json",
-    "config_sha256": "91a5e52aefb9ac14a909f6fdff13a795ef1a0cec9eb6bdfda3cf415aa82b1d30",
-    "git_revision": "5c87ed290bf74721bf7223fa5cbb00f8aeb80890",
+    "config_sha256": "9a8e14709771b1b012e6fe56fa1db22ae102f0c64417150e1bab9d8e30c1f09a",
+    "git_revision": "438e941630b188b052e5548d1250c228d8bf4d5f",
     "lock_path": "uv.lock",
     "lock_sha256": "1e3d7f63e177a6a9a753cdb7a62667b8dc1c9d6bb5563b1deebdd70de4168844",
     "platform": "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",

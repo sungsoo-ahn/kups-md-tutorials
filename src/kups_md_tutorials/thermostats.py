@@ -14,7 +14,6 @@ from kups_md_tutorials.error_diagnostics import _lennard_jones_forces
 from kups_md_tutorials.provenance import provenance
 from kups_md_tutorials.systems import argon_fcc
 
-
 @dataclass(frozen=True)
 class ThermostatRunSummary:
     """Compact diagnostics for one thermostat run."""
@@ -45,8 +44,11 @@ class ThermostatRunSummary:
 class ArgonThermostatRunSummary:
     """Compact diagnostics for one argon Langevin thermostat run."""
 
+    protocol_label: str
     thermostat: str
     gamma: float
+    replica_index: int
+    seed: int
     atom_count: int
     samples: int
     target_temperature: float
@@ -56,6 +58,36 @@ class ArgonThermostatRunSummary:
     velocity_lag1_autocorrelation: float
     velocity_integrated_autocorrelation_time: float
     final_total_energy: float
+    nve_handoff_steps: int
+    nve_initial_energy: float
+    nve_final_energy: float
+    nve_max_abs_relative_energy_error: float
+    nve_normalized_energy_drift: float
+    nve_unstable: bool
+
+
+@dataclass(frozen=True)
+class ArgonThermostatProtocolSummary:
+    """Aggregate diagnostics for the configured argon thermostat protocol."""
+
+    protocol_label: str
+    target_device: str
+    replica_count: int
+    case_count: int
+    atom_count: int
+    target_temperature: float
+    num_steps: int
+    nve_handoff_steps: int
+    max_abs_temperature_relative_error: float
+    mean_abs_temperature_relative_error: float
+    max_abs_nve_handoff_drift: float
+    mean_abs_nve_handoff_drift: float
+    max_nve_handoff_energy_error: float
+    unstable_handoff_count: int
+
+
+ArgonTrajectory = tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+ArgonResultMap = dict[tuple[int, int], tuple[ArgonThermostatRunSummary, ArgonTrajectory]]
 
 
 @dataclass(frozen=True)
@@ -73,6 +105,7 @@ class ThermostatExperimentSummary:
     config_sha256: str
     runs: list[ThermostatRunSummary]
     argon_langevin_runs: list[ArgonThermostatRunSummary]
+    argon_langevin_protocol: ArgonThermostatProtocolSummary | None = None
 
 
 def simulate_baoab_langevin(
@@ -195,7 +228,11 @@ def summarize_thermostat_run(
 
 def run_thermostat_experiment(
     spec: ThermostatTutorialSpec, config_sha256: str
-) -> tuple[ThermostatExperimentSummary, dict[str, tuple[np.ndarray, np.ndarray, np.ndarray]]]:
+) -> tuple[
+    ThermostatExperimentSummary,
+    dict[str, tuple[np.ndarray, np.ndarray, np.ndarray]],
+    ArgonResultMap,
+]:
     """Run all configured thermostat diagnostics."""
 
     summaries = []
@@ -208,6 +245,8 @@ def run_thermostat_experiment(
         )
         summaries.append(summary)
         trajectories[thermostat.name] = trajectory
+    argon_results = run_argon_langevin_results(spec)
+    argon_langevin_runs = [summary for summary, _ in argon_results.values()]
     return (
         ThermostatExperimentSummary(
             post=spec.post,
@@ -220,9 +259,14 @@ def run_thermostat_experiment(
             seed=spec.experiment.seed,
             config_sha256=config_sha256,
             runs=summaries,
-            argon_langevin_runs=run_argon_langevin_experiment(spec),
+            argon_langevin_runs=argon_langevin_runs,
+            argon_langevin_protocol=summarize_argon_langevin_protocol(
+                spec,
+                argon_langevin_runs,
+            ),
         ),
         trajectories,
+        argon_results,
     )
 
 
@@ -231,18 +275,67 @@ def run_argon_langevin_experiment(
 ) -> list[ArgonThermostatRunSummary]:
     """Run optional compact argon Langevin thermostat diagnostics."""
 
+    return [summary for summary, _ in run_argon_langevin_results(spec).values()]
+
+
+def run_argon_langevin_results(spec: ThermostatTutorialSpec) -> ArgonResultMap:
+    """Run optional argon Langevin diagnostics and retain compact trajectories."""
+
     if spec.argon_langevin is None:
-        return []
-    return [
-        summarize_argon_langevin_run(spec, case_index=idx)[0]
-        for idx, _ in enumerate(spec.argon_langevin.cases)
-    ]
+        return {}
+    return {
+        (case_index, replica_index): summarize_argon_langevin_run(
+            spec,
+            case_index=case_index,
+            replica_index=replica_index,
+        )
+        for case_index, _ in enumerate(spec.argon_langevin.cases)
+        for replica_index in range(spec.argon_langevin.replica_count)
+    }
+
+
+def summarize_argon_langevin_protocol(
+    spec: ThermostatTutorialSpec,
+    runs: list[ArgonThermostatRunSummary],
+) -> ArgonThermostatProtocolSummary | None:
+    """Aggregate configured argon thermostat diagnostics."""
+
+    if spec.argon_langevin is None or not runs:
+        return None
+    argon = spec.argon_langevin
+    return ArgonThermostatProtocolSummary(
+        protocol_label=argon.protocol_label,
+        target_device=argon.target_device,
+        replica_count=argon.replica_count,
+        case_count=len(argon.cases),
+        atom_count=runs[0].atom_count,
+        target_temperature=argon.temperature,
+        num_steps=argon.num_steps,
+        nve_handoff_steps=argon.nve_handoff_steps,
+        max_abs_temperature_relative_error=float(
+            max(abs(run.kinetic_temperature_relative_error) for run in runs)
+        ),
+        mean_abs_temperature_relative_error=float(
+            np.mean([abs(run.kinetic_temperature_relative_error) for run in runs])
+        ),
+        max_abs_nve_handoff_drift=float(
+            max(abs(run.nve_normalized_energy_drift) for run in runs)
+        ),
+        mean_abs_nve_handoff_drift=float(
+            np.mean([abs(run.nve_normalized_energy_drift) for run in runs])
+        ),
+        max_nve_handoff_energy_error=float(
+            max(run.nve_max_abs_relative_energy_error for run in runs)
+        ),
+        unstable_handoff_count=sum(1 for run in runs if run.nve_unstable),
+    )
 
 
 def summarize_argon_langevin_run(
     spec: ThermostatTutorialSpec,
     case_index: int,
-) -> tuple[ArgonThermostatRunSummary, tuple[np.ndarray, np.ndarray]]:
+    replica_index: int = 0,
+) -> tuple[ArgonThermostatRunSummary, tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
     """Simulate reduced-unit argon with BAOAB Langevin dynamics."""
 
     if spec.argon_langevin is None:
@@ -253,10 +346,11 @@ def summarize_argon_langevin_run(
     atoms = argon_fcc(argon.repetitions, argon.number_density)
     positions = atoms.get_positions().astype(float)
     box = float(atoms.cell.lengths()[0])
+    seed = argon.seed + case_index * 1009 + replica_index * 9173
     velocities = _initialized_argon_velocities(
         atom_count=len(atoms),
         temperature=argon.temperature,
-        seed=argon.seed + case_index * 1009,
+        seed=seed,
     )
     forces, potential = _lennard_jones_forces(
         positions,
@@ -267,7 +361,7 @@ def summarize_argon_langevin_run(
     )
     c = float(np.exp(-case.gamma * argon.time_step))
     sigma_v = float(np.sqrt(argon.temperature * (1.0 - c**2)))
-    rng = np.random.default_rng(argon.seed + case_index * 1009 + 17)
+    rng = np.random.default_rng(seed + 17)
     times: list[float] = []
     kinetic_temperatures: list[float] = []
     velocity_memory: list[float] = []
@@ -299,9 +393,38 @@ def summarize_argon_langevin_run(
     memory_array = np.asarray(velocity_memory, dtype=float)
     velocity_iat = _integrated_autocorrelation_time(memory_array)
     final_energy = float(0.5 * np.sum(velocities**2) + potential)
+
+    nve_times: list[float] = [0.0]
+    nve_energies: list[float] = [final_energy]
+    for step in range(1, argon.nve_handoff_steps + 1):
+        velocities += 0.5 * argon.time_step * forces
+        positions = (positions + argon.time_step * velocities) % box
+        forces, potential = _lennard_jones_forces(
+            positions,
+            box_length=box,
+            epsilon=argon.epsilon,
+            sigma=argon.sigma,
+            cutoff=argon.cutoff,
+        )
+        velocities += 0.5 * argon.time_step * forces
+        if step % argon.nve_handoff_sample_every == 0 or step == argon.nve_handoff_steps:
+            nve_times.append(step * argon.time_step)
+            nve_energies.append(float(0.5 * np.sum(velocities**2) + potential))
+    nve_time_array = np.asarray(nve_times, dtype=float)
+    nve_energy_array = np.asarray(nve_energies, dtype=float)
+    nve_initial_energy = float(nve_energy_array[0])
+    nve_relative_error = (nve_energy_array - nve_initial_energy) / abs(nve_initial_energy)
+    nve_final_time = max(float(nve_time_array[-1]), argon.time_step)
+    nve_normalized_drift = float(
+        (nve_energy_array[-1] - nve_initial_energy)
+        / (abs(nve_initial_energy) * nve_final_time)
+    )
     summary = ArgonThermostatRunSummary(
+        protocol_label=argon.protocol_label,
         thermostat=case.name,
         gamma=case.gamma,
+        replica_index=replica_index,
+        seed=seed,
         atom_count=len(atoms),
         samples=len(temperature_array),
         target_temperature=argon.temperature,
@@ -313,8 +436,17 @@ def summarize_argon_langevin_run(
         velocity_lag1_autocorrelation=_lag_autocorrelation(memory_array, lag=1),
         velocity_integrated_autocorrelation_time=velocity_iat,
         final_total_energy=final_energy,
+        nve_handoff_steps=argon.nve_handoff_steps,
+        nve_initial_energy=nve_initial_energy,
+        nve_final_energy=float(nve_energy_array[-1]),
+        nve_max_abs_relative_energy_error=float(np.max(np.abs(nve_relative_error))),
+        nve_normalized_energy_drift=nve_normalized_drift,
+        nve_unstable=bool(
+            not np.isfinite(nve_energy_array).all()
+            or np.max(np.abs(nve_relative_error)) > 0.05
+        ),
     )
-    return summary, (time_array, temperature_array)
+    return summary, (time_array, temperature_array, nve_time_array, nve_relative_error)
 
 
 def _initialized_argon_velocities(
@@ -340,7 +472,7 @@ def _write_samples(
     names = list(trajectories)
 
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         header = ["time"]
         for name in names:
             header.extend([f"{name}_position", f"{name}_velocity"])
@@ -356,27 +488,55 @@ def _write_samples(
 def _write_argon_langevin_samples(
     path: Path,
     spec: ThermostatTutorialSpec,
+    argon_results: ArgonResultMap,
     max_rows: int = 800,
 ) -> None:
     if spec.argon_langevin is None:
         return
 
-    trajectories = {
-        spec.argon_langevin.cases[idx].name: summarize_argon_langevin_run(spec, idx)[1]
-        for idx in range(len(spec.argon_langevin.cases))
-    }
-    longest = max(len(times) for times, _ in trajectories.values())
+    longest = max(len(trajectory[0]) for _, trajectory in argon_results.values())
     stride = max(1, int(np.ceil(longest / max_rows)))
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["thermostat", "time", "kinetic_temperature"])
-        for name, (times, temperatures) in trajectories.items():
+        writer = csv.writer(handle, lineterminator="\n")
+        writer.writerow(["thermostat", "replica_index", "time", "kinetic_temperature"])
+        for (case_index, replica_index), (_, trajectory) in argon_results.items():
+            name = spec.argon_langevin.cases[case_index].name
+            times, temperatures, _, _ = trajectory
             for idx in range(0, len(times), stride):
                 writer.writerow(
                     [
                         name,
+                        replica_index,
                         f"{times[idx]:.12g}",
                         f"{temperatures[idx]:.12g}",
+                    ]
+                )
+
+
+def _write_argon_handoff_samples(
+    path: Path,
+    spec: ThermostatTutorialSpec,
+    argon_results: ArgonResultMap,
+    max_rows: int = 800,
+) -> None:
+    if spec.argon_langevin is None:
+        return
+
+    longest = max(len(trajectory[2]) for _, trajectory in argon_results.values())
+    stride = max(1, int(np.ceil(longest / max_rows)))
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle, lineterminator="\n")
+        writer.writerow(["thermostat", "replica_index", "time", "relative_energy_error"])
+        for (case_index, replica_index), (_, trajectory) in argon_results.items():
+            name = spec.argon_langevin.cases[case_index].name
+            _, _, times, relative_errors = trajectory
+            for idx in range(0, len(times), stride):
+                writer.writerow(
+                    [
+                        name,
+                        replica_index,
+                        f"{times[idx]:.12g}",
+                        f"{relative_errors[idx]:.12g}",
                     ]
                 )
 
@@ -392,25 +552,33 @@ def write_thermostat_outputs(
     output_dir.mkdir(parents=True, exist_ok=True)
     config_path = config_root / f"post-{spec.post}" / f"{spec.profile}.json"
     prov = provenance(config_path)
-    summary, trajectories = run_thermostat_experiment(spec, prov.config_sha256)
+    summary, trajectories, argon_results = run_thermostat_experiment(
+        spec,
+        prov.config_sha256,
+    )
 
     summary_path = output_dir / "thermostat_summary.json"
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "thermostat_samples.csv"
     argon_samples_path = output_dir / "argon_langevin_samples.csv"
+    argon_handoff_samples_path = output_dir / "argon_handoff_samples.csv"
 
     summary_path.write_text(
         json.dumps(asdict(summary), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     _write_samples(samples_path, trajectories)
-    _write_argon_langevin_samples(argon_samples_path, spec)
+    _write_argon_langevin_samples(argon_samples_path, spec, argon_results)
+    _write_argon_handoff_samples(argon_handoff_samples_path, spec, argon_results)
     manifest = {
         "config": asdict(spec),
         "summary_file": summary_path.name,
         "samples_file": samples_path.name,
         "argon_langevin_samples_file": (
             argon_samples_path.name if spec.argon_langevin is not None else None
+        ),
+        "argon_handoff_samples_file": (
+            argon_handoff_samples_path.name if spec.argon_langevin is not None else None
         ),
         "provenance": asdict(prov),
         "versions": {
@@ -435,8 +603,15 @@ def load_thermostat_summary(path: Path) -> ThermostatExperimentSummary:
         ArgonThermostatRunSummary(**run)
         for run in data.pop("argon_langevin_runs", [])
     ]
+    argon_langevin_protocol_data = data.pop("argon_langevin_protocol", None)
+    argon_langevin_protocol = (
+        None
+        if argon_langevin_protocol_data is None
+        else ArgonThermostatProtocolSummary(**argon_langevin_protocol_data)
+    )
     return ThermostatExperimentSummary(
         runs=runs,
         argon_langevin_runs=argon_langevin_runs,
+        argon_langevin_protocol=argon_langevin_protocol,
         **data,
     )

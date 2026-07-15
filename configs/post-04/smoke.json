@@ -20,17 +20,22 @@
     ]
   },
   "argon_langevin": {
+    "protocol_label": "smoke_langevin_nve_handoff",
     "repetitions": 2,
     "number_density": 0.65,
     "temperature": 0.70,
     "seed": 4041,
+    "replica_count": 2,
     "time_step": 0.003,
     "num_steps": 1200,
     "warmup_steps": 200,
     "sample_every": 5,
+    "nve_handoff_steps": 300,
+    "nve_handoff_sample_every": 5,
     "epsilon": 1.0,
     "sigma": 1.0,
     "cutoff": 2.5,
+    "target_device": "cpu",
     "cases": [
       {"name": "weak_argon_langevin", "gamma": 0.2},
       {"name": "strong_argon_langevin", "gamma": 4.0}

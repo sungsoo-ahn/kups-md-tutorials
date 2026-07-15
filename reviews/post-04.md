@@ -5,10 +5,10 @@
 - Post: 04
 - Profiles reviewed: smoke and full
 - Current status: controlled BAOAB Langevin thermostat diagnostic workflow plus
-  compact reduced-unit argon Langevin temperature-response diagnostic,
-  committed smoke/full outputs, notebook, full-profile diagnostic figure,
-  expanded hidden website draft, rendered page snapshots, and self-review
-  artifact are in place.
+  a 256-atom, three-replica reduced-unit argon Langevin thermostat-to-NVE
+  handoff diagnostic, committed smoke/full outputs, notebook, full-profile
+  diagnostic figure, expanded hidden website draft, rendered page snapshots,
+  and self-review artifact are in place.
 
 ## Commands
 
@@ -23,6 +23,7 @@
 - `uv run kups-tutorial verify-artifacts`
 - `uv run kups-tutorial verify-reviews`
 - `uv run kups-tutorial export-site --posts 04 --profile full`
+- `uv run kups-tutorial export-site --profile full`
 - `git diff --check`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
 - `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
@@ -37,10 +38,21 @@
 - Smoke and full outputs are committed under `results/post-04/`.
 - The workflow uses a deterministic BAOAB Langevin harmonic oscillator with
   fixed seeds and coupling strengths.
-- The workflow now also includes a deterministic compact argon Langevin
+- The workflow now also includes a deterministic 256-atom argon Langevin
   diagnostic: reduced-unit Lennard-Jones argon FCC cells, seeded velocities,
-  vectorized minimum-image forces, BAOAB Langevin updates, and downsampled
+  three independent velocity/noise replicas per thermostat case, vectorized
+  minimum-image forces, BAOAB Langevin updates, and downsampled
   kinetic-temperature traces in `argon_langevin_samples.csv`.
+- Each argon thermostat run now continues into a deterministic NVE handoff
+  segment from the final thermostatted state. Downsampled handoff energy traces
+  are committed in `argon_handoff_samples.csv`, and aggregate handoff drift
+  metrics are recorded in `argon_langevin_protocol`.
+- The output writer reuses computed argon trajectories for summaries and both
+  CSV files. An initial full-profile run was interrupted after summary
+  generation because the earlier writer recomputed the same many-body
+  trajectories for each compact output.
+- CSV writers now use Unix line endings so regenerated and exported result
+  files pass `git diff --check`.
 - The manifest records config hash, Git revision, Python/platform metadata, and
   ASE/kUPS/NumPy versions.
 - `kups-tutorial run`, `verify`, and `run-all` include post 04.
@@ -49,10 +61,10 @@
 
 Open items:
 
-- Replace or augment the compact reduced-unit argon check with a larger GPU
-  kUPS production thermostat and NVE-handoff diagnostic before treating this
-  post as final. The current argon run is a many-body sanity check, not the
-  target production MD experiment described in the plan.
+- Replace or augment the CPU-fallback reduced-unit argon handoff check with a
+  real CUDA/GPU kUPS production thermostat and NVE-handoff diagnostic before
+  treating this post as final. The current argon run is a stronger many-body
+  sanity check, not the target production MD experiment described in the plan.
 
 ## Scientific Review
 
@@ -65,14 +77,20 @@ Open items:
 - The strong-coupling case has much larger position integrated autocorrelation
   time (`~53`) than the weak/moderate cases (`~10-13`), supporting the claim
   that thermostat coupling changes dynamics even when moments look acceptable.
-- The full compact argon Langevin diagnostic contains 108 atoms at reduced
-  density `0.65` and target temperature `0.70`. Kinetic-temperature means are
-  about `0.614`, `0.698`, and `0.703` for `gamma = 0.2`, `1.0`, and `4.0`;
-  all stay within the configured review threshold, and the weak-coupling
-  under-target result is visible in the figure rather than hidden.
-- The argon result supports a many-body kinetic-temperature response sanity
-  check, but it is not a GPU kUPS production thermostat benchmark and should
-  not be described as final production evidence.
+- The full argon Langevin protocol contains 256 atoms at reduced density
+  `0.65` and target temperature `0.70`, with 3 velocity/noise replicas for each
+  thermostat coupling `gamma = 0.2`, `1.0`, and `4.0`.
+- Across the 9 argon thermostat runs, the maximum absolute
+  kinetic-temperature relative error is `5.86e-2`, and the mean absolute
+  kinetic-temperature relative error is `2.43e-2`.
+- Across the 9 post-thermostat NVE handoff runs, the maximum absolute
+  normalized energy drift is `1.14e-5`, the mean absolute normalized drift is
+  `5.02e-6`, the maximum relative energy error is `5.29e-5`, and no handoff run
+  is marked unstable.
+- The argon result supports a many-body thermostat-to-NVE handoff sanity check
+  with initialization/noise sensitivity represented by replicas, but it is not
+  a CUDA/GPU kUPS production thermostat benchmark and should not be described
+  as final production evidence.
 
 Open items:
 
@@ -92,16 +110,26 @@ Feedback loop:
   the variance and kinetic panels show the canonical target line clearly, and
   the autocorrelation panel makes the strong-coupling dynamical distortion
   visible.
-- New compact argon pass: the first four-panel full-profile snapshot at
+- Earlier compact argon pass: the first four-panel full-profile snapshot at
   `1728 x 1120` showed the argon kinetic-temperature traces clearly, but the
   title "Argon temperature remains controlled" overstated the weak-coupling
-  trace, which sits below target in the compact run.
+  trace, which sat below target in the compact run.
 - Revised the argon panel title to "Argon thermostat temperature response",
   added a white legend frame, regenerated
   `snapshots/post-04/thermostat_diagnostics_full_snapshot.png`, and inspected
   the second pass. The revised figure no longer overclaims the compact argon
   result, the legend remains readable, and no panel labels or tick labels are
   clipped.
+- New handoff pass: regenerated `figures/post-04/thermostat_diagnostics_full.svg`
+  and `snapshots/post-04/thermostat_diagnostics_full_snapshot.png` after
+  replacing the fourth panel with a 256-atom, three-replica NVE handoff drift
+  bar chart. The snapshot is `1728 x 1120`; labels fit, the log-scale drift
+  axis is readable, the replica error bars are visible, and the annotation
+  naming 256 atoms, 3 replicas, and 1000 NVE steps does not cover the bars.
+- The smoke snapshot `snapshots/post-04/thermostat_diagnostics_snapshot.png`
+  is also `1728 x 1120`; it shows the smaller 32-atom, 2-replica smoke handoff
+  panel. Labels and annotation remain readable, and the smoke/full distinction
+  is clear from the atom/replica annotation.
 - The figure is intentionally moment-focused; it does not yet show the full
   kinetic-energy distribution. That is acceptable for this draft but should be
   revisited if the final prose makes a distribution-shape claim.
@@ -119,13 +147,16 @@ Open items:
 - The notebook loads both smoke and full configurations, displays committed
   outputs, and regenerates the full-profile diagnostic figure from committed
   result files.
+- The notebook markdown now describes the 256-atom, three-replica argon
+  thermostat-to-NVE handoff diagnostic and keeps the CPU-fallback/non-production
+  limitation explicit.
 - The notebook keeps the explanation focused on sampling and dynamics rather
   than becoming the implementation source.
 
 Open items:
 
 - Re-execute the notebook if the final article adds a kinetic-energy histogram,
-  empirical CDF, or larger GPU kUPS thermostat figure.
+  empirical CDF, or real CUDA/GPU kUPS production thermostat figure.
 
 ## Website Draft Review
 

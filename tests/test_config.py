@@ -72,6 +72,8 @@ def test_load_thermostat_spec() -> None:
     assert spec.experiment.thermostats[0].method == "baoab_langevin"
     assert spec.argon_langevin is not None
     assert spec.argon_langevin.repetitions == 2
+    assert spec.argon_langevin.replica_count == 2
+    assert spec.argon_langevin.nve_handoff_steps == 300
     assert spec.argon_langevin.cases[-1].gamma == 4.0
 
 

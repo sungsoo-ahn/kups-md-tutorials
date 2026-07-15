@@ -1059,29 +1059,53 @@ def _draw_post04_figure(
     )
 
     argon_runs = sorted(summary.get("argon_langevin_runs", []), key=lambda run: run["gamma"])
-    flat_axes[3].axhline(1.0, color="#333333", linewidth=0.9, label="target")
+    handoff_groups: dict[float, list[float]] = {}
     for run in argon_runs:
-        series = argon_samples.get(run["thermostat"])
-        if series is None:
-            continue
-        flat_axes[3].plot(
-            series["time"],
-            series["kinetic_temperature"] / run["target_temperature"],
-            linewidth=1.1,
-            label=f"gamma={run['gamma']:g}",
+        handoff_groups.setdefault(run["gamma"], []).append(
+            abs(run["nve_normalized_energy_drift"])
         )
-    flat_axes[3].set_title("Argon thermostat temperature response")
-    flat_axes[3].set_xlabel("reduced time")
-    flat_axes[3].set_ylabel("Tkin / target")
+    if handoff_groups:
+        gammas = np.asarray(sorted(handoff_groups), dtype=float)
+        centers = np.arange(len(gammas))
+        means = np.asarray([np.mean(handoff_groups[gamma]) for gamma in gammas], dtype=float)
+        errors = np.asarray(
+            [
+                np.std(handoff_groups[gamma], ddof=1) / np.sqrt(len(handoff_groups[gamma]))
+                if len(handoff_groups[gamma]) > 1
+                else 0.0
+                for gamma in gammas
+            ],
+            dtype=float,
+        )
+        flat_axes[3].bar(
+            centers,
+            means,
+            yerr=errors,
+            color="#4f8c8b",
+            edgecolor="#1c4f4e",
+            linewidth=0.6,
+            capsize=3,
+        )
+        flat_axes[3].set_xticks(centers)
+        flat_axes[3].set_xticklabels([f"gamma={gamma:g}" for gamma in gammas], fontsize=8)
+        protocol = summary.get("argon_langevin_protocol") or {}
+        if protocol:
+            flat_axes[3].text(
+                0.03,
+                0.95,
+                f"{protocol['atom_count']} Ar atoms\n"
+                f"{protocol['replica_count']} replicas\n"
+                f"NVE steps {protocol['nve_handoff_steps']}",
+                transform=flat_axes[3].transAxes,
+                va="top",
+                ha="left",
+                fontsize=8.2,
+                bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+            )
+    flat_axes[3].set_title("Argon thermostat to NVE handoff")
+    flat_axes[3].set_ylabel("|NVE normalized energy drift|")
     if argon_runs:
-        flat_axes[3].legend(
-            frameon=True,
-            fontsize=8,
-            loc="upper right",
-            title=f"{argon_runs[-1]['atom_count']} Ar atoms",
-            title_fontsize=8,
-            framealpha=0.86,
-        )
+        flat_axes[3].set_yscale("log")
 
     for ax in flat_axes:
         ax.spines["top"].set_visible(False)

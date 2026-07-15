@@ -898,6 +898,8 @@ def _check_site_publication_state(
         violations,
         final_posts_available=len(final_post_paths) == len(SUPPORTED_POSTS),
     )
+    if len(final_post_paths) == len(SUPPORTED_POSTS):
+        _check_site_publication_dates(final_post_paths, violations)
     pages_dir = site_root / "_pages"
     for post in SUPPORTED_POSTS:
         page_path = final_post_paths.get(post)
@@ -917,6 +919,50 @@ def _check_site_publication_state(
             violations.append(f"{page_path}: page still declares itself non-final")
         if "intentionally hidden from site navigation" in text:
             violations.append(f"{page_path}: page still has hidden-draft note")
+
+
+def _check_site_publication_dates(
+    post_paths: dict[str, Path],
+    violations: list[str],
+) -> None:
+    publication_dates: dict[str, str] = {}
+    for post, page_path in sorted(post_paths.items()):
+        text = page_path.read_text(encoding="utf-8")
+        front_matter = _front_matter(text)
+        if front_matter is None:
+            continue
+        date = _front_matter_value(front_matter, "date")
+        last_updated = _front_matter_value(front_matter, "last_updated")
+        if not _is_iso_date(date):
+            violations.append(f"{page_path}: front matter date is not YYYY-MM-DD")
+            continue
+        publication_dates[post] = date
+        if not page_path.name.startswith(f"{date}-"):
+            violations.append(
+                f"{page_path}: _posts filename date does not match front matter date {date}"
+            )
+        if not _is_iso_date(last_updated):
+            violations.append(
+                f"{page_path}: front matter last_updated is not YYYY-MM-DD"
+            )
+        elif last_updated < date:
+            violations.append(
+                f"{page_path}: last_updated {last_updated} predates publication date {date}"
+            )
+
+    unique_dates = sorted(set(publication_dates.values()))
+    if len(unique_dates) > 1:
+        details = ", ".join(
+            f"post {post}: {date}" for post, date in sorted(publication_dates.items())
+        )
+        violations.append(
+            "kUPS final blog posts must share one publication date; found "
+            + details
+        )
+
+
+def _is_iso_date(value: str | None) -> bool:
+    return isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value) is not None
 
 
 def _check_site_series_index(

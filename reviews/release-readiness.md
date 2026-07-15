@@ -1862,6 +1862,57 @@ Review decision:
   publication changes, and now the explicit migration from hidden `_pages`
   drafts to final `_posts` blog articles.
 
+## Update 2026-07-15: Final Publication Date Gate
+
+Scope:
+
+- Tightened the site-aware final-publication gate so the twelve final `_posts`
+  articles must share one publication date, matching the `PLAN.md` requirement
+  for one publication date across the series.
+- Added checks that each `_posts` filename date matches its front matter
+  `date`, and that `last_updated` is a valid `YYYY-MM-DD` date that does not
+  predate publication.
+- Scoped the new date invariant to the final `_posts` state. Current hidden
+  drafts under `_pages` remain governed by the existing hidden/publication
+  blockers.
+- No configs, results, notebooks, figures, snapshots, website pages, website
+  assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 33 tests.
+
+Code and reproducibility review:
+
+- The previous site style gate only required `date` and `last_updated` fields
+  to exist. The new gate validates their format and relationship when all
+  final `_posts` articles are present.
+- Regression coverage now mutates Post 03 in the clean final-state fixture to
+  use a different front matter date, a stale filename date, and a
+  `last_updated` value before the publication date. The audit reports all
+  three problems.
+- The current real website still lacks final `_posts` entries by design, so
+  this gate does not add noise to the hidden draft state beyond the already
+  accepted final-publication blockers.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or CSS-sensitive
+  markup changed, so no rendered desktop/mobile page snapshots were required.
+  Existing rendered-page evidence remains in `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone after focused lint and
+  release-readiness regression tests.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

@@ -785,6 +785,45 @@ def test_release_readiness_reports_blog_style_violations(tmp_path: Path) -> None
     assert any("author-note Note text" in violation for violation in result.violations)
 
 
+def test_release_readiness_reports_publication_date_violations(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = _site_post_page_path(tmp_path / "site", "03")
+    text = page.read_text(encoding="utf-8")
+    text = text.replace("date: 2026-07-14\n", "date: 2026-07-20\n")
+    text = text.replace("last_updated: 2026-07-15\n", "last_updated: 2026-07-19\n")
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "_posts filename date does not match front matter date 2026-07-20"
+        in violation
+        for violation in result.violations
+    )
+    assert any(
+        "last_updated 2026-07-19 predates publication date 2026-07-20"
+        in violation
+        for violation in result.violations
+    )
+    assert any(
+        "must share one publication date" in violation
+        and "post 03: 2026-07-20" in violation
+        for violation in result.violations
+    )
+
+
 def test_release_readiness_reports_missing_site_source_links(tmp_path: Path) -> None:
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)

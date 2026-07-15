@@ -370,6 +370,7 @@ def _check_figure_source_provenance(
         if not isinstance(entries, list) or not entries:
             violations.append(f"{path}: missing figure source entries for post {post}")
             continue
+        post_covered_files: set[str] = set()
         for index, entry in enumerate(entries, start=1):
             label = f"{path}: post-{post} entry {index}"
             if not isinstance(entry, dict):
@@ -384,6 +385,12 @@ def _check_figure_source_provenance(
                         violations.append(f"{label} contains invalid figure file path")
                         continue
                     covered_files.add(figure_file)
+                    post_covered_files.add(figure_file)
+                    if not figure_file.startswith(f"figures/post-{post}/"):
+                        violations.append(
+                            f"{label} figure file is not under figures/post-{post}/: "
+                            f"{figure_file}"
+                        )
                     if not _ledger_path_exists(repo_root, figure_file):
                         violations.append(f"{label} figure file does not exist: {figure_file}")
 
@@ -433,6 +440,14 @@ def _check_figure_source_provenance(
                     source_data_paths=source_data_paths,
                     violations=violations,
                 )
+        _check_post_figure_source_coverage(
+            path,
+            post=post,
+            figure_root=figure_root,
+            repo_root=repo_root,
+            covered_files=post_covered_files,
+            violations=violations,
+        )
 
     for figure_path in sorted(figure_root.glob("post-*/*.svg")) + sorted(
         figure_root.glob("post-*/*.png")
@@ -440,6 +455,34 @@ def _check_figure_source_provenance(
         rel_path = _relative_to_root_or_posix(figure_path, repo_root)
         if rel_path not in covered_files:
             violations.append(f"{path}: missing source provenance for {rel_path}")
+
+
+def _check_post_figure_source_coverage(
+    path: Path,
+    *,
+    post: str,
+    figure_root: Path,
+    repo_root: Path,
+    covered_files: set[str],
+    violations: list[str],
+) -> None:
+    figure_dir = figure_root / f"post-{post}"
+    for pattern, description in (
+        ("*_diagnostics.svg", "publication SVG figure"),
+        ("*_diagnostics.png", "publication PNG figure"),
+        ("*_diagnostics_full.svg", "full-profile SVG figure"),
+        ("*_diagnostics_full.png", "full-profile PNG figure"),
+    ):
+        matches = sorted(figure_dir.glob(pattern))
+        if not matches:
+            continue
+        for figure_path in matches:
+            rel_path = _relative_to_root_or_posix(figure_path, repo_root)
+            if rel_path not in covered_files:
+                violations.append(
+                    f"{path}: missing {description} source provenance "
+                    f"for post {post}: {rel_path}"
+                )
 
 
 def _check_figure_source_data_coverage(

@@ -2155,6 +2155,62 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Post-Specific Figure Provenance Coverage Gate
+
+Scope:
+
+- Tightened the figure source provenance audit so each post's ledger entries
+  must reference figure files under that same post's `figures/post-XX/`
+  directory.
+- Added post-specific coverage checks for the required publication SVG/PNG and
+  full-profile SVG/PNG diagnostic figures, so a cross-post ledger entry cannot
+  hide a missing provenance record for the intended post.
+- Extended the release-readiness regression test to cover a Post 08 ledger
+  entry that points at a Post 07 figure and omits Post 08 publication/full
+  figure provenance.
+- No configs, results, notebooks, figure assets, snapshots, website pages,
+  website assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 38 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the expected final-release blockers: production GPU
+  diagnostics, hidden/non-final pages, missing final `_posts`, and snapshot
+  recapture after public indexing.
+
+Code and reproducibility review:
+
+- The previous provenance gate required figure files, source data, generator
+  links, source URLs, licenses, and modifications, but a ledger entry could
+  still point at another post's figure path.
+- The new check makes the provenance ledger post-specific and verifies the
+  required four figure assets per post are covered by that post's entries.
+- The current `reviews/figure-sources.json` satisfies the stricter check for
+  all twelve posts.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or
+  CSS-sensitive markup changed, so no rendered desktop/mobile page snapshots
+  were required. Existing rendered-page evidence remains in
+  `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone after focused lint,
+  release-readiness regression tests, and a site-aware audit against the real
+  website checkout.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

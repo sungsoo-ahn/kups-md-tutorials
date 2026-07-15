@@ -1394,6 +1394,9 @@ def test_release_readiness_reports_missing_figure_source_provenance(
     ledger["post-08"][0]["figure_files"].remove(
         "figures/post-08/example_diagnostics_full.png"
     )
+    ledger["post-08"][0]["figure_files"][0] = (
+        "figures/post-07/example_diagnostics.svg"
+    )
     ledger["post-08"][0]["source_data"].remove("configs/post-08/full.json")
     ledger["post-08"][0]["source_data"].remove(
         "results/post-08/smoke/example_summary.json"
@@ -1415,6 +1418,15 @@ def test_release_readiness_reports_missing_figure_source_provenance(
 
     assert any(
         "missing source provenance for figures/post-08/example_diagnostics_full.png"
+        in violation
+        for violation in result.violations
+    )
+    assert any(
+        "missing publication SVG figure source provenance for post 08" in violation
+        for violation in result.violations
+    )
+    assert any(
+        "figure file is not under figures/post-08/: figures/post-07/example_diagnostics.svg"
         in violation
         for violation in result.violations
     )

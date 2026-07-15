@@ -2727,3 +2727,77 @@ Revision decisions:
   the article makes production scientific claims.
 - Re-run rendered snapshots after final production MD diagnostics, final
   citations, or any public-indexing change.
+
+## Post 11 Pair-Distance Steered Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29399888465`.
+- Website commit reviewed:
+  `1658d017470b9cb0545530bd1f2395281a223559`.
+- Website deploy run: `29399712703`.
+- Tutorial implementation commit reviewed:
+  `66c25c2f9b8dd6e79728d70341583f63f94a4526`.
+- Tutorial restamp commit reviewed:
+  `355e6b7c5d696b56bcac74964eb71d6bf93e0bde`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post11-pair-steered-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post11-pair-steered-snapshots/manifest.json`.
+- Capture scope: hidden Post 11 page after adding the compact pair-distance
+  steered-pulling diagnostic, CPU-fallback provenance, six-panel figure, and
+  refreshed article prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post11-pair-steered-snapshots/post-11-desktop.png`
+  (`1440 x 12032`)
+- `/tmp/kups-post11-pair-steered-snapshots/post-11-mobile.png`
+  (`390 x 18811`)
+- Focused crops:
+  `/tmp/kups-post11-pair-steered-snapshots/desktop-figure-pair-section.png`,
+  `/tmp/kups-post11-pair-steered-snapshots/desktop-runtime-status.png`,
+  `/tmp/kups-post11-pair-steered-snapshots/mobile-figure-pair-section-2.png`,
+  and `/tmp/kups-post11-pair-steered-snapshots/mobile-runtime-status-2.png`.
+
+Feedback:
+
+- Desktop capture renders the hidden Post 11 draft end to end with the added
+  pair-distance steered-pulling prose, six-panel figure, caption, provenance
+  table, Current Status section, references, and footer present.
+- The six-panel figure is visible and contained in the article column. The
+  pair-distance work panel and compact MD context panel are small but readable
+  on desktop, and the caption matches the new visual claim.
+- Desktop runtime table: target device `cuda_or_cpu_fallback`, runtime device
+  `jax:cpu;devices:cpu`, production GPU readiness `false`, and the blocking
+  reason wrap inside the table without overflow.
+- Mobile capture keeps the long title, source links, figure, caption,
+  pair-distance prose, runtime table, Current Status section, references, and
+  footer contained. The six-panel figure is dense at mobile width but not
+  clipped or overlapping.
+- Live check confirmed the deployed HTML contains `pair-distance
+  steered-pulling`, `cuda_or_cpu_fallback`, `jax:cpu;devices:cpu`, `six-panel`,
+  and source revision `66c25c2f9b8dd6e79728d70341583f63f94a4526`.
+- Hidden status: live `/blog/` and `/` checks found no `kups-md-tutorials` or
+  `post-11-enhanced-sampling` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after compact pair-distance steered-pulling
+  refresh.
+- Keep mobile figure density as a final typography-polish item.
+- Add real production atomistic steered trajectories, model checks, final
+  production uncertainty intervals if public claims depend on them, and final
+  citations before public indexing.
+- Re-run rendered snapshots after final production MD diagnostics, final
+  citations, or any public-indexing change.

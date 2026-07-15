@@ -443,3 +443,182 @@ Rendered-page review:
   footer remain inside the page column. The figure is small but readable enough
   for the hidden draft, and no text overlap was found in the inspected
   snapshot.
+
+## Update 2026-07-15: Pair-Distance Steered-Pulling Diagnostic
+
+- Tutorial implementation commit reviewed:
+  `66c25c2f9b8dd6e79728d70341583f63f94a4526`.
+- Tutorial artifact restamp commit reviewed:
+  `355e6b7c5d696b56bcac74964eb71d6bf93e0bde`.
+- Website commit reviewed:
+  `1658d017470b9cb0545530bd1f2395281a223559`.
+- Website deployment run:
+  `29399712703`.
+- Snapshot workflow run:
+  `29399888465`.
+- Snapshot artifact: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post11-pair-steered-snapshots/`.
+
+Scope:
+
+- Added an optional `pair_distance_steered` block to the Post 11 smoke and full
+  configurations.
+- Added a compact reduced-unit Lennard-Jones pair-distance steered-pulling
+  diagnostic with fast/slow protocols, forward/reverse work ensembles,
+  Jarzynski direction estimates, ESS fractions, and target/runtime/GPU-readiness
+  provenance.
+- Regenerated smoke and full compact outputs, notebook outputs, SVG/PNG figure
+  assets, figure snapshots, website JSON assets, and the hidden website page.
+
+Validation:
+
+- `uv run ruff check src/kups_md_tutorials/config.py
+  src/kups_md_tutorials/enhanced_sampling.py src/kups_md_tutorials/figures.py
+  src/kups_md_tutorials/workflows.py tests/test_config.py` passed.
+- `uv run pytest tests/test_config.py::test_load_enhanced_sampling_spec
+  tests/test_cli.py::test_cli_run_and_verify_post11_smoke
+  tests/test_figures.py::test_post11_figure_generation
+  tests/test_notebooks.py::test_post11_notebook_executes -q` passed.
+- `uv run kups-tutorial run 11 --profile smoke` and
+  `uv run kups-tutorial verify 11 --profile smoke` passed.
+- `uv run kups-tutorial run 11 --profile full` and
+  `uv run kups-tutorial verify 11 --profile full` passed.
+- `uv run python scripts/generate_post11_figures.py` passed.
+- `uv run jupyter execute notebooks/post-11-enhanced-sampling.ipynb --inplace`
+  passed.
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py
+  tests/test_notebooks.py -q` passed with `49 passed`.
+- `uv run kups-tutorial verify-artifacts` passed.
+- `python3 scripts/validate_kups_pages.py` passed in
+  `../sungsoo-ahn.github.io`.
+- `python3 scripts/validate_blog.py` passed in `../sungsoo-ahn.github.io` with
+  pre-existing unused-image warnings.
+- `git diff --check` passed in both repositories.
+
+Code and reproducibility review:
+
+- `EnhancedSamplingTutorialSpec` now has optional
+  `PairDistanceSteeredSpec`; the loader validates positive domain, path counts,
+  ordered fast/slow protocol lengths, trap force constant, endpoint radii,
+  noise scale, LJ parameters, and nonempty target device.
+- `EnhancedSamplingExperimentSummary` now has optional
+  `pair_distance_steered`; the CSV writer exports pair-grid, pair PMF, and
+  fast/slow forward/reverse work arrays when configured.
+- Post 11 verification now requires the configured pair-distance diagnostic to
+  be present, to record a GPU blocking reason when a GPU target falls back to
+  CPU, to show larger fast than slow hysteresis, to keep the fast/slow gap
+  ratio above `1.20`, to keep Jarzynski direction spread below `3.0`, and to
+  retain exponential-work ESS fractions above `0.02`.
+- The full manifest records source revision
+  `66c25c2f9b8dd6e79728d70341583f63f94a4526` and configuration hash
+  `29f19850d439bb4d2f6e77752c0f30a4532b52fb459871b92f5d044406e82a06`.
+
+Scientific review:
+
+- The existing controlled Gaussian work identity check remains the clean
+  Jarzynski/Crooks reference. It is intentionally separate from the
+  pair-distance diagnostic.
+- Full-profile pair-distance target device: `cuda_or_cpu_fallback`.
+- Full-profile pair-distance runtime device: `jax:cpu;devices:cpu`.
+- Production GPU readiness: `false`; blocking reason records CPU fallback from
+  a CUDA/GPU target.
+- Pair coordinate: reduced pair distance `r/sigma`, pulled from `1.08` to
+  `2.20`.
+- Pair paths: `8000`; fast protocol `90` steps; slow protocol `540` steps.
+- True restrained pair free-energy difference: `0.6065`.
+- Fast pair hysteresis gap: `11.7204 +/- 0.0263`.
+- Slow pair hysteresis gap: `2.1576 +/- 0.0108`.
+- Pair fast/slow hysteresis-gap ratio: `5.43`.
+- Slow forward/reverse Jarzynski estimates: `1.3534` and `-0.1371`; direction
+  spread `1.4905`.
+- Slow exponential-work ESS fractions: `0.3697` and `0.3913`.
+- Interpretation accepted for hidden draft: the diagnostic gives an
+  atomistic-coordinate nonequilibrium example and deliberately shows that
+  exact work identities can remain finite-sample fragile. It is not presented
+  as final production steered MD.
+
+Figure feedback:
+
+- Figure source data inspected:
+  `results/post-11/full/enhanced_sampling_summary.json` and
+  `results/post-11/full/enhanced_sampling_curves.csv`.
+- Figure asset inspected:
+  `figures/post-11/enhanced_sampling_diagnostics_full.svg`.
+- Snapshot inspected:
+  `snapshots/post-11/enhanced_sampling_diagnostics_full_snapshot.png`.
+- Smoke snapshot inspected:
+  `snapshots/post-11/enhanced_sampling_diagnostics_snapshot.png`.
+- Intended visual claim: adaptive bias changes the sampled measure,
+  nonequilibrium work is a path ensemble, fast steered pulling increases
+  hysteresis, and a compact pair-distance work ensemble exposes both protocol
+  hysteresis and Jarzynski direction disagreement with explicit runtime
+  provenance.
+- Feedback: the six-panel full-profile snapshot is readable. The pair-distance
+  panel shows separated slow forward and reverse work distributions, the true
+  \(\Delta F\) line between them, and forward/reverse Jarzynski markers that
+  visibly disagree. The annotation reports fast/slow gap `5.43`, Jarzynski
+  spread `1.490`, and CPU fallback. The compact MD context panel fits the
+  coordinate, path endpoints, path count, target device, runtime device, and
+  GPU-ready status without clipping.
+- Smoke feedback: the smoke snapshot keeps the same six-panel layout; the
+  pair-distance panel is noisier and reports Jarzynski spread `2.317`, which is
+  acceptable for the smoke profile because it is a faster review run.
+- Revision decision: accepted for hidden draft. No figure edit was needed after
+  inspecting the regenerated snapshots. Revisit mobile typography only during
+  the final article pass.
+
+Notebook review:
+
+- The notebook now prints pair-distance target/runtime, production GPU
+  readiness, fast/slow gap ratio, true \(\Delta F\), forward/reverse Jarzynski
+  estimates, Jarzynski spread, and slow ESS fractions.
+- `uv run jupyter execute notebooks/post-11-enhanced-sampling.ipynb --inplace`
+  completed successfully after the code and artifact refresh.
+
+Website and rendered-page review:
+
+- The hidden page now describes the compact pair-distance steered-pulling
+  diagnostic, updates the figure caption to the six-panel figure, adds a
+  runtime provenance table, and updates Current Status to name the pair-distance
+  and runtime-status diagnostics.
+- Snapshot manifest reviewed:
+  `/tmp/kups-post11-pair-steered-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`;
+  both returned HTTP 200 and title
+  `How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work? | Sungsoo Ahn`.
+- Desktop snapshot inspected:
+  `/tmp/kups-post11-pair-steered-snapshots/post-11-desktop.png` at
+  `1440 x 12032`.
+- Mobile snapshot inspected:
+  `/tmp/kups-post11-pair-steered-snapshots/post-11-mobile.png` at
+  `390 x 18811`.
+- Focused crops inspected:
+  `/tmp/kups-post11-pair-steered-snapshots/desktop-figure-pair-section.png`,
+  `/tmp/kups-post11-pair-steered-snapshots/desktop-runtime-status.png`,
+  `/tmp/kups-post11-pair-steered-snapshots/mobile-figure-pair-section-2.png`,
+  and `/tmp/kups-post11-pair-steered-snapshots/mobile-runtime-status-2.png`.
+- Desktop feedback: the new pair-distance prose, six-panel figure, caption,
+  provenance table, Current Status section, references, and footer are present
+  and contained. No missing figure, clipped code block, or broken page chrome
+  was found in the inspected crops.
+- Mobile feedback: the six-panel figure is small but contained within the
+  column; caption and pair-distance prose wrap without overlap. The provenance
+  table, Current Status section, references, and footer remain contained.
+- Live check with cache buster `?v=1658d01` confirmed the deployed Post 11 page
+  contains `pair-distance steered-pulling`, `cuda_or_cpu_fallback`,
+  `jax:cpu;devices:cpu`, `six-panel`, and source revision
+  `66c25c2f9b8dd6e79728d70341583f63f94a4526`.
+- Live homepage and `/blog/` checks with cache buster `?v=1658d01` confirmed
+  `post-11-enhanced-sampling` and `kups-md-tutorials` are not exposed.
+
+Open items:
+
+- Blocking items for the current hidden draft: none.
+- Non-blocking items accepted until the final article pass: the mobile
+  six-panel figure is dense, and the page remains explicitly non-final.
+- Final-release blockers: add real production atomistic steered trajectories,
+  model checks, final production uncertainty intervals if public claims depend
+  on them, final citation pass, and refreshed desktop/mobile snapshots after
+  final production additions.

@@ -2536,6 +2536,65 @@ Revision decisions:
 - Re-run rendered snapshots after final production RDF-PMF figures/citations
   or any public-indexing change.
 
+## Post 08 Runtime Provenance Snapshot Refresh
+
+- Capture date: 2026-07-15
+- Website commit: `8e103a968f313b9562d79071614df23376001f80`
+- Tutorial source revision cited by full Post 08 manifest:
+  `82fe878dbecd0a51ca7c2f84b2e0e128b8f8dbd2`
+- Website deploy workflow: `Deploy site`, run `29396296025`, passed.
+- Snapshot workflow: `Capture kUPS snapshots`, run `29396474029`, passed.
+- Snapshot artifact: `kups-md-page-snapshots`
+- Downloaded artifact location:
+  `/tmp/kups-post08-runtime-provenance-snapshots/`
+- Manifest:
+  `/tmp/kups-post08-runtime-provenance-snapshots/manifest.json`
+- Manifest coverage: desktop and mobile snapshots for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`;
+  both returned HTTP 200 with title
+  `How Do Equilibrium Samples Become Free Energies? | Sungsoo Ahn`.
+
+Rendered snapshots inspected:
+
+- `/tmp/kups-post08-runtime-provenance-snapshots/post-08-desktop.png`,
+  viewport capture `1440 x 12349`.
+- `/tmp/kups-post08-runtime-provenance-snapshots/post-08-mobile.png`,
+  viewport capture `550 x 18769`.
+- Focused crops:
+  `/tmp/kups-post08-runtime-provenance-snapshots/desktop-figure.png`,
+  `/tmp/kups-post08-runtime-provenance-snapshots/desktop-runtime-table.png`,
+  `/tmp/kups-post08-runtime-provenance-snapshots/mobile-figure-corrected.png`,
+  `/tmp/kups-post08-runtime-provenance-snapshots/mobile-runtime-table-3.png`,
+  and `/tmp/kups-post08-runtime-provenance-snapshots/mobile-status-2.png`.
+
+Feedback:
+
+- Desktop runtime table: target device `cuda_or_cpu_fallback`, runtime device
+  `jax:cpu;devices:cpu`, production GPU readiness `false`, and the blocking
+  reason render inside the table; the blocking reason wraps without horizontal
+  overflow.
+- Desktop figure: the updated caption is present. The fourth panel shows the
+  `runtime: CPU fallback` annotation without covering the PMF minimum line,
+  support-threshold curves, legend, or replica-standard-deviation axis.
+- Mobile figure: the four-panel figure is dense but contained within the
+  column. The CPU-fallback label is still visible in the fourth panel, and the
+  caption wraps without overlapping neighboring prose.
+- Mobile runtime table: the long source revision/config hash wraps in prose,
+  and the table columns remain contained. The blocking reason wraps inside the
+  value column without clipping.
+- Current Status: the new machine-readable provenance bullet wraps cleanly on
+  desktop and mobile.
+- Hidden status: live `/blog/` and `/` checks found no
+  `kups-md-tutorials` or `post-08-free-energies` links, so the page remains
+  direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after runtime provenance refresh.
+- No immediate website layout revision needed.
+- Re-run rendered snapshots after final production RDF-PMF diagnostics,
+  final citations, or any public-indexing change.
+
 ## Post 07 VACF Replica Snapshot Refresh
 
 - Capture date: 2026-07-15.

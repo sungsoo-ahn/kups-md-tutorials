@@ -258,6 +258,192 @@ Commands added in this pass:
 - `uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io --profile full`
 - `python3 scripts/validate_kups_pages.py` in
   `../sungsoo-ahn.github.io`
+
+## Update 2026-07-15: Runtime Provenance Gate
+
+### Scope and provenance
+
+- Post: 08
+- Profiles reviewed: smoke and full
+- Implementation commit: `82fe878dbecd0a51ca7c2f84b2e0e128b8f8dbd2`
+- Restamp/review commit in progress after this note; pushed tutorial state
+  before this note: `46683e910458f874f6930dbc32fb76611afce717`
+- Website commit reviewed:
+  `8e103a968f313b9562d79071614df23376001f80`
+- Website deploy run: `29396296025`
+- Website snapshot workflow: `Capture kUPS snapshots`, run `29396474029`,
+  artifact `kups-md-page-snapshots`
+- Downloaded snapshot review copy:
+  `/tmp/kups-post08-runtime-provenance-snapshots/`
+- Hidden draft URL:
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`
+
+Generated files inspected:
+
+- `results/post-08/smoke/free_energy_summary.json`
+- `results/post-08/full/free_energy_summary.json`
+- `results/post-08/smoke/manifest.json`
+- `results/post-08/full/manifest.json`
+- `figures/post-08/free_energy_diagnostics.png`
+- `figures/post-08/free_energy_diagnostics_full.png`
+- `snapshots/post-08/free_energy_diagnostics_snapshot.png`
+- `snapshots/post-08/free_energy_diagnostics_full_snapshot.png`
+- `notebooks/post-08-free-energies.ipynb`
+- `../sungsoo-ahn.github.io/_pages/kups-md-post-08-free-energies.md`
+- `../sungsoo-ahn.github.io/assets/img/blog/kups_md_post08_free_energy_diagnostics.svg`
+
+Commands run:
+
+- `uv run ruff check src/kups_md_tutorials/free_energies.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py tests/test_config.py` passed.
+- `uv run pytest tests/test_config.py::test_load_free_energy_spec tests/test_figures.py::test_post08_figure_generation -q` passed.
+- `uv run kups-tutorial run 08 --profile smoke` passed.
+- `uv run kups-tutorial verify 08 --profile smoke` passed.
+- `uv run kups-tutorial run 08 --profile full` passed with expected CPU
+  fallback warning.
+- `uv run kups-tutorial verify 08 --profile full` passed.
+- `uv run python scripts/generate_post08_figures.py` passed.
+- `uv run jupyter execute notebooks/post-08-free-energies.ipynb --inplace` passed.
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q` passed with `49 passed, 62 warnings`.
+- `uv run kups-tutorial verify-artifacts` passed.
+- `git diff --check` passed.
+- `python3 scripts/validate_kups_pages.py` passed in
+  `../sungsoo-ahn.github.io`.
+- `python3 scripts/validate_blog.py` passed in `../sungsoo-ahn.github.io`
+  with pre-existing unused-image warnings.
+- `gh run watch 29396287224 --repo sungsoo-ahn/kups-md-tutorials --exit-status` passed.
+- `gh run watch 29396296025 --repo sungsoo-ahn/sungsoo-ahn.github.io --exit-status` passed.
+- `gh run watch 29396474029 --repo sungsoo-ahn/sungsoo-ahn.github.io --exit-status` passed.
+
+### Code and reproducibility review
+
+- `configs/post-08/smoke.json` now declares `argon_rdf_pmf.target_device:
+  "cpu"`; `configs/post-08/full.json` declares
+  `argon_rdf_pmf.target_device: "cuda_or_cpu_fallback"`.
+- `ArgonRdfPmfSummary` now records target device, runtime device,
+  target-GPU request status, production GPU readiness, and a GPU blocking
+  reason.
+- `_verify_post08` now fails if runtime-device provenance is missing, and it
+  requires a blocking reason when a GPU-targeted run falls back to CPU.
+- The full-profile compact argon RDF-PMF summary records target
+  `cuda_or_cpu_fallback`, runtime `jax:cpu;devices:cpu`, production GPU ready
+  `false`, and blocking reason `target device requests CUDA/GPU, but generated
+  artifact runtime was jax:cpu;devices:cpu`.
+- The full manifest records config hash
+  `7d98bc849d66ecd7769dca29ede00e593774fd47e4b1c2854ef4e7b428ed6703` and
+  source revision `82fe878dbecd0a51ca7c2f84b2e0e128b8f8dbd2`.
+- The notebook prints the same target/runtime/GPU-readiness fields beside the
+  RDF-PMF uncertainty and support-threshold diagnostics.
+
+### Scientific review
+
+- The provenance change does not alter the PMF estimator or numerical PMF
+  values; it changes the interpretation of the compact trajectory diagnostic.
+- Full-profile numerical values remain the compact reduced-unit argon
+  diagnostic: 108 atoms, 551 frames, RDF first peak at radius `1.125`, finite
+  PMF range about `1.6429`, max block PMF SEM about `0.0290`, and max local
+  replica PMF standard deviation about `0.0616`.
+- The new machine-readable fields make the limitation explicit: the diagnostic
+  requests CUDA/GPU for a production-ready target, but the committed artifact
+  was generated on CPU because this environment has CPU-only JAX.
+- Revision decision: accept the CPU-fallback artifact for the hidden draft
+  because the page labels it as non-final and records the blocking reason.
+  Final publication still requires a larger GPU kUPS RDF-derived PMF run.
+
+### Figure feedback review
+
+- Source data inspected:
+  `results/post-08/full/free_energy_summary.json` and
+  `results/post-08/full/free_energy_curves.csv`.
+- Figure assets inspected:
+  `figures/post-08/free_energy_diagnostics_full.png` and
+  `figures/post-08/free_energy_diagnostics.png`.
+- Snapshot inspected:
+  `snapshots/post-08/free_energy_diagnostics_full_snapshot.png`, raster
+  `1728 x 1152`.
+- Snapshot inspected:
+  `snapshots/post-08/free_energy_diagnostics_snapshot.png`, raster
+  `1728 x 1152`.
+- Intended visual claim: the fourth panel should show that compact trajectory
+  RDF-derived PMFs depend on support thresholds and uncertainty estimates, and
+  should now also disclose whether the trajectory artifact came from a
+  production GPU run or CPU fallback.
+- Full-profile feedback: the new `runtime: CPU fallback` label fits inside the
+  existing annotation box. It does not cover the PMF minimum marker, support
+  threshold curves, scaled RDF curve, legend, or replica-standard-deviation
+  axis. Axis labels and the right-hand replica-std axis remain readable.
+- Smoke-profile feedback: the annotation is taller but still fits in the
+  upper-left panel region. It does not obscure the first PMF basin or the
+  visible support-threshold curves.
+- Revision decision: no figure revision needed after the runtime label pass;
+  accept for hidden draft. Re-run figure snapshots after any production GPU
+  PMF diagnostic is added.
+
+### Website page review
+
+- Deployed URL inspected:
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`
+- Snapshot manifest:
+  `/tmp/kups-post08-runtime-provenance-snapshots/manifest.json`
+- Manifest coverage: desktop and mobile captures for post 08, both HTTP 200,
+  title `How Do Equilibrium Samples Become Free Energies? | Sungsoo Ahn`.
+- Full-page snapshots inspected:
+  `/tmp/kups-post08-runtime-provenance-snapshots/post-08-desktop.png`
+  (`1440 x 12349`) and
+  `/tmp/kups-post08-runtime-provenance-snapshots/post-08-mobile.png`
+  (`550 x 18769`).
+- Focused crops inspected:
+  `/tmp/kups-post08-runtime-provenance-snapshots/desktop-figure.png`,
+  `/tmp/kups-post08-runtime-provenance-snapshots/desktop-runtime-table.png`,
+  `/tmp/kups-post08-runtime-provenance-snapshots/mobile-figure-corrected.png`,
+  `/tmp/kups-post08-runtime-provenance-snapshots/mobile-runtime-table-3.png`,
+  and `/tmp/kups-post08-runtime-provenance-snapshots/mobile-status-2.png`.
+- Desktop feedback: the runtime table renders below reproduction provenance;
+  `cuda_or_cpu_fallback`, `jax:cpu;devices:cpu`, `false`, and the blocking
+  reason all remain inside the table. The Current Status item for
+  machine-readable provenance wraps without overflow.
+- Desktop figure feedback: the updated figure caption is present, the
+  CPU-fallback label is visible in the fourth panel, and the page text around
+  the figure has no obvious overlap or missing asset.
+- Mobile figure feedback: the four-panel figure is dense but not clipped; the
+  CPU-fallback line is still visible in the fourth panel, and the caption wraps
+  cleanly below the image.
+- Mobile runtime-table feedback: the long config hash wraps in the prose, and
+  the runtime table keeps all rows contained; the blocking reason wraps inside
+  the value column without horizontal clipping.
+- Live HTML checks with cache-busting query `?v=8e103a9` confirmed the page
+  contains `cuda_or_cpu_fallback`, `jax:cpu;devices:cpu`, production GPU
+  readiness `false`, CPU-fallback runtime provenance, and source revision
+  `82fe878dbecd0a51ca7c2f84b2e0e128b8f8dbd2`.
+- Public navigation check: live `/blog/` and `/` still contain no
+  `kups-md-tutorials` or `post-08-free-energies` links. The draft remains
+  direct-link only.
+- Revision decision: accept the rendered page for hidden draft. Re-run
+  deployed snapshots after final production RDF-PMF figures, final citations,
+  or any public-indexing change.
+
+### Prose and style review
+
+- The page remains an al-folio `post` layout hidden from navigation with the
+  shared `kups-md-tutorials` series metadata.
+- The added prose is limited to provenance: a compact target/runtime row in
+  the diagnostic table, a runtime limitation table in reproduction, an updated
+  figure caption, and a Current Status bullet.
+- The page still states that the current result is a compact CPU-fallback
+  diagnostic, not a production GPU kUPS free-energy result.
+
+### Open items
+
+Blocking for final publication:
+
+- Add larger GPU kUPS RDF-derived PMF diagnostics and final citations before
+  public indexing.
+- Re-run figure and rendered desktop/mobile snapshots after final production
+  RDF-PMF figures/citations or any public-indexing change.
+
+Accepted hidden-draft limitations:
+
+- The current full-profile compact argon RDF-derived PMF artifact was
+  generated on CPU fallback while targeting `cuda_or_cpu_fallback`.
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
 - `gh workflow run "Capture kUPS snapshots" --ref main -f posts=8`
 - `gh run download 29381687757 --name kups-md-page-snapshots --dir /tmp/kups-post08-rdf-pmf-uncertainty-snapshots`

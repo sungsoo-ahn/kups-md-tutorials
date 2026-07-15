@@ -407,3 +407,111 @@ Rendered-page review:
 - Mobile feedback: the title, tables, figure, caption, code block, updated
   Current Status section, references, and footer remain contained. Tables are
   dense but readable, and no text overlap was found in the inspected snapshot.
+
+## Update 2026-07-15: Pair-Distance Umbrella Diagnostic
+
+- Tutorial implementation commit reviewed:
+  `ec4bf4eb96bf66be2647282f0f0c44afad192e74`.
+- Tutorial artifact restamp commit reviewed:
+  `984d7100f6174bcb1e50b6212e04c4f401c67dd1`.
+- Website commit reviewed:
+  `93aba15e430d2597ee0e63883c4d7fb2ab85bd51`.
+- Tutorial CI run: `29398047195`, passed.
+- Website deploy run: `29398059626`, passed.
+- Website snapshot run: `29398252468`, passed.
+
+Scope:
+
+- Added a compact reduced-unit pair-distance umbrella diagnostic to the Post 10
+  workflow, configuration, summaries, notebook output, verifier, and figure
+  generator.
+- The diagnostic reconstructs a Lennard-Jones contact-well PMF from biased
+  pair-distance windows and records target/runtime/GPU-readiness provenance.
+- This is a tutorial-scale atomistic-coordinate check, not a final production
+  molecular free-energy calculation.
+
+Scientific review:
+
+- Full profile pair-distance windows: `8`.
+- Pair-distance target device: `cuda_or_cpu_fallback`.
+- Pair-distance runtime device: `jax:cpu;devices:cpu`.
+- Production GPU readiness: `false`.
+- GPU blocking reason: target device requested CUDA/GPU, but the generated
+  artifact runtime was `jax:cpu;devices:cpu`.
+- Minimum adjacent pair-window overlap: `0.3109`.
+- Pair PMF RMSE against the known target: `0.1380`.
+- Reconstructed contact-well depth error: `0.0053`.
+- Forward/reverse pair PMF RMSE: `0.0924`.
+- The compact diagnostic is accepted for the hidden draft because the windows
+  overlap, the reconstructed contact depth matches the known reference within
+  the verifier threshold, and the CPU fallback is explicitly disclosed.
+
+Validation:
+
+- `uv run ruff check src/kups_md_tutorials/config.py
+  src/kups_md_tutorials/umbrella_sampling.py
+  src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py
+  tests/test_config.py` passed.
+- `uv run pytest tests/test_config.py::test_load_umbrella_spec
+  tests/test_figures.py::test_post10_figure_generation -q` passed.
+- `uv run kups-tutorial run 10 --profile smoke` and
+  `uv run kups-tutorial verify 10 --profile smoke` passed.
+- `uv run kups-tutorial run 10 --profile full` and
+  `uv run kups-tutorial verify 10 --profile full` passed.
+- `uv run python scripts/generate_post10_figures.py` passed.
+- `uv run jupyter execute notebooks/post-10-umbrella-sampling.ipynb --inplace`
+  passed.
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py
+  tests/test_notebooks.py -q` passed with `49 passed`.
+- `uv run kups-tutorial verify-artifacts` passed.
+- `git diff --check` passed.
+
+Figure feedback:
+
+- The inspected full-profile figure snapshot
+  `snapshots/post-10/umbrella_diagnostics_full_snapshot.png` shows the new
+  pair-distance PMF panel and compact MD status panel without label clipping.
+- The inspected smoke-profile figure snapshot
+  `snapshots/post-10/umbrella_diagnostics_snapshot.png` shows the same six-panel
+  layout with readable legends, axis labels, and CPU-fallback status text.
+- The pair-distance panel makes the tutorial less abstract by showing a
+  physically meaningful reduced pair coordinate while preserving a known answer
+  for code and science review.
+
+Website and rendered-page review:
+
+- Snapshot manifest reviewed:
+  `/tmp/kups-post10-pair-umbrella-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/`;
+  both returned HTTP 200 with title
+  `What Does Umbrella Sampling Actually Sample? | Sungsoo Ahn`.
+- Desktop snapshot inspected:
+  `/tmp/kups-post10-pair-umbrella-snapshots/post-10-desktop.png` at
+  `1440 x 12268`.
+- Mobile snapshot inspected:
+  `/tmp/kups-post10-pair-umbrella-snapshots/post-10-mobile.png` at
+  `498 x 18886`.
+- Focused crops inspected:
+  `/tmp/kups-post10-pair-umbrella-snapshots/desktop-pair-figure.png`,
+  `/tmp/kups-post10-pair-umbrella-snapshots/desktop-runtime-table-bottom.png`,
+  `/tmp/kups-post10-pair-umbrella-snapshots/mobile-section-and-figure.png`, and
+  `/tmp/kups-post10-pair-umbrella-snapshots/mobile-reproduction-status.png`.
+- Desktop feedback: the added pair-distance section, six-panel figure,
+  reproduction provenance, runtime table, Current Status section, references,
+  and footer are present and contained.
+- Mobile feedback: the title, added pair-distance prose, dense six-panel figure,
+  caption, runtime table, Current Status section, references, and footer remain
+  contained. The figure is small at mobile width but not clipped or overlapping.
+- Live checks confirmed the deployed Post 10 page contains
+  `pair_distance_umbrella`, `cuda_or_cpu_fallback`, `jax:cpu;devices:cpu`, and
+  source revision `ec4bf4eb96bf66be2647282f0f0c44afad192e74`.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-10-umbrella-sampling` links, so the page remains direct-link only.
+
+Open items:
+
+- Write the final 3,500-10,000-word article prose.
+- Add larger production MD context with real atomistic umbrella windows, model
+  checks, and final production uncertainty intervals if public claims are added.
+- Complete the final citation pass before public indexing.

@@ -2658,3 +2658,72 @@ Revision decisions:
   observables before public indexing.
 - Re-run rendered snapshots after final production physical-observable
   diagnostics, final citations, or any public-indexing change.
+
+## Post 10 Pair-Distance Umbrella Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29398252468`.
+- Website commit reviewed:
+  `93aba15e430d2597ee0e63883c4d7fb2ab85bd51`.
+- Website deploy run: `29398059626`.
+- Tutorial implementation commit reviewed:
+  `ec4bf4eb96bf66be2647282f0f0c44afad192e74`.
+- Tutorial restamp commit reviewed:
+  `984d7100f6174bcb1e50b6212e04c4f401c67dd1`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post10-pair-umbrella-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post10-pair-umbrella-snapshots/manifest.json`.
+- Capture scope: hidden Post 10 page after adding the compact pair-distance
+  umbrella diagnostic, CPU-fallback provenance, six-panel figure, and refreshed
+  article prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Does Umbrella Sampling Actually Sample? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post10-pair-umbrella-snapshots/post-10-desktop.png`
+  (`1440 x 12268`)
+- `/tmp/kups-post10-pair-umbrella-snapshots/post-10-mobile.png`
+  (`498 x 18886`)
+- Focused crops:
+  `/tmp/kups-post10-pair-umbrella-snapshots/desktop-pair-figure.png`,
+  `/tmp/kups-post10-pair-umbrella-snapshots/desktop-runtime-table-bottom.png`,
+  `/tmp/kups-post10-pair-umbrella-snapshots/mobile-section-and-figure.png`, and
+  `/tmp/kups-post10-pair-umbrella-snapshots/mobile-reproduction-status.png`.
+
+Feedback:
+
+- Desktop capture renders the added pair-distance diagnostic section before the
+  figure. The six-panel figure, caption, reproduction provenance, runtime table,
+  Current Status section, references, and footer are present.
+- The pair-distance panel and compact MD status panel are readable in the
+  desktop crop. Runtime provenance reports `cuda_or_cpu_fallback`,
+  `jax:cpu;devices:cpu`, and production GPU readiness `false`.
+- Mobile capture keeps the added pair-distance prose, six-panel figure, caption,
+  runtime table, Current Status section, references, and footer contained. The
+  figure is dense at mobile width but not clipped or overlapping.
+- Live check confirmed the deployed HTML contains `pair_distance_umbrella`,
+  `cuda_or_cpu_fallback`, `jax:cpu;devices:cpu`, and source revision
+  `ec4bf4eb96bf66be2647282f0f0c44afad192e74`.
+- Hidden status: live `/blog/` and `/` checks found no `kups-md-tutorials` or
+  `post-10-umbrella-sampling` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after compact pair-distance umbrella refresh.
+- Keep mobile figure density as a final typography-polish item.
+- Add larger production MD context with real atomistic umbrella windows, model
+  checks, and final production uncertainty intervals before public indexing if
+  the article makes production scientific claims.
+- Re-run rendered snapshots after final production MD diagnostics, final
+  citations, or any public-indexing change.

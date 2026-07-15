@@ -192,18 +192,24 @@ class ErrorExperimentSpec:
 class ArgonNveSpec:
     """Configuration for compact argon NVE energy-drift diagnostics."""
 
+    protocol_label: str
     repetitions: int
     number_density: float
     temperature: float
     seed: int
+    replica_count: int
     num_steps: int
     sample_every: int
     time_steps: tuple[float, ...]
     epsilon: float
     sigma: float
     cutoff: float
+    target_device: str
 
     def validate(self) -> None:
+        if not self.protocol_label:
+            msg = "argon_nve protocol_label must be non-empty"
+            raise ValueError(msg)
         if self.repetitions <= 0:
             msg = "argon_nve repetitions must be positive"
             raise ValueError(msg)
@@ -212,6 +218,9 @@ class ArgonNveSpec:
             raise ValueError(msg)
         if self.temperature <= 0.0:
             msg = "argon_nve temperature must be positive"
+            raise ValueError(msg)
+        if self.replica_count <= 0:
+            msg = "argon_nve replica_count must be positive"
             raise ValueError(msg)
         if self.num_steps <= 0:
             msg = "argon_nve num_steps must be positive"
@@ -236,6 +245,9 @@ class ArgonNveSpec:
             raise ValueError(msg)
         if self.cutoff <= self.sigma:
             msg = "argon_nve cutoff must be larger than sigma"
+            raise ValueError(msg)
+        if not self.target_device:
+            msg = "argon_nve target_device must be non-empty"
             raise ValueError(msg)
 
 
@@ -1430,16 +1442,19 @@ def load_error_spec(
     if argon_nve_data is not None:
         argon_nve_root = _expect_mapping(argon_nve_data, "argon_nve")
         argon_nve = ArgonNveSpec(
+            protocol_label=str(argon_nve_root.get("protocol_label", "compact_lj_nve")),
             repetitions=int(argon_nve_root["repetitions"]),
             number_density=float(argon_nve_root["number_density"]),
             temperature=float(argon_nve_root["temperature"]),
             seed=int(argon_nve_root["seed"]),
+            replica_count=int(argon_nve_root.get("replica_count", 1)),
             num_steps=int(argon_nve_root["num_steps"]),
             sample_every=int(argon_nve_root["sample_every"]),
             time_steps=tuple(float(value) for value in argon_nve_root["time_steps"]),
             epsilon=float(argon_nve_root["epsilon"]),
             sigma=float(argon_nve_root["sigma"]),
             cutoff=float(argon_nve_root["cutoff"]),
+            target_device=str(argon_nve_root.get("target_device", "cpu")),
         )
 
     spec = ErrorTutorialSpec(

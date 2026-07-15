@@ -5,9 +5,9 @@
 - Post: 03
 - Profiles reviewed: smoke and full
 - Current status: controlled timestep/precision/force-error diagnostic workflow
-  plus compact reduced-unit argon NVE diagnostic, committed smoke/full outputs,
-  notebook, full-profile diagnostic figure, expanded hidden website draft,
-  rendered page snapshots, and self-review artifact are in place.
+  plus a 256-atom, three-replica reduced-unit argon NVE diagnostic, committed
+  smoke/full outputs, notebook, full-profile diagnostic figure, expanded hidden
+  website draft, rendered page snapshots, and self-review artifact are in place.
 
 ## Commands
 
@@ -21,6 +21,7 @@
 - `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/error_diagnostics.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
 - `git diff --check`
 - `uv run kups-tutorial export-site --posts 03 --profile full`
+- `uv run kups-tutorial export-site --profile full`
 - `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
 - `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
 - `git diff --check` in `../sungsoo-ahn.github.io`
@@ -35,11 +36,17 @@
 - The workflow uses a deterministic velocity-Verlet oscillator with exact
   reference positions, configurable precision models, and deterministic
   force-scale perturbations.
-- The workflow now also includes a deterministic compact argon NVE diagnostic:
+- The workflow now also includes a deterministic 256-atom argon NVE diagnostic:
   reduced-unit Lennard-Jones argon FCC cells, seeded velocities with
-  center-of-mass removal and exact target kinetic temperature, vectorized
-  minimum-image forces, velocity Verlet, and downsampled energy traces in
+  center-of-mass removal and exact target kinetic temperature, three
+  independent velocity-seed replicas per timestep, vectorized minimum-image
+  forces, velocity Verlet, and downsampled energy traces in
   `argon_nve_samples.csv`.
+- The argon NVE protocol summary records the protocol label
+  `gpu_ready_lj_nve_replicas`, target device `cuda_or_cpu_fallback`, replica
+  count, drift/error extrema, and replica drift standard error.
+- CSV writers now use Unix line endings so regenerated and exported result
+  files pass `git diff --check`.
 - The manifest records config hash, Git revision, Python/platform metadata, and
   ASE/kUPS/NumPy versions.
 - `kups-tutorial run`, `verify`, and `run-all` include post 03.
@@ -48,10 +55,10 @@
 
 Open items:
 
-- Replace or augment the compact reduced-unit argon check with a larger GPU
-  kUPS production NVE diagnostic before treating this post as final. The
-  current argon run is a physical many-body sanity check, not the target
-  production MD experiment described in the plan.
+- Replace or augment the CPU-fallback reduced-unit argon check with a real
+  CUDA/GPU kUPS production NVE diagnostic before treating this post as final.
+  The current argon run is a stronger physical many-body sanity check, not the
+  target production MD experiment described in the plan.
 
 ## Scientific Review
 
@@ -66,13 +73,17 @@ Open items:
 - At `dt = 0.18`, deterministic force scaling changes normalized energy drift.
   The low-force case shows a larger negative drift than the exact-force case,
   while the high-force case changes the sign.
-- The full compact argon NVE diagnostic contains 108 atoms at reduced density
-  `0.65` and temperature `0.70`. Across reduced timesteps `0.0015`, `0.003`,
-  and `0.006`, the maximum relative energy error stays below `2.7e-4`; the
-  largest-timestep normalized drift is about `-8.5e-6`.
+- The full argon NVE protocol contains 256 atoms at reduced density `0.65` and
+  temperature `0.70`, with 3 velocity-seed replicas for each reduced timestep
+  `0.0015`, `0.003`, and `0.006`.
+- Across the 9 argon NVE runs, the maximum relative energy error is
+  `2.65e-4`, the maximum absolute normalized drift is `3.12e-5`, the mean
+  absolute normalized drift is `1.47e-5`, the largest replica drift standard
+  error is `2.79e-6`, and no run is marked unstable.
 - The argon result supports a bounded-energy sanity check for a many-body
-  system, but it is not a GPU kUPS production benchmark and should not be
-  described as final production evidence.
+  system with initialization sensitivity represented by replicas, but it is not
+  a CUDA/GPU kUPS production benchmark and should not be described as final
+  production evidence.
 
 Open items:
 
@@ -99,14 +110,17 @@ Feedback loop:
 - Second pass: the three panels fit without overlap, the precision story reads
   left to right, and the force-bias panel clearly separates negative,
   near-zero, and positive normalized drift.
-- New compact argon NVE pass: the first four-panel full-profile snapshot at
-  `1728 x 1120` had readable axes and legend, but the "108 Ar atoms" annotation
-  sat on top of the initial NVE traces.
-- Revised the NVE annotation into the legend title and regenerated
-  `snapshots/post-03/error_diagnostics_full_snapshot.png`. The revised pass
-  leaves the trace data unobscured, preserves readable tick labels at the
-  snapshot size, and shows the largest-timestep trace as bounded rather than
-  unstable. The caption and panel title now match the compact argon NVE claim.
+- New replica argon NVE pass: the first four-panel full-profile snapshot at
+  `1728 x 1120` had readable axes and uncertainty bands, but the lower-right
+  NVE legend overlapped the longest-time green trace.
+- Revised the NVE legend to the upper-right and regenerated the figure. The
+  second snapshot moved the legend off the trace but left the legend title
+  sitting directly on the zero-reference line.
+- Added a framed legend with `framealpha=0.85` and regenerated
+  `snapshots/post-03/error_diagnostics_full_snapshot.png`. The final inspected
+  pass keeps the timestep, precision, force-bias, and NVE panels readable; the
+  256-atom/3-replica legend no longer obscures the energy-drift interpretation,
+  and the replica standard-deviation bands remain visible.
 
 Open items:
 
@@ -121,6 +135,9 @@ Open items:
 - The notebook loads both smoke and full configurations, displays committed
   outputs, and regenerates the full-profile diagnostic figure from committed
   result files.
+- The notebook now includes an argon NVE protocol check reporting
+  `gpu_ready_lj_nve_replicas`, `cuda_or_cpu_fallback`, 256 atoms, 3 replicas,
+  and maximum drift standard error `2.794e-06`.
 - The notebook keeps the explanation focused on error mechanisms rather than
   becoming the implementation source.
 

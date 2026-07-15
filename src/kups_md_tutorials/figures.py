@@ -883,7 +883,43 @@ def _draw_post03_figure(
     )
     if argon_samples:
         for time_step in sorted(set(argon_samples["time_step"])):
-            mask = argon_samples["time_step"] == time_step
+            time_step_mask = argon_samples["time_step"] == time_step
+            if "replica_index" in argon_samples:
+                times = np.unique(argon_samples["time"][time_step_mask])
+                replica_values = []
+                for replica_index in sorted(
+                    set(argon_samples["replica_index"][time_step_mask])
+                ):
+                    mask = (
+                        time_step_mask
+                        & (argon_samples["replica_index"] == replica_index)
+                    )
+                    order = np.argsort(argon_samples["time"][mask])
+                    replica_values.append(
+                        argon_samples["relative_energy_error"][mask][order]
+                )
+                values = np.asarray(replica_values, dtype=float)
+                mean = np.mean(values, axis=0)
+                std = (
+                    np.std(values, axis=0, ddof=1)
+                    if len(values) > 1
+                    else np.zeros_like(mean)
+                )
+                flat_axes[3].fill_between(
+                    times,
+                    mean - std,
+                    mean + std,
+                    alpha=0.14,
+                    linewidth=0,
+                )
+                flat_axes[3].plot(
+                    times,
+                    mean,
+                    linewidth=1.2,
+                    label=f"dt={time_step:g}",
+                )
+                continue
+            mask = time_step_mask
             flat_axes[3].plot(
                 argon_samples["time"][mask],
                 argon_samples["relative_energy_error"][mask],
@@ -905,13 +941,21 @@ def _draw_post03_figure(
     if argon_samples:
         title = None
         if argon_runs:
-            title = f"{argon_runs[-1]['atom_count']} Ar atoms, LJ units"
+            protocol = summary.get("argon_nve_protocol")
+            if protocol is not None:
+                title = (
+                    f"{protocol['atom_count']} Ar atoms, "
+                    f"{protocol['replica_count']} replicas"
+                )
+            else:
+                title = f"{argon_runs[-1]['atom_count']} Ar atoms, LJ units"
         flat_axes[3].legend(
-            frameon=False,
+            frameon=True,
             fontsize=8,
-            loc="lower right",
+            loc="upper right",
             title=title,
             title_fontsize=8,
+            framealpha=0.85,
         )
 
     flat_axes[0].text(

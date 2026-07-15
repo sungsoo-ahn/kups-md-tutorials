@@ -61,6 +61,7 @@ def test_load_error_spec() -> None:
     assert spec.experiment.force_cases[0].name == "exact_force"
     assert spec.argon_nve is not None
     assert spec.argon_nve.repetitions == 2
+    assert spec.argon_nve.replica_count == 2
     assert spec.argon_nve.time_steps[-1] == 0.005
 
 

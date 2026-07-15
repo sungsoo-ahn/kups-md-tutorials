@@ -37,18 +37,40 @@ class ErrorRunSummary:
 class ArgonNveRunSummary:
     """Compact diagnostics for one reduced-unit argon NVE run."""
 
+    protocol_label: str
     time_step: float
+    replica_index: int
+    seed: int
     num_steps: int
     sample_every: int
     atom_count: int
     number_density: float
     temperature: float
+    final_time: float
     initial_energy: float
     final_energy: float
     max_abs_relative_energy_error: float
     normalized_energy_drift: float
     energy_span: float
     unstable: bool
+
+
+@dataclass(frozen=True)
+class ArgonNveProtocolSummary:
+    """Aggregate diagnostics for the configured argon NVE protocol."""
+
+    protocol_label: str
+    target_device: str
+    replica_count: int
+    time_step_count: int
+    atom_count: int
+    num_steps: int
+    final_time_max: float
+    max_abs_relative_energy_error: float
+    max_abs_normalized_energy_drift: float
+    mean_abs_normalized_energy_drift: float
+    replica_drift_standard_error_max: float
+    unstable_run_count: int
 
 
 @dataclass(frozen=True)
@@ -64,6 +86,7 @@ class ErrorExperimentSummary:
     config_sha256: str
     runs: list[ErrorRunSummary]
     argon_nve_runs: list[ArgonNveRunSummary]
+    argon_nve_protocol: ArgonNveProtocolSummary | None = None
 
 
 def _apply_precision(value: float, precision: str) -> float:
@@ -180,6 +203,7 @@ def run_error_experiment(spec: ErrorTutorialSpec, config_sha256: str) -> ErrorEx
         for precision in spec.experiment.precisions
         for force_case in spec.experiment.force_cases
     ]
+    argon_nve_runs = run_argon_nve_experiment(spec)
     return ErrorExperimentSummary(
         post=spec.post,
         profile=spec.profile,
@@ -189,7 +213,8 @@ def run_error_experiment(spec: ErrorTutorialSpec, config_sha256: str) -> ErrorEx
         initial_velocity=system.velocity,
         config_sha256=config_sha256,
         runs=runs,
-        argon_nve_runs=run_argon_nve_experiment(spec),
+        argon_nve_runs=argon_nve_runs,
+        argon_nve_protocol=summarize_argon_nve_protocol(spec, argon_nve_runs),
     )
 
 
@@ -199,14 +224,64 @@ def run_argon_nve_experiment(spec: ErrorTutorialSpec) -> list[ArgonNveRunSummary
     if spec.argon_nve is None:
         return []
     return [
-        summarize_argon_nve_run(spec, time_step=time_step)[0]
+        summarize_argon_nve_run(
+            spec,
+            time_step=time_step,
+            replica_index=replica_index,
+        )[0]
         for time_step in spec.argon_nve.time_steps
+        for replica_index in range(spec.argon_nve.replica_count)
     ]
+
+
+def summarize_argon_nve_protocol(
+    spec: ErrorTutorialSpec,
+    runs: list[ArgonNveRunSummary],
+) -> ArgonNveProtocolSummary | None:
+    """Aggregate configured argon NVE diagnostics across timesteps and replicas."""
+
+    if spec.argon_nve is None or not runs:
+        return None
+    drift_se_by_timestep = []
+    for time_step in spec.argon_nve.time_steps:
+        drifts = np.asarray(
+            [
+                run.normalized_energy_drift
+                for run in runs
+                if np.isclose(run.time_step, time_step)
+            ],
+            dtype=float,
+        )
+        if len(drifts) < 2:
+            drift_se_by_timestep.append(0.0)
+        else:
+            drift_se_by_timestep.append(float(np.std(drifts, ddof=1) / np.sqrt(len(drifts))))
+    return ArgonNveProtocolSummary(
+        protocol_label=spec.argon_nve.protocol_label,
+        target_device=spec.argon_nve.target_device,
+        replica_count=spec.argon_nve.replica_count,
+        time_step_count=len(spec.argon_nve.time_steps),
+        atom_count=runs[0].atom_count,
+        num_steps=spec.argon_nve.num_steps,
+        final_time_max=float(max(run.final_time for run in runs)),
+        max_abs_relative_energy_error=float(
+            max(run.max_abs_relative_energy_error for run in runs)
+        ),
+        max_abs_normalized_energy_drift=float(
+            max(abs(run.normalized_energy_drift) for run in runs)
+        ),
+        mean_abs_normalized_energy_drift=float(
+            np.mean([abs(run.normalized_energy_drift) for run in runs])
+        ),
+        replica_drift_standard_error_max=float(max(drift_se_by_timestep)),
+        unstable_run_count=sum(1 for run in runs if run.unstable),
+    )
 
 
 def summarize_argon_nve_run(
     spec: ErrorTutorialSpec,
     time_step: float,
+    replica_index: int = 0,
 ) -> tuple[ArgonNveRunSummary, tuple[np.ndarray, np.ndarray]]:
     """Integrate a deterministic reduced-unit argon LJ system in NVE."""
 
@@ -218,10 +293,11 @@ def summarize_argon_nve_run(
     atoms = argon_fcc(nve.repetitions, nve.number_density)
     positions = atoms.get_positions().astype(float)
     box = float(atoms.cell.lengths()[0])
+    replica_seed = nve.seed + 1009 * replica_index
     velocities = _initialized_argon_velocities(
         atom_count=len(atoms),
         temperature=nve.temperature,
-        seed=nve.seed,
+        seed=replica_seed,
     )
     forces, potential = _lennard_jones_forces(
         positions,
@@ -261,12 +337,16 @@ def summarize_argon_nve_run(
     normalized_drift = float((energy_array[-1] - initial_energy) / (abs(initial_energy) * final_time))
     max_error = float(np.max(np.abs(relative_error)))
     summary = ArgonNveRunSummary(
+        protocol_label=nve.protocol_label,
         time_step=float(time_step),
+        replica_index=replica_index,
+        seed=replica_seed,
         num_steps=nve.num_steps,
         sample_every=nve.sample_every,
         atom_count=len(atoms),
         number_density=nve.number_density,
         temperature=nve.temperature,
+        final_time=final_time,
         initial_energy=initial_energy,
         final_energy=float(energy_array[-1]),
         max_abs_relative_energy_error=max_error,
@@ -349,7 +429,7 @@ def _write_samples(path: Path, spec: ErrorTutorialSpec, max_rows: int = 700) -> 
     stride = max(1, int(np.ceil(len(times) / max_rows)))
 
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(
             [
                 "time",
@@ -382,22 +462,28 @@ def _write_argon_nve_samples(
         return
 
     trajectories = {
-        time_step: summarize_argon_nve_run(spec, time_step=time_step)[1]
+        (time_step, replica_index): summarize_argon_nve_run(
+            spec,
+            time_step=time_step,
+            replica_index=replica_index,
+        )[1]
         for time_step in spec.argon_nve.time_steps
+        for replica_index in range(spec.argon_nve.replica_count)
     }
     longest = max(len(times) for times, _ in trajectories.values())
     stride = max(1, int(np.ceil(longest / max_rows)))
 
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["time_step", "time", "relative_energy_error"])
-        for time_step, (times, energies) in trajectories.items():
+        writer = csv.writer(handle, lineterminator="\n")
+        writer.writerow(["time_step", "replica_index", "time", "relative_energy_error"])
+        for (time_step, replica_index), (times, energies) in trajectories.items():
             initial_energy = float(energies[0])
             relative = (energies - initial_energy) / abs(initial_energy)
             for idx in range(0, len(times), stride):
                 writer.writerow(
                     [
                         f"{time_step:.12g}",
+                        replica_index,
                         f"{times[idx]:.12g}",
                         f"{relative[idx]:.12g}",
                     ]
@@ -457,4 +543,15 @@ def load_error_summary(path: Path) -> ErrorExperimentSummary:
     argon_nve_runs = [
         ArgonNveRunSummary(**run) for run in data.pop("argon_nve_runs", [])
     ]
-    return ErrorExperimentSummary(runs=runs, argon_nve_runs=argon_nve_runs, **data)
+    argon_nve_protocol_data = data.pop("argon_nve_protocol", None)
+    argon_nve_protocol = (
+        None
+        if argon_nve_protocol_data is None
+        else ArgonNveProtocolSummary(**argon_nve_protocol_data)
+    )
+    return ErrorExperimentSummary(
+        runs=runs,
+        argon_nve_runs=argon_nve_runs,
+        argon_nve_protocol=argon_nve_protocol,
+        **data,
+    )

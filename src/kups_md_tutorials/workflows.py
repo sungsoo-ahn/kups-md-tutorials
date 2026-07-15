@@ -292,14 +292,27 @@ def _verify_post03(post: str, profile: str, output_root: Path) -> None:
         msg = "force-error runs do not show measurable normalized drift"
         raise ValueError(msg)
     if spec.argon_nve is not None:
-        if len(summary.argon_nve_runs) != len(spec.argon_nve.time_steps):
-            msg = "summary does not contain the expected argon NVE timestep grid"
+        expected_argon_runs = len(spec.argon_nve.time_steps) * spec.argon_nve.replica_count
+        if len(summary.argon_nve_runs) != expected_argon_runs:
+            msg = "summary does not contain the expected argon NVE timestep/replica grid"
+            raise ValueError(msg)
+        if summary.argon_nve_protocol is None:
+            msg = "summary is missing argon NVE aggregate protocol diagnostics"
+            raise ValueError(msg)
+        if summary.argon_nve_protocol.replica_count != spec.argon_nve.replica_count:
+            msg = "argon NVE aggregate replica count does not match config"
             raise ValueError(msg)
         if any(run.unstable for run in summary.argon_nve_runs):
             msg = "argon NVE diagnostic contains an unstable run"
             raise ValueError(msg)
         if max(run.max_abs_relative_energy_error for run in summary.argon_nve_runs) > 0.02:
             msg = "argon NVE energy error exceeds review threshold"
+            raise ValueError(msg)
+        if summary.argon_nve_protocol.unstable_run_count != 0:
+            msg = "argon NVE aggregate reports unstable runs"
+            raise ValueError(msg)
+        if summary.argon_nve_protocol.max_abs_normalized_energy_drift > 1.0e-3:
+            msg = "argon NVE aggregate normalized drift exceeds review threshold"
             raise ValueError(msg)
 
 

@@ -880,6 +880,72 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: kUPS Series Index Gate
+
+Scope:
+
+- Added a site-aware release-readiness check for the direct-link series index
+  page at `../sungsoo-ahn.github.io/_pages/kups-md-tutorials.md`.
+- The gate now requires the index to use the blog-native page layout,
+  `/kups-md-tutorials/` permalink, description metadata, disabled pagination,
+  `publications blog-index` wrapper, series-ordered `site.pages` Liquid query,
+  bibliography list, post title/description blocks, post-type badge, read-time
+  metadata, and `part {{ post.series_order }} of {{ tutorial_count }}` series
+  metadata.
+- The current `nav: false` state for the index is treated as a final-publication
+  blocker, like the hidden tutorial posts, so hidden direct-link pages remain
+  allowed only in the release-surface audit mode.
+- Updated the synthetic website fixture to include a blog-style kUPS index and
+  added a regression test for index layout/query/metadata violations.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed: 21 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `uv run pytest tests/test_release_readiness.py tests/test_cli.py -q` passed:
+  35 tests, with the existing ASE/NumPy deprecation warnings from CLI tests.
+- `uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers`
+  passed for 12 posts.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `uv run kups-tutorial verify-artifacts` passed for 279 tracked files.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `git diff --check` passed.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers plus the intended hidden
+  `kups-md-tutorials.md` index blocker.
+
+Code and reproducibility review:
+
+- The new index check is site-aware only and does not affect skip-site CI
+  contexts where the website checkout is unavailable.
+- The check validates the source Liquid structure that renders the direct-link
+  index page, so future edits cannot silently replace the blog-style listing
+  with a standalone tutorial-roadmap page.
+- The violation string for `nav: false` intentionally reuses the current
+  hidden-page blocker marker, which keeps `--allow-current-blockers` focused on
+  structural regressions while the series remains intentionally unpublished.
+
+Figure and rendered-page review:
+
+- No website page source, front matter, prose, linked figures, CSS-sensitive
+  markup, assets, figures, configs, results, notebooks, or snapshots changed in
+  this milestone.
+- The actual deployed direct-link index page was already inspected in the
+  previous continuation and remains unchanged; this pass only adds verifier
+  coverage and test fixtures, so no new rendered desktop/mobile snapshot
+  capture was required.
+
+Review decision:
+
+- Accepted for the kUPS series-index release-surface milestone after focused,
+  site-aware, and strict-readiness validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

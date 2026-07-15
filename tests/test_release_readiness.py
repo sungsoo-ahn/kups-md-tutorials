@@ -219,6 +219,55 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
     figure_dir.mkdir(parents=True)
     body_words = " ".join(f"sample{idx}" for idx in range(3600))
     exported_files = []
+    nav = "false" if hidden else "true"
+    (pages / "kups-md-tutorials.md").write_text(
+        "---\n"
+        "layout: page\n"
+        "permalink: /kups-md-tutorials/\n"
+        "title: kUPS MD Tutorials\n"
+        "description: Executable molecular-dynamics tutorials for MLIP-aware machine-learning researchers.\n"
+        f"nav: {nav}\n"
+        "nav_order: 4\n"
+        "pagination:\n"
+        "  enabled: false\n"
+        "---\n\n"
+        '<div class="publications blog-index">\n'
+        '  {% assign postlist = site.pages | where: "series", "kups-md-tutorials" | sort: "series_order" %}\n'
+        "  {% assign tutorial_count = postlist | size %}\n\n"
+        "  <h1>kUPS MD Tutorials</h1>\n"
+        '  <p class="blog-index-note">\n'
+        "    Executable molecular-dynamics notes for ML researchers who already know MLIPs and the equations of motion.\n"
+        "  </p>\n"
+        '  <div class="blog-type-summary" aria-label="kUPS tutorial types">\n'
+        "    <span>Post types</span>\n"
+        "    <span>Tutorials {{ tutorial_count }}</span>\n"
+        "    <span>Executable notes</span>\n"
+        "  </div>\n\n"
+        '  <ol class="bibliography">\n'
+        "  {% for post in postlist %}\n"
+        '    {% assign post_type = "tutorial" %}\n'
+        '    {% assign post_type_label = "Tutorial" %}\n'
+        "    {% assign read_time = post.content | number_of_words | divided_by: 180 | plus: 1 %}\n"
+        "    <li>\n"
+        '      <div class="row">\n'
+        '        <div class="col-sm-10">\n'
+        '          <div class="title">\n'
+        '            <a href="{{ post.url | relative_url }}">{{ post.title }}</a>\n'
+        "          </div>\n"
+        "          {% if post.description %}\n"
+        '            <div class="blog-list-description">{{ post.description }}</div>\n'
+        "          {% endif %}\n"
+        '          <div class="author">\n'
+        '            <span class="blog-post-type blog-post-type-{{ post_type }}">{{ post_type_label }}</span>; {{ read_time }} min read; part {{ post.series_order }} of {{ tutorial_count }}\n'
+        "          </div>\n"
+        "        </div>\n"
+        "      </div>\n"
+        "    </li>\n"
+        "  {% endfor %}\n"
+        "  </ol>\n"
+        "</div>\n",
+        encoding="utf-8",
+    )
     for post in range(1, 13):
         post_id = f"{post:02d}"
         figure_path = f"assets/img/blog/kups_md_post{post_id}_diagnostics.svg"
@@ -246,7 +295,6 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
                 "sha256": _sha256(result_file),
             }
         )
-        nav = "false" if hidden else "true"
         note_context = (
             "This page is not the final article. "
             "It is intentionally hidden from site navigation. "
@@ -453,6 +501,37 @@ def test_release_readiness_reports_blog_style_violations(tmp_path: Path) -> None
     assert any("post_type: tutorial" in violation for violation in result.violations)
     assert any("toc sidebar: left" in violation for violation in result.violations)
     assert any("author-note Note text" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_series_index_violations(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = tmp_path / "site" / "_pages" / "kups-md-tutorials.md"
+    text = page.read_text(encoding="utf-8")
+    text = text.replace("layout: page\n", "layout: archive\n")
+    text = text.replace('<div class="publications blog-index">\n', "")
+    text = text.replace(
+        '{% assign postlist = site.pages | where: "series", "kups-md-tutorials" | sort: "series_order" %}\n',
+        "",
+    )
+    text = text.replace("part {{ post.series_order }} of {{ tutorial_count }}", "")
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("expected front matter layout: page" in violation for violation in result.violations)
+    assert any("missing blog-index wrapper" in violation for violation in result.violations)
+    assert any("missing series-ordered page query" in violation for violation in result.violations)
+    assert any("missing series position metadata" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_short_site_page(tmp_path: Path) -> None:

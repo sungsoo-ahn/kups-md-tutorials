@@ -492,6 +492,7 @@ def _check_post12_model_artifact(
 
 def _check_site_publication_state(site_root: Path, violations: list[str]) -> None:
     _check_site_export_manifest(site_root, violations)
+    _check_site_series_index(site_root, violations)
     pages_dir = site_root / "_pages"
     for post in SUPPORTED_POSTS:
         matches = sorted(pages_dir.glob(f"kups-md-post-{post}-*.md"))
@@ -507,6 +508,58 @@ def _check_site_publication_state(site_root: Path, violations: list[str]) -> Non
             violations.append(f"{page_path}: page still declares itself non-final")
         if "intentionally hidden from site navigation" in text:
             violations.append(f"{page_path}: page still has hidden-draft note")
+
+
+def _check_site_series_index(site_root: Path, violations: list[str]) -> None:
+    index_path = site_root / "_pages" / "kups-md-tutorials.md"
+    if not index_path.exists():
+        violations.append(f"{index_path}: missing kUPS series index page")
+        return
+    text = index_path.read_text(encoding="utf-8")
+    front_matter = _front_matter(text)
+    if front_matter is None:
+        violations.append(f"{index_path}: missing YAML front matter")
+        return
+
+    required_pairs = {
+        "layout": "page",
+        "permalink": "/kups-md-tutorials/",
+        "title": "kUPS MD Tutorials",
+    }
+    for key, expected in required_pairs.items():
+        actual = _front_matter_value(front_matter, key)
+        if actual != expected:
+            violations.append(
+                f"{index_path}: expected front matter {key}: {expected}, "
+                f"found {actual or 'missing'}"
+            )
+    if _front_matter_value(front_matter, "description") is None:
+        violations.append(f"{index_path}: missing front matter description")
+    if not re.search(r"(?m)^pagination:\s*\n\s+enabled:\s*false\s*$", front_matter):
+        violations.append(f"{index_path}: missing pagination enabled: false")
+    if re.search(r"(?m)^nav:\s*false\s*$", text):
+        violations.append(f"{index_path}: page remains hidden with nav: false")
+
+    body = text.split("---", 2)[2] if text.startswith("---") else text
+    required_fragments = {
+        '<div class="publications blog-index">': "blog-index wrapper",
+        '{% assign postlist = site.pages | where: "series", "kups-md-tutorials" | sort: "series_order" %}': "series-ordered page query",
+        "{% assign tutorial_count = postlist | size %}": "tutorial count assignment",
+        "<h1>kUPS MD Tutorials</h1>": "series h1",
+        '<p class="blog-index-note">': "blog-index note",
+        '<div class="blog-type-summary"': "blog type summary",
+        '<ol class="bibliography">': "bibliography list",
+        "{% for post in postlist %}": "postlist loop",
+        '<div class="title">': "blog-list title block",
+        '{{ post.url | relative_url }}': "relative post URL link",
+        "blog-list-description": "post description block",
+        "blog-post-type blog-post-type-{{ post_type }}": "post type badge",
+        "{{ read_time }} min read": "read-time metadata",
+        "part {{ post.series_order }} of {{ tutorial_count }}": "series position metadata",
+    }
+    for fragment, description in required_fragments.items():
+        if fragment not in body:
+            violations.append(f"{index_path}: missing {description}")
 
 
 def _check_site_export_manifest(site_root: Path, violations: list[str]) -> None:

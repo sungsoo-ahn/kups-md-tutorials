@@ -118,9 +118,10 @@ Open items:
 
 Open items:
 
-- Add citations for NPT ensemble fluctuations, compressibility relations,
-  barostat coupling, and finite-size pressure fluctuations before final
-  publication.
+- Citation coverage for NPT ensemble fluctuations, compressibility relations,
+  barostat coupling, flexible-cell coupling, and finite-size pressure
+  fluctuations is now implemented in the hidden website page. Keep the
+  citations synchronized with any final production NPT rewrite.
 
 ## Website Draft Review
 
@@ -195,7 +196,7 @@ Open items:
 - Add final kUPS production NPT dynamics with full thermostat/barostat,
   energy/temperature, and pressure/cell diagnostics before public indexing.
 - Re-run the page snapshot workflow again after final production-cell figures
-  and citations are added.
+  are added.
 
 ## Update 2026-07-15: Reduced-Unit Argon Moving-Cell Diagnostic
 
@@ -467,8 +468,6 @@ Final-release blockers:
 - Run and review a real kUPS production NPT diagnostic with full atomistic
   thermostat/barostat settings, GPU provenance, and production stress/cell
   checks.
-- Add final citations for NPT ensemble fluctuations, compressibility,
-  barostat coupling, and finite-size pressure fluctuations.
 - Re-run rendered desktop/mobile page snapshots after final production NPT
   diagnostics or public-indexing changes.
 
@@ -591,7 +590,100 @@ Final-release blockers:
 - Run and review the real kUPS production NPT diagnostic with full atomistic
   thermostat/barostat settings, GPU provenance, and production stress/cell
   checks.
-- Add final citations for NPT ensemble fluctuations, compressibility,
-  barostat coupling, and finite-size pressure fluctuations.
+- Re-run rendered desktop/mobile page snapshots after final production NPT
+  diagnostics or any public-indexing change.
+
+## Update 2026-07-15: NPT Citation Completion
+
+Scope:
+
+- Resolved the Post 05 citation blocker for the hidden draft without changing
+  simulations, committed results, notebooks, figures, or figure snapshots.
+- Website page updated:
+  `../sungsoo-ahn.github.io/_pages/kups-md-post-05-barostats.md`.
+- Hidden page URL:
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`.
+
+Citation review:
+
+- Added inline citation anchors for standard molecular-simulation NPT
+  reporting, ensemble fluctuations, compressibility-volume fluctuation
+  relations, finite-size pressure fluctuations, barostat coupling, and
+  flexible-cell coupling.
+- Added reverse backlinks in the `## References` section for Frenkel & Smit,
+  Tuckerman, Lebowitz/Percus/Verlet, Martyna/Tobias/Klein, and
+  Parrinello/Rahman.
+- The page's Current Status now lists final NPT/barostat citations as
+  implemented and no longer lists citation work as a missing piece.
+- No figure snapshot was required for this citation-only prose pass because
+  `figures/post-05/`, `snapshots/post-05/`, notebooks, configs, and results
+  were unchanged. The existing reviewed figure snapshots remain
+  `snapshots/post-05/barostat_diagnostics_snapshot.png` and
+  `snapshots/post-05/barostat_diagnostics_full_snapshot.png`.
+
+Source checks:
+
+- Martyna/Tobias/Klein `Constant pressure molecular dynamics algorithms`:
+  AIP/JCP DOI `10.1063/1.467468`.
+- Parrinello/Rahman `Polymorphic transitions in single crystals`: AIP/JAP DOI
+  `10.1063/1.328693`.
+- Lebowitz/Percus/Verlet `Ensemble dependence of fluctuations with
+  application to machine computations`: Physical Review DOI
+  `10.1103/PhysRev.153.250`.
+- Standard NPT/compressibility context checked against Frenkel/Smit and
+  Tuckerman textbook references already used across the series.
+
+Validation and page review:
+
+- Website validation passed before deployment:
+  `python3 scripts/validate_kups_pages.py`,
+  `python3 scripts/validate_blog.py`, and `git diff --check`.
+- Tutorial review validation passed:
+  `uv run kups-tutorial verify-reviews` and `git diff --check`.
+- `uv run kups-tutorial verify-release-readiness --skip-site` still fails as
+  expected because the remaining final-release blockers are production NPT
+  diagnostics and follow-up snapshots; the Post 05 citation blocker is no
+  longer reported.
+- Website commit reviewed and deployed: `aa7ee50`.
+- Website deploy workflow run: `29404806935`, passed.
+- Snapshot workflow run: `29405029096`, passed.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post05-citation-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-citation-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`,
+  both with HTTP 200 and page title
+  `How Should Pressure and Cell Degrees of Freedom Be Coupled? | Sungsoo Ahn`.
+- Full-page snapshots visually inspected:
+  `/tmp/kups-post05-citation-snapshots/post-05-desktop.png`
+  (`1440 x 13113`) and
+  `/tmp/kups-post05-citation-snapshots/post-05-mobile.png`
+  (`616 x 20884`).
+- Focused crops visually inspected:
+  `/tmp/kups-post05-citation-snapshots/desktop-top-citations.png`,
+  `/tmp/kups-post05-citation-snapshots/desktop-mid-citations.png`,
+  `/tmp/kups-post05-citation-snapshots/desktop-status-refs.png`,
+  `/tmp/kups-post05-citation-snapshots/mobile-top-citations.png`,
+  `/tmp/kups-post05-citation-snapshots/mobile-mid-citations.png`, and
+  `/tmp/kups-post05-citation-snapshots/mobile-status-refs.png`.
+- Desktop feedback: intro, fluctuation, compressibility, finite-size
+  pressure, barostat-coupling, status, and reference citation additions render
+  cleanly; tables, sidebar, backlinks, and footer remain contained.
+- Mobile feedback: long title, hidden-draft note, source links, citation
+  clusters, narrow tables, status list, references, and backlinks wrap inside
+  the article column. No citation overflow, clipping, or broken page chrome was
+  found in the inspected crops.
+- Live check with cache-buster `?v=aa7ee50` confirmed the deployed Post 05 page
+  contains the new citation/status text and the Lebowitz, Martyna, and
+  Parrinello reference entries.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-05-barostats` links, so the page remains direct-link only.
+
+Final-release blockers after this refresh:
+
+- Run and review the real kUPS production NPT diagnostic with full atomistic
+  thermostat/barostat settings, GPU provenance, and production stress/cell
+  checks.
 - Re-run rendered desktop/mobile page snapshots after final production NPT
   diagnostics or any public-indexing change.

@@ -2947,3 +2947,85 @@ Revision decisions:
   blocker is the larger GPU kUPS trajectory-length diagnostic for physical
   observables, followed by new desktop/mobile snapshots after that production
   update or any public-indexing change.
+
+## Post 05 Citation Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29405029096`.
+- Website commit reviewed:
+  `aa7ee50`.
+- Website deploy run:
+  `29404806935`.
+- Tutorial review state: working tree after Post 05 citation-review update on
+  top of tutorial commit `21650bf`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post05-citation-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-citation-snapshots/manifest.json`.
+- Capture scope: hidden Post 05 page after adding final citations for NPT
+  ensemble fluctuations, compressibility relations, finite-size pressure
+  fluctuations, barostat coupling, flexible-cell coupling, and thermostat/
+  barostat/integration coupling.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Should Pressure and Cell Degrees of Freedom Be Coupled? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post05-citation-snapshots/post-05-desktop.png`
+  (`1440 x 13113`)
+- `/tmp/kups-post05-citation-snapshots/post-05-mobile.png`
+  (`616 x 20884`)
+- Focused crops:
+  `/tmp/kups-post05-citation-snapshots/desktop-top-citations.png`,
+  `/tmp/kups-post05-citation-snapshots/desktop-mid-citations.png`,
+  `/tmp/kups-post05-citation-snapshots/desktop-status-refs.png`,
+  `/tmp/kups-post05-citation-snapshots/mobile-top-citations.png`,
+  `/tmp/kups-post05-citation-snapshots/mobile-mid-citations.png`, and
+  `/tmp/kups-post05-citation-snapshots/mobile-status-refs.png`.
+
+Feedback:
+
+- Desktop top-section capture renders the revised intro, hidden-draft note,
+  source links, Frenkel/Smit and Tuckerman citations, and the first
+  fluctuation citation without overflow. The sidebar table of contents remains
+  intact.
+- Desktop middle capture renders the compressibility, finite-system pressure,
+  Martyna/Tobias/Klein, and Parrinello/Rahman citation additions cleanly.
+  The adjacent diagnostic tables remain contained.
+- Desktop status/reference capture confirms final citations moved to the
+  implemented list; the missing-pieces list no longer includes citation work.
+  All reference entries, reverse backlinks, and the footer fit.
+- Mobile top capture keeps the long title, author note, citation cluster,
+  source links, and first diagnostic tables contained. The left table of
+  contents remains narrow but unchanged from prior accepted hidden-draft
+  captures.
+- Mobile middle capture keeps the compressibility and barostat-method
+  citation clusters readable, with dense tables contained in the article
+  column.
+- Mobile status/reference capture renders Current Status, references,
+  backlinks, and footer without clipping.
+- Live check with cache-buster `?v=aa7ee50` confirmed the deployed page
+  contains the new citation/status text and the Lebowitz, Martyna, and
+  Parrinello reference entries.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-05-barostats` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after citation refresh.
+- No figure revision was required because figures, figure captions, notebooks,
+  configs, and results were unchanged.
+- The Post 05 citation blocker is resolved; remaining final-release blockers
+  are the real kUPS production NPT diagnostic with full atomistic
+  thermostat/barostat settings, GPU provenance, and production stress/cell
+  checks, followed by new desktop/mobile snapshots after that production
+  update or any public-indexing change.

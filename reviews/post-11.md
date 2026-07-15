@@ -239,9 +239,9 @@ Non-blocking items accepted until the final article pass:
 
 Final-release blockers:
 
-- Add production MD context with real atomistic steered trajectories and any
-  final diagnostics needed for the public article, including final uncertainty
-  diagnostics.
+- Add production MD context with real atomistic steered trajectories, model
+  checks, and any production-level uncertainty intervals needed for public
+  claims.
 - Re-run rendered desktop/mobile snapshots after any final production MD or
   figure additions.
 
@@ -371,3 +371,75 @@ Website and rendered-page review:
   article column; the hysteresis panel is small but still legible enough for
   the hidden draft; the status section now reflects that snapshots were
   captured.
+
+## Update 2026-07-15: Uncertainty Status And Snapshot Refresh
+
+- Website commit reviewed:
+  `2db11dae3d88a9d052d30d393fda5b688323a5f8`.
+- Website deployment run:
+  `29380833243`.
+- Snapshot workflow run:
+  `29380950365`.
+- Snapshot artifact: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post11-uncertainty-status-snapshots/`.
+
+Scope:
+
+- No tutorial code or generated-data change was made in this pass.
+- The hidden page status text was corrected to name the already implemented
+  Jarzynski/Crooks, ESS, and fast/slow hysteresis diagnostics.
+- The final-release blocker was narrowed so it no longer treats all
+  uncertainty diagnostics as missing. The remaining blocker is production MD
+  context with real atomistic steered trajectories, model checks, and any
+  production-level uncertainty intervals required by future public claims.
+
+Validation:
+
+- `python3 scripts/validate_kups_pages.py` passed in
+  `../sungsoo-ahn.github.io`.
+- `python3 scripts/validate_blog.py` passed in `../sungsoo-ahn.github.io` with
+  pre-existing unused-image warnings.
+- `git diff --check` passed in `../sungsoo-ahn.github.io`.
+- Live check with `?v=2db11da` confirmed the Post 11 page contains the updated
+  fast/slow hysteresis diagnostic and production-uncertainty status text.
+- Live homepage and blog listing checks with `?v=2db11da` confirmed
+  `post-11-enhanced-sampling` and `kups-md-tutorials` are not exposed.
+
+Scientific status:
+
+- Metadynamics-style full run retains final bias range `6.5339`,
+  reconstructed barrier error `0.0922`, and final histogram flatness `0.6635`.
+- Controlled Gaussian work identity check retains forward Jarzynski estimate
+  `0.0011`, reverse Jarzynski estimate `-0.0090`, Crooks crossing `-0.0007`,
+  forward ESS fraction `0.7159`, and reverse ESS fraction `0.7215`.
+- Steered hysteresis diagnostic retains fast gap `33.7415 +/- 0.2534`, slow
+  gap `5.5457 +/- 0.1116`, and fast/slow gap ratio `6.08`.
+- These controlled diagnostics are accepted for the hidden draft state. They
+  are not a substitute for production atomistic steered trajectories or
+  production-level uncertainty intervals if later public claims depend on them.
+
+Rendered-page review:
+
+- Snapshot manifest reviewed:
+  `/tmp/kups-post11-uncertainty-status-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`;
+  both returned HTTP 200 and title
+  `How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work? | Sungsoo Ahn`.
+- Desktop snapshot inspected:
+  `/tmp/kups-post11-uncertainty-status-snapshots/post-11-desktop.png` at
+  `1440 x 11334`.
+- Mobile snapshot inspected:
+  `/tmp/kups-post11-uncertainty-status-snapshots/post-11-mobile.png` at
+  `390 x 17608`.
+- Desktop feedback: the hidden article renders end to end with source links,
+  adaptive-bias and nonequilibrium-work tables, four-panel figure, practical
+  checklist, reproduction block, updated Current Status section, references,
+  and footer present. No blank page, missing figure, clipped text, or broken
+  page chrome was found.
+- Mobile feedback: the long title wraps heavily but remains contained. Tables,
+  figure, caption, code block, updated Current Status section, references, and
+  footer remain inside the page column. The figure is small but readable enough
+  for the hidden draft, and no text overlap was found in the inspected
+  snapshot.

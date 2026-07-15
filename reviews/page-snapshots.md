@@ -1549,3 +1549,67 @@ Revision decisions:
   and any production-level uncertainty intervals needed before public indexing.
 - Re-run rendered snapshots after final production MD figures/citations or any
   public-indexing change.
+
+## Post 11 Uncertainty-Status Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29380950365`.
+- Website commit reviewed:
+  `2db11dae3d88a9d052d30d393fda5b688323a5f8`.
+- Website deploy run: `29380833243`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post11-uncertainty-status-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post11-uncertainty-status-snapshots/manifest.json`.
+- Capture scope: post 11 after clarifying that controlled Jarzynski/Crooks,
+  ESS, and fast/slow hysteresis diagnostics are implemented, while production
+  atomistic steered trajectories and any production-level uncertainty
+  intervals remain final-release blockers.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post11-uncertainty-status-snapshots/post-11-desktop.png`
+  (`1440 x 11334`)
+- `/tmp/kups-post11-uncertainty-status-snapshots/post-11-mobile.png`
+  (`390 x 17608`)
+
+Feedback:
+
+- Desktop capture renders the hidden Post 11 draft end to end with the updated
+  author note, source links, adaptive-bias and nonequilibrium-work tables,
+  four-panel figure, practical checklist, reproduction block, Current Status
+  section, references, and footer present.
+- The Current Status section now names the Jarzynski/Crooks, ESS, and fast/slow
+  hysteresis diagnostics as implemented figure/status items and limits missing
+  uncertainty work to production-level claims.
+- Mobile capture keeps the long title, tables, four-panel figure, caption,
+  code block, Current Status section, references, and footer contained. Tables
+  remain dense but readable, the figure is small but legible enough for the
+  hidden draft, and no overlap or broken page chrome was found.
+- Live checks with cache-buster `?v=2db11da` confirmed the direct hidden URL
+  contains the updated status text, while `/` and `/blog/` do not expose
+  `post-11-enhanced-sampling` or `kups-md-tutorials`.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 11 uncertainty-status hidden
+  draft.
+- The controlled Jarzynski/Crooks, ESS, and fast/slow hysteresis diagnostics
+  are accepted for the hidden draft state.
+- Keep mobile title/table/figure density as final typography-polish items.
+- Add production MD context with real atomistic steered trajectories, model
+  checks, and any production-level uncertainty intervals needed before public
+  indexing.
+- Re-run rendered snapshots after final production MD figures/citations or any
+  public-indexing change.

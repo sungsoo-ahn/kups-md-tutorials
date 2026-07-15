@@ -62,10 +62,15 @@
     "title": "What Does Umbrella Sampling Actually Sample?"
   },
   "curves_file": "umbrella_curves.csv",
+  "execution": {
+    "elapsed_seconds": 0.836,
+    "max_full_profile_seconds": 3600,
+    "measured_by": "kups_md_tutorials.workflows.run_post"
+  },
   "provenance": {
     "config_path": "configs/post-10/smoke.json",
     "config_sha256": "40f09db64f64a8f0b1ebb831f6474a96e33a80c6523ecbc4afd8814f6d977a22",
-    "git_revision": "ec4bf4eb96bf66be2647282f0f0c44afad192e74",
+    "git_revision": "29a90fd96269878bd5b0caf950f774c9979a2fb1",
     "lock_path": "uv.lock",
     "lock_sha256": "1e3d7f63e177a6a9a753cdb7a62667b8dc1c9d6bb5563b1deebdd70de4168844",
     "platform": "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",

@@ -389,6 +389,11 @@ def _manifest_fixture(
             "runtime_device": "jax:cpu;devices:cpu",
             "precision_policy": "jax_enable_x64=false;env_JAX_ENABLE_X64=unset",
         },
+        "execution": {
+            "elapsed_seconds": 1.0,
+            "max_full_profile_seconds": 3600,
+            "measured_by": "kups_md_tutorials.workflows.run_post",
+        },
         "summary_file": "example_summary.json",
         "versions": {"kups": "1.0.3", "numpy": "2.0.0"},
     }
@@ -1809,6 +1814,40 @@ def test_release_readiness_reports_stale_manifest_file_hashes(tmp_path: Path) ->
     )
     assert any(
         "provenance lock_sha256 mismatch" in violation
+        for violation in result.violations
+    )
+
+
+def test_release_readiness_reports_stale_manifest_execution_timing(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    smoke_manifest_path = tmp_path / "results" / "post-03" / "smoke" / "manifest.json"
+    smoke_manifest = json.loads(smoke_manifest_path.read_text(encoding="utf-8"))
+    smoke_manifest.pop("execution")
+    smoke_manifest_path.write_text(json.dumps(smoke_manifest) + "\n", encoding="utf-8")
+
+    full_manifest_path = tmp_path / "results" / "post-03" / "full" / "manifest.json"
+    full_manifest = json.loads(full_manifest_path.read_text(encoding="utf-8"))
+    full_manifest["execution"]["elapsed_seconds"] = 3600.1
+    full_manifest_path.write_text(json.dumps(full_manifest) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("missing execution timing metadata" in violation for violation in result.violations)
+    assert any(
+        "full-profile execution elapsed_seconds 3600.1 exceeds max_full_profile_seconds 3600"
+        in violation
         for violation in result.violations
     )
 

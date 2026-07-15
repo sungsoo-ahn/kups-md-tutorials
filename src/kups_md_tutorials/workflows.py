@@ -1,6 +1,8 @@
 """Executable tutorial workflows exposed by the CLI."""
 
+import json
 from pathlib import Path
+import time
 
 import numpy as np
 
@@ -90,45 +92,52 @@ def run_post(post: str, profile: str, output_root: Path = Path("results")) -> Pa
     if profile == "full":
         verify_post(post, "smoke", output_root=output_root)
 
+    start = time.monotonic()
     if post == "01":
         spec = load_tutorial_spec(post, profile)
-        return write_initialization_outputs(spec, output_root=output_root)
-    if post == "02":
+        output_dir = write_initialization_outputs(spec, output_root=output_root)
+    elif post == "02":
         spec = load_integrator_spec(post, profile)
-        return write_integrator_outputs(spec, output_root=output_root)
-    if post == "03":
+        output_dir = write_integrator_outputs(spec, output_root=output_root)
+    elif post == "03":
         spec = load_error_spec(post, profile)
-        return write_error_outputs(spec, output_root=output_root)
-    if post == "04":
+        output_dir = write_error_outputs(spec, output_root=output_root)
+    elif post == "04":
         spec = load_thermostat_spec(post, profile)
-        return write_thermostat_outputs(spec, output_root=output_root)
-    if post == "05":
+        output_dir = write_thermostat_outputs(spec, output_root=output_root)
+    elif post == "05":
         spec = load_barostat_spec(post, profile)
-        return write_barostat_outputs(spec, output_root=output_root)
-    if post == "06":
+        output_dir = write_barostat_outputs(spec, output_root=output_root)
+    elif post == "06":
         spec = load_trajectory_length_spec(post, profile)
-        return write_trajectory_length_outputs(spec, output_root=output_root)
-    if post == "07":
+        output_dir = write_trajectory_length_outputs(spec, output_root=output_root)
+    elif post == "07":
         spec = load_observable_spec(post, profile)
-        return write_observable_outputs(spec, output_root=output_root)
-    if post == "08":
+        output_dir = write_observable_outputs(spec, output_root=output_root)
+    elif post == "08":
         spec = load_free_energy_spec(post, profile)
-        return write_free_energy_outputs(spec, output_root=output_root)
-    if post == "09":
+        output_dir = write_free_energy_outputs(spec, output_root=output_root)
+    elif post == "09":
         spec = load_estimator_spec(post, profile)
-        return write_estimator_outputs(spec, output_root=output_root)
-    if post == "10":
+        output_dir = write_estimator_outputs(spec, output_root=output_root)
+    elif post == "10":
         spec = load_umbrella_spec(post, profile)
-        return write_umbrella_outputs(spec, output_root=output_root)
-    if post == "11":
+        output_dir = write_umbrella_outputs(spec, output_root=output_root)
+    elif post == "11":
         spec = load_enhanced_sampling_spec(post, profile)
-        return write_enhanced_sampling_outputs(spec, output_root=output_root)
-    if post == "12":
+        output_dir = write_enhanced_sampling_outputs(spec, output_root=output_root)
+    elif post == "12":
         spec = load_mlip_spec(post, profile)
-        return write_mlip_outputs(spec, output_root=output_root)
+        output_dir = write_mlip_outputs(spec, output_root=output_root)
     else:
         msg = f"post {post!r} is not implemented yet"
         raise NotImplementedError(msg)
+
+    _annotate_execution_manifest(
+        output_dir,
+        elapsed_seconds=time.monotonic() - start,
+    )
+    return output_dir
 
 
 def run_all(profile: str, output_root: Path = Path("results")) -> list[Path]:
@@ -174,6 +183,24 @@ def verify_all(profile: str, output_root: Path = Path("results")) -> None:
 
     for post in SUPPORTED_POSTS:
         verify_post(post, profile, output_root=output_root)
+
+
+def _annotate_execution_manifest(
+    output_dir: Path,
+    *,
+    elapsed_seconds: float,
+) -> None:
+    manifest_path = output_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["execution"] = {
+        "elapsed_seconds": round(elapsed_seconds, 3),
+        "max_full_profile_seconds": 3600,
+        "measured_by": "kups_md_tutorials.workflows.run_post",
+    }
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _verify_post01(post: str, profile: str, output_root: Path) -> None:

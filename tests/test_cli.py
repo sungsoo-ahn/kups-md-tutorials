@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,17 @@ def test_cli_run_and_verify_smoke(tmp_path: Path) -> None:
     assert (
         main(["run", "01", "--profile", "smoke", "--output-dir", str(tmp_path)])
         == 0
+    )
+    manifest = json.loads(
+        (tmp_path / "post-01" / "smoke" / "manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert manifest["execution"]["elapsed_seconds"] > 0.0
+    assert manifest["execution"]["max_full_profile_seconds"] == 3600
+    assert (
+        manifest["execution"]["measured_by"]
+        == "kups_md_tutorials.workflows.run_post"
     )
     assert (
         main(["verify", "01", "--profile", "smoke", "--output-dir", str(tmp_path)])

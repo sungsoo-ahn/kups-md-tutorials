@@ -2530,6 +2530,96 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Execution Runtime Manifest Gate
+
+Scope:
+
+- Added workflow-level execution timing metadata to every generated result
+  manifest through `kups_md_tutorials.workflows.run_post`.
+- Each manifest now records `execution.elapsed_seconds`,
+  `execution.max_full_profile_seconds: 3600`, and
+  `execution.measured_by: kups_md_tutorials.workflows.run_post`.
+- Tightened `verify-release-readiness` so result manifests without execution
+  timing metadata fail the release-surface audit, and full-profile manifests
+  fail if measured elapsed time exceeds the one-hour PLAN budget.
+- Added CLI and release-readiness regression coverage for the manifest
+  execution block, including a missing smoke timing case and an over-budget
+  full-profile case.
+- Regenerated all committed smoke and full compact result manifests, then
+  refreshed the website compact JSON export in `../sungsoo-ahn.github.io`.
+- No notebooks, figures, figure snapshots, website prose, front matter,
+  CSS-sensitive markup, or rendered page assets changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/workflows.py src/kups_md_tutorials/release_readiness.py tests/test_cli.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_cli.py tests/test_release_readiness.py` passed with
+  54 tests and existing ASE/NumPy deprecation warnings.
+- `uv run kups-tutorial run-all --profile smoke` passed and wrote all 12 smoke
+  result directories.
+- `uv run kups-tutorial run-all --profile full` passed and wrote all 12 full
+  result directories. The command reported CPU fallback because CUDA-enabled
+  `jaxlib` is not installed; production GPU execution remains a final-release
+  blocker.
+- `uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io --profile full`
+  passed and refreshed the website compact JSON export.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_blog.py` passed
+  with the existing unused-image warnings, `python3 scripts/validate_kups_pages.py`
+  passed, and `git diff --check` passed.
+- `uv run pytest` passed with 114 tests and existing ASE/NumPy deprecation
+  warnings.
+- `uv run ruff check .` passed.
+- `uv run kups-tutorial verify --profile smoke` passed.
+- `uv run kups-tutorial verify --profile full` passed.
+- `uv run kups-tutorial verify-artifacts` passed for 280 tracked files.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers: production GPU
+  diagnostics, hidden/non-final kUPS pages, missing final `_posts`, public
+  indexing, and rendered snapshot recapture after final publication changes.
+
+Code and reproducibility review:
+
+- The previous manifests recorded config hashes, lock hashes, runtime device,
+  precision policy, versions, and compact output paths, but did not prove how
+  long a full-profile reproduction took.
+- The release gate now treats missing runtime evidence as a structural
+  regression, and checks the full-profile one-hour budget from `PLAN.md`
+  directly from committed manifests.
+- Regenerated smoke manifests record 12 timing entries; max smoke elapsed time
+  was 6.163 seconds and total smoke elapsed time was 15.532 seconds.
+- Regenerated full manifests record 12 timing entries; max full elapsed time
+  was 104.511 seconds, total full elapsed time was 400.925 seconds, and every
+  current full profile is below the 3600-second manifest budget.
+- The measured runtime evidence is for the current CPU-fallback hidden-draft
+  diagnostics. It does not resolve the separate final-release requirement to
+  run and review production GPU diagnostics.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or
+  CSS-sensitive markup changed, so no rendered desktop/mobile page snapshots
+  were required. Existing rendered-page evidence remains in
+  `reviews/page-snapshots.md`.
+- The website repo changed only in compact JSON exports under
+  `assets/json/kups-md-tutorials/`, and those exported manifest copies now
+  include the same execution timing metadata.
+
+Review decision:
+
+- Accepted for the execution-runtime manifest milestone after regeneration,
+  focused tests, full tests, smoke/full verification, review/artifact audits,
+  site-aware current-blocker release audit, and strict-readiness confirmation
+  of only known final blockers.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

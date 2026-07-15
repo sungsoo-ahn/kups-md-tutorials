@@ -1657,6 +1657,7 @@ def _check_result_manifest_file(
         profile=profile,
         violations=violations,
     )
+    _check_manifest_execution(path, manifest, profile=profile, violations=violations)
     _check_manifest_output_files(path, manifest, violations)
 
 
@@ -1767,6 +1768,36 @@ def _check_manifest_output_files(
         if not resolved_path.exists():
             violations.append(
                 f"{path}: manifest {field} does not exist: {value}"
+            )
+
+
+def _check_manifest_execution(
+    path: Path,
+    manifest: dict[str, object],
+    *,
+    profile: str,
+    violations: list[str],
+) -> None:
+    execution = manifest.get("execution")
+    if not isinstance(execution, dict):
+        violations.append(f"{path}: missing execution timing metadata")
+        return
+
+    elapsed = execution.get("elapsed_seconds")
+    if not isinstance(elapsed, int | float) or elapsed <= 0:
+        violations.append(f"{path}: missing positive execution elapsed_seconds")
+    measured_by = execution.get("measured_by")
+    if measured_by != "kups_md_tutorials.workflows.run_post":
+        violations.append(f"{path}: missing workflow execution measurement source")
+
+    max_seconds = execution.get("max_full_profile_seconds")
+    if profile == "full":
+        if not isinstance(max_seconds, int | float) or max_seconds <= 0:
+            violations.append(f"{path}: missing positive max_full_profile_seconds")
+        elif isinstance(elapsed, int | float) and elapsed > max_seconds:
+            violations.append(
+                f"{path}: full-profile execution elapsed_seconds {elapsed} "
+                f"exceeds max_full_profile_seconds {max_seconds}"
             )
 
 

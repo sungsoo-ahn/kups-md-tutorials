@@ -2041,6 +2041,60 @@ Revision decisions:
 - Re-run rendered snapshots after final production physical-observable
   diagnostics, final citations, or any public-indexing change.
 
+## kUPS Index Blog-Style Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29389348702`.
+- Website commit reviewed:
+  `37df521`.
+- Website deploy run: `29389218444`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-index-37df521-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-index-37df521-snapshots/kups-md-page-snapshots/manifest.json`.
+- Capture scope: hidden kUPS series index after aligning the listing copy and
+  metadata rhythm with the public `/blog/` index while keeping the page
+  direct-link-only.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `kUPS MD Tutorials | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-index-37df521-snapshots/kups-md-page-snapshots/post-index-desktop.png`
+  (`1440 x 1763`)
+- `/tmp/kups-index-37df521-snapshots/kups-md-page-snapshots/post-index-mobile.png`
+  (`390 x 2632`)
+
+Feedback:
+
+- Desktop capture matches the `/blog/` list structure: title, introductory
+  note, compact type summary, ordered bibliography list, descriptions, and
+  author/date/read-time metadata are all visible without overlap.
+- Mobile capture keeps the type summary, long titles, descriptions, and
+  metadata contained. The layout remains narrow and blog-like, with no exposed
+  kUPS navigation item in the header.
+- Live check with cache-buster `?v=37df521` returned HTTP 200 and confirmed
+  the deployed HTML contains `Executable molecular-dynamics notes`, `Post
+  types`, `Tutorials 12`, and `part 1 of 12`.
+- The public homepage check did not expose `kups-md-tutorials`, preserving the
+  hidden direct-link-only status.
+
+Revision decisions:
+
+- No blocking layout issue was found for the hidden kUPS index.
+- The blog-style index is accepted for the hidden draft state.
+- Re-run rendered snapshots after public-indexing changes or major curriculum
+  title/description updates.
+
 ## Post 07 VACF Replica Snapshot Refresh
 
 - Capture date: 2026-07-15.

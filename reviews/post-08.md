@@ -367,3 +367,79 @@ Revision decisions:
   public indexing.
 - Re-run rendered snapshots after final production RDF-PMF figures/citations
   or any public-indexing change.
+
+## Update 2026-07-15: RDF-PMF Support-Threshold Sensitivity
+
+Commands added in this pass:
+
+- `uv run ruff check src/kups_md_tutorials/free_energies.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run python -m py_compile src/kups_md_tutorials/free_energies.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run kups-tutorial run 08 --profile smoke`
+- `uv run kups-tutorial verify 08 --profile smoke`
+- `uv run kups-tutorial run 08 --profile full`
+- `uv run kups-tutorial verify 08 --profile full`
+- `uv run python scripts/generate_post08_figures.py`
+- `uv run jupyter execute notebooks/post-08-free-energies.ipynb --inplace`
+
+Code and reproducibility review:
+
+- `ArgonRdfPmfSummary` now records RDF support-threshold sensitivity fields:
+  thresholds, finite PMF-bin counts, PMF ranges, minimum radii, and the span of
+  PMF ranges across thresholds.
+- The RDF-PMF workflow exports support-threshold PMF curves for thresholds
+  `0.02`, `0.05`, and `0.10` in `free_energy_curves.csv`.
+- Post 08 verification now requires multiple support thresholds, matching
+  threshold/range lengths, and a positive support-threshold range span.
+- The figure generator overlays dotted support-threshold PMF curves in the
+  trajectory RDF-PMF panel and annotates the support sensitivity span.
+- The notebook now prints support thresholds, finite-bin counts, PMF ranges,
+  and range span from the committed full-profile summary.
+
+Scientific review:
+
+- Smoke-profile compact argon RDF-PMF support thresholds `0.02`, `0.05`, and
+  `0.10` retain `19`, `18`, and `18` finite PMF bins, respectively.
+- Smoke-profile PMF ranges across those thresholds are `3.1088`, `1.4170`,
+  and `1.4170`, giving a support-threshold range span of `1.6918` reduced
+  energy units.
+- Full-profile compact argon RDF-PMF support thresholds `0.02`, `0.05`, and
+  `0.10` retain `53`, `52`, and `52` finite PMF bins, respectively.
+- Full-profile PMF ranges across those thresholds are `2.9979`, `1.6429`,
+  and `1.6429`, giving a support-threshold range span of `1.3550` reduced
+  energy units.
+- Interpretation: the first RDF-PMF minimum is stable at radius `1.125` across
+  thresholds in the full profile, but the reported shifted PMF range is
+  sensitive to whether very low RDF-support bins are admitted. The figure and
+  page should therefore frame this as a support-sensitive transform, not a
+  production barrier estimate.
+
+Figure feedback:
+
+- Full-profile figure snapshot inspected:
+  `snapshots/post-08/free_energy_diagnostics_full_snapshot.png`
+  (`1728 x 1152`).
+- Smoke-profile figure snapshot inspected:
+  `snapshots/post-08/free_energy_diagnostics_snapshot.png`
+  (`1728 x 1152`).
+- Full-profile feedback: the fourth panel shows the main support `0.05` PMF,
+  dotted support `0.02` and `0.10` curves, scaled RDF, PMF-minimum marker,
+  block SEM band, replica-standard-deviation axis, and annotation with
+  `support span = 1.35`. The dense legend is contained and does not block the
+  first-minimum interpretation.
+- Smoke-profile feedback: the same visual elements are present, with a larger
+  support span of `1.69` and visibly stronger low-support sensitivity. The
+  panel remains readable and no blocking clipping or overlap was found.
+- Revision decision: no additional local figure edit was needed after
+  inspecting the support-threshold snapshots.
+
+Website review status:
+
+- Pending in this pass: refresh the hidden website page, deploy it, capture
+  rendered page snapshots, and record live-page feedback.
+
+Final-release blockers:
+
+- Add larger GPU kUPS RDF-derived PMF diagnostics and final citations before
+  public indexing.
+- Re-run rendered snapshots after final production RDF-PMF figures/citations
+  or any public-indexing change.

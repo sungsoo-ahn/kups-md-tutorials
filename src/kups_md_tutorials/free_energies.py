@@ -52,6 +52,11 @@ class ArgonRdfPmfSummary:
     max_block_pmf_sem: float
     mean_replica_pmf_std: float
     max_replica_pmf_std: float
+    support_thresholds: tuple[float, ...]
+    support_threshold_finite_bins: tuple[int, ...]
+    support_threshold_pmf_ranges: tuple[float, ...]
+    support_threshold_minimum_radii: tuple[float, ...]
+    support_threshold_range_span: float
 
 
 @dataclass(frozen=True)
@@ -220,33 +225,56 @@ def _pmf_uncertainty_from_stack(stack: list[np.ndarray]) -> tuple[np.ndarray, np
 
 def _argon_rdf_pmf(
     spec: ArgonObservableTrajectorySpec | None,
-) -> tuple[
-    ArgonRdfPmfSummary | None,
-    tuple[np.ndarray, np.ndarray] | None,
-    tuple[np.ndarray, np.ndarray] | None,
-    tuple[np.ndarray, np.ndarray] | None,
-    tuple[np.ndarray, np.ndarray] | None,
-]:
+) -> tuple[ArgonRdfPmfSummary | None, dict[str, tuple[np.ndarray, np.ndarray]]]:
     if spec is None:
-        return None, None, None, None, None
+        return None, {}
 
     container = _ArgonTrajectoryContainer(spec)
     trajectory_summary, rdf_curve, _, _, _ = _summarize_argon_trajectory(container)
     simulated = _simulate_argon_trajectory(container)
     if trajectory_summary is None or rdf_curve is None or simulated is None:
-        return None, None, None, None, None
+        return None, {}
 
     radii, rdf = rdf_curve
     frames, _, cell_length = simulated
     pmf, valid = _rdf_to_shifted_pmf(rdf, temperature=spec.temperature)
     finite = np.isfinite(pmf)
     minimum_idx = int(np.nanargmin(pmf))
+    support_thresholds = (0.02, 0.05, 0.10)
+    support_finite_bins = []
+    support_pmf_ranges = []
+    support_minimum_radii = []
+    support_curves: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+    for threshold in support_thresholds:
+        threshold_pmf, _ = _rdf_to_shifted_pmf(
+            rdf,
+            temperature=spec.temperature,
+            minimum_rdf=threshold,
+        )
+        threshold_finite = np.isfinite(threshold_pmf)
+        support_curves[f"argon_rdf_pmf_support_{threshold:g}"] = (radii, threshold_pmf)
+        support_finite_bins.append(int(np.count_nonzero(threshold_finite)))
+        if np.any(threshold_finite):
+            support_pmf_ranges.append(
+                float(
+                    np.nanmax(threshold_pmf[threshold_finite])
+                    - np.nanmin(threshold_pmf[threshold_finite])
+                )
+            )
+            support_minimum_radii.append(float(radii[int(np.nanargmin(threshold_pmf))]))
+        else:
+            support_pmf_ranges.append(float("nan"))
+            support_minimum_radii.append(float("nan"))
 
     block_pmfs: list[np.ndarray] = []
     block_size = max(1, frames.shape[0] // spec.uncertainty_block_count)
     for block_idx in range(spec.uncertainty_block_count):
         start = block_idx * block_size
-        stop = frames.shape[0] if block_idx == spec.uncertainty_block_count - 1 else start + block_size
+        stop = (
+            frames.shape[0]
+            if block_idx == spec.uncertainty_block_count - 1
+            else start + block_size
+        )
         block = frames[start:stop]
         if len(block) < 2:
             continue
@@ -301,8 +329,22 @@ def _argon_rdf_pmf(
         max_block_pmf_sem=float(np.nanmax(block_sem)),
         mean_replica_pmf_std=float(np.nanmean(replica_std)),
         max_replica_pmf_std=float(np.nanmax(replica_std)),
+        support_thresholds=support_thresholds,
+        support_threshold_finite_bins=tuple(support_finite_bins),
+        support_threshold_pmf_ranges=tuple(support_pmf_ranges),
+        support_threshold_minimum_radii=tuple(support_minimum_radii),
+        support_threshold_range_span=float(
+            np.nanmax(support_pmf_ranges) - np.nanmin(support_pmf_ranges)
+        ),
     )
-    return summary, (radii, rdf), (radii, pmf), (radii, block_sem), (radii, replica_std)
+    curves = {
+        "argon_rdf": (radii, rdf),
+        "argon_rdf_pmf": (radii, pmf),
+        "argon_rdf_pmf_block_sem": (radii, block_sem),
+        "argon_rdf_pmf_replica_std": (radii, replica_std),
+        **support_curves,
+    }
+    return summary, curves
 
 
 def run_free_energy_experiment(
@@ -385,16 +427,8 @@ def run_free_energy_experiment(
     )
     curves["rdf"] = (radii, rdf)
     curves["rdf_pmf"] = (radii, rdf_pmf)
-    argon_summary, argon_rdf, argon_pmf, argon_block_sem, argon_replica_std = _argon_rdf_pmf(
-        spec.argon_rdf_pmf
-    )
-    if argon_rdf is not None and argon_pmf is not None:
-        curves["argon_rdf"] = argon_rdf
-        curves["argon_rdf_pmf"] = argon_pmf
-    if argon_block_sem is not None:
-        curves["argon_rdf_pmf_block_sem"] = argon_block_sem
-    if argon_replica_std is not None:
-        curves["argon_rdf_pmf_replica_std"] = argon_replica_std
+    argon_summary, argon_curves = _argon_rdf_pmf(spec.argon_rdf_pmf)
+    curves.update(argon_curves)
 
     return (
         FreeEnergyExperimentSummary(

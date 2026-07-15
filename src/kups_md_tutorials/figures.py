@@ -1730,8 +1730,21 @@ def _draw_post08_figure(
             pmf_y,
             color="#3f8f8a",
             linewidth=1.5,
-            label="-kT log g(r)",
+            label="support 0.05",
         )
+        for threshold, color in (("0.02", "#8bb7b2"), ("0.1", "#1f5f5b")):
+            key_x = f"argon_rdf_pmf_support_{threshold}_x"
+            key_y = f"argon_rdf_pmf_support_{threshold}_y"
+            if key_x in curves and key_y in curves:
+                axes[3].plot(
+                    curves[key_x],
+                    curves[key_y],
+                    color=color,
+                    linewidth=0.9,
+                    linestyle=":",
+                    alpha=0.75,
+                    label=f"support {threshold}",
+                )
         finite_pmf = pmf_y[np.isfinite(pmf_y)]
         pmf_scale = float(np.nanmax(finite_pmf)) if finite_pmf.size else 1.0
         rdf_scale = float(np.nanmax(curves["argon_rdf_y"]))
@@ -1761,7 +1774,8 @@ def _draw_post08_figure(
             f"N = {argon['atom_count']}\n"
             f"frames = {argon['frame_count']}\n"
             f"rmin = {argon['pmf_minimum_radius']:.3f}\n"
-            f"rep std max = {argon['max_replica_pmf_std']:.2f}",
+            f"rep std max = {argon['max_replica_pmf_std']:.2f}\n"
+            f"support span = {argon['support_threshold_range_span']:.2f}",
             transform=axes[3].transAxes,
             va="top",
             ha="left",

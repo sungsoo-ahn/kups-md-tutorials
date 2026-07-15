@@ -710,6 +710,17 @@ def _verify_post08(post: str, profile: str, output_root: Path) -> None:
         if summary.argon_rdf_pmf.max_replica_pmf_std <= 0.0:
             msg = "argon RDF-derived PMF replica uncertainty should be positive"
             raise ValueError(msg)
+        if len(summary.argon_rdf_pmf.support_thresholds) < 2:
+            msg = "argon RDF-derived PMF should record support thresholds"
+            raise ValueError(msg)
+        if len(summary.argon_rdf_pmf.support_thresholds) != len(
+            summary.argon_rdf_pmf.support_threshold_pmf_ranges
+        ):
+            msg = "argon RDF-derived PMF support threshold arrays are inconsistent"
+            raise ValueError(msg)
+        if summary.argon_rdf_pmf.support_threshold_range_span <= 0.0:
+            msg = "argon RDF-derived PMF support sensitivity should be positive"
+            raise ValueError(msg)
 
 
 def _verify_post09(post: str, profile: str, output_root: Path) -> None:

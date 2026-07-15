@@ -817,6 +817,69 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Typed Config Loader Gate
+
+Scope:
+
+- Added typed loader validation to the release-readiness artifact surface for
+  every committed `configs/post-XX/{smoke,full}.json` file.
+- The audit now calls the post-specific loader for all 12 posts, so syntax-only
+  JSON files or schema-invalid edits fail before final release or CI surface
+  checks can pass.
+- Updated release-readiness test fixtures to copy the real committed tutorial
+  configs into temporary release fixtures instead of using placeholder
+  `{post, profile}` JSON.
+- Added a regression test that corrupts post 02's full-profile
+  `integrator_experiment.num_steps` and verifies the release audit reports a
+  typed config validation failure.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py tests/test_config.py -q`
+  passed: 33 tests.
+- `uv run pytest tests/test_release_readiness.py tests/test_config.py tests/test_cli.py -q`
+  passed: 47 tests, with the existing ASE/NumPy deprecation warnings from CLI
+  tests.
+- `uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers`
+  passed for 12 posts.
+- `uv run kups-tutorial verify-artifacts` passed for 279 tracked files.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run kups-tutorial verify-release-readiness --skip-site` failed only on
+  the existing final-release blockers for hidden pages and production GPU /
+  public-indexing work.
+- `git diff --check` passed.
+
+Code and reproducibility review:
+
+- The loader mapping covers posts 01-12 and uses the same public loader
+  functions already used by runners and config tests.
+- The check runs after the required config file existence/JSON check and skips
+  only missing config files so the original missing-file violation remains the
+  primary failure.
+- The synthetic clean-release fixture now uses real config schemas, preserving
+  coverage for post-specific required fields such as post 12's model artifact
+  metadata.
+- The placeholder model-artifact test now mutates copied post 12 configs in
+  place, so it continues to exercise the final-release placeholder marker gate
+  without bypassing typed MLIP config validation.
+
+Figure and rendered-page review:
+
+- No tutorial config values, results, notebooks, figures, snapshots, website
+  pages, website assets, or prose claims changed in this milestone.
+- Because this was a release-tooling and test-fixture change only, no figure
+  snapshot capture or rendered desktop/mobile page snapshot capture was
+  required.
+
+Review decision:
+
+- Accepted for the typed-config release-surface milestone after focused and
+  release-surface validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

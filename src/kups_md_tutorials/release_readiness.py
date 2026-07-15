@@ -32,6 +32,21 @@ CURRENT_FINAL_BLOCKER_MARKERS = (
     "page still has hidden-draft note",
 )
 
+CONFIG_LOADERS = {
+    "01": "load_tutorial_spec",
+    "02": "load_integrator_spec",
+    "03": "load_error_spec",
+    "04": "load_thermostat_spec",
+    "05": "load_barostat_spec",
+    "06": "load_trajectory_length_spec",
+    "07": "load_observable_spec",
+    "08": "load_free_energy_spec",
+    "09": "load_estimator_spec",
+    "10": "load_umbrella_spec",
+    "11": "load_enhanced_sampling_spec",
+    "12": "load_mlip_spec",
+}
+
 
 def audit_release_readiness(
     *,
@@ -184,6 +199,12 @@ def _check_required_artifact_surface(
                 violations,
                 missing_reason=f"missing {profile} configuration",
             )
+            _check_typed_config_file(
+                config_root=config_root,
+                post=post,
+                profile=profile,
+                violations=violations,
+            )
             result_dir = results_root / f"post-{post}" / profile
             _check_result_manifest_file(
                 result_dir / "manifest.json",
@@ -239,6 +260,39 @@ def _check_required_artifact_surface(
                 violations,
                 missing_reason=f"missing {description}",
             )
+
+
+def _check_typed_config_file(
+    *,
+    config_root: Path,
+    post: str,
+    profile: str,
+    violations: list[str],
+) -> None:
+    config_path = config_root / f"post-{post}" / f"{profile}.json"
+    if not config_path.exists():
+        return
+
+    loader_name = CONFIG_LOADERS[post]
+    try:
+        from kups_md_tutorials import config as config_module
+
+        loader = getattr(config_module, loader_name)
+        spec = loader(post, profile, config_root=config_root)
+    except Exception as exc:
+        violations.append(f"{config_path}: typed config validation failed: {exc}")
+        return
+
+    if getattr(spec, "post", None) != post:
+        violations.append(
+            f"{config_path}: typed config loader returned post "
+            f"{getattr(spec, 'post', None)!r}"
+        )
+    if getattr(spec, "profile", None) != profile:
+        violations.append(
+            f"{config_path}: typed config loader returned profile "
+            f"{getattr(spec, 'profile', None)!r}"
+        )
 
 
 def _check_figure_source_provenance(

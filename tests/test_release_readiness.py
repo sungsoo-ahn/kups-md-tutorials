@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import shutil
 
 import pytest
 
@@ -37,9 +38,9 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
         snapshot_dir.mkdir(parents=True)
 
         for profile in ("smoke", "full"):
-            (config_dir / f"{profile}.json").write_text(
-                json.dumps({"post": post_id, "profile": profile}) + "\n",
-                encoding="utf-8",
+            shutil.copyfile(
+                Path("configs") / f"post-{post_id}" / f"{profile}.json",
+                config_dir / f"{profile}.json",
             )
             result_dir = root / "results" / f"post-{post_id}" / profile
             result_dir.mkdir(parents=True)
@@ -185,23 +186,24 @@ def _write_post12_model_metadata(root: Path, *, placeholder: bool) -> None:
     results_dir = root / "results" / "post-12" / "full"
     revision = "pinned-placeholder" if placeholder else "mace-v0.3.10"
     sha = "pending-gpu-artifact-hash" if placeholder else "a" * 64
-    config = (
-        '{"mlip_experiment": {"model_artifact": {'
-        f'"revision": "{revision}", "sha256": "{sha}"'
-        "}}}\n"
-    )
     summary = (
         "{"
         f'"model_revision": "{revision}", "model_sha256": "{sha}"'
         "}\n"
     )
+    for profile in ("smoke", "full"):
+        config_path = config_dir / f"{profile}.json"
+        config_data = json.loads(config_path.read_text(encoding="utf-8"))
+        artifact = config_data["mlip_experiment"]["model_artifact"]
+        artifact["revision"] = revision
+        artifact["sha256"] = sha
+        config_path.write_text(json.dumps(config_data) + "\n", encoding="utf-8")
+
     manifest_data = _manifest_fixture("12", "full")
     manifest_data["config"]["experiment"]["model_artifact"] = {
         "revision": revision,
         "sha256": sha,
     }
-    (config_dir / "full.json").write_text(config, encoding="utf-8")
-    (config_dir / "smoke.json").write_text(config, encoding="utf-8")
     (results_dir / "mlip_summary.json").write_text(summary, encoding="utf-8")
     (results_dir / "manifest.json").write_text(
         json.dumps(manifest_data) + "\n",
@@ -661,6 +663,35 @@ def test_release_readiness_reports_missing_required_artifacts(tmp_path: Path) ->
     )
     assert any(
         "post-08" in violation and "figure snapshot" in violation
+        for violation in result.violations
+    )
+
+
+def test_release_readiness_reports_typed_config_validation_errors(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    config_path = tmp_path / "configs" / "post-02" / "full.json"
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    config["integrator_experiment"]["num_steps"] = 0
+    config_path.write_text(json.dumps(config) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "configs/post-02/full.json" in violation
+        and "typed config validation failed" in violation
+        and "num_steps must be positive" in violation
         for violation in result.violations
     )
 

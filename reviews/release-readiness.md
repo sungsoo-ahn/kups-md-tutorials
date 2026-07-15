@@ -2680,6 +2680,77 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Notebook Ledger Git-Ancestry Gate
+
+Scope:
+
+- Tightened `verify-release-readiness` so `reviews/notebook-execution.json`
+  must name a `source_git_revision` that is an ancestor of the current tutorial
+  repository HEAD whenever the review root is a Git checkout.
+- Kept the existing per-notebook source SHA-256 checks as the exact freshness
+  guard for notebook files. This combination allows later documentation-only
+  commits while still rejecting notebook execution evidence from an unrelated
+  or unreachable source state.
+- Added regression coverage by initializing a synthetic Git checkout with a
+  stale notebook ledger revision and confirming the release audit reports it.
+- The existing clean-kernel notebook ledger remains valid: its
+  `source_git_revision` is in the current repository history, and the ledger's
+  source hashes still match the current notebook files.
+- No configs, result summaries, notebook sources, executed notebook copies,
+  figure assets, snapshots, website pages, website assets, or CSS-sensitive
+  markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py` passed with 40 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `uv run pytest` passed with 114 tests and existing ASE/NumPy deprecation
+  warnings.
+- `uv run ruff check .` passed.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run kups-tutorial verify-artifacts` passed for 280 tracked files.
+- `git diff --check` passed in this repository.
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_blog.py` passed
+  with the existing unused-image warnings, `python3 scripts/validate_kups_pages.py`
+  passed, and `git diff --check` passed.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers: production GPU
+  diagnostics, hidden/non-final kUPS pages, missing final `_posts`, public
+  indexing, and rendered snapshot recapture after final publication changes.
+
+Code and reproducibility review:
+
+- The previous notebook-execution gate proved source hashes, clean-kernel
+  execution mode, executed-cell counts, elapsed time, source immutability, and
+  notebook coverage, but only checked that `source_git_revision` existed.
+- The new ancestry check makes the Git revision meaningful without requiring
+  impossible self-reference to the commit that contains the ledger.
+- Exact source freshness still comes from the SHA-256 checks on each current
+  notebook source file, so a notebook edit after ledger capture remains a
+  release-surface violation.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, CSS-sensitive
+  markup, or website JSON export changed in this pass, so no rendered
+  desktop/mobile page snapshots were required. Existing rendered-page evidence
+  remains in `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the notebook ledger Git-ancestry milestone after focused tests,
+  full tests, lint, review/artifact audits, website validators, site-aware
+  current-blocker release audit, and strict-readiness confirmation of only
+  known final blockers.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

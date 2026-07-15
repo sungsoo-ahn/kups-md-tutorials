@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import shutil
+import subprocess
 
 import pytest
 
@@ -1454,6 +1455,25 @@ def test_release_readiness_reports_stale_notebook_execution_ledger(
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)
     _write_site_pages(tmp_path / "site", hidden=False)
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=tmp_path,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=tmp_path,
+        check=True,
+    )
+    (tmp_path / "README.md").write_text("fixture\n", encoding="utf-8")
+    subprocess.run(["git", "add", "README.md"], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "commit", "-m", "fixture"],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+    )
     ledger_path = tmp_path / "reviews" / "notebook-execution.json"
     ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
     ledger["notebooks"] = [
@@ -1477,6 +1497,7 @@ def test_release_readiness_reports_stale_notebook_execution_ledger(
         site_root=tmp_path / "site",
     )
 
+    assert any("source_git_revision" in violation for violation in result.violations)
     assert any("source_sha256 mismatch" in violation for violation in result.violations)
     assert any("source_sha256_after mismatch" in violation for violation in result.violations)
     assert any("source_unchanged must be true" in violation for violation in result.violations)

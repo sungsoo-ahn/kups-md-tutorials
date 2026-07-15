@@ -552,6 +552,17 @@ def _check_notebook_execution_ledger(
         violations.append(f"{path}: missing source_git_revision")
     elif source_revision == "unknown":
         violations.append(f"{path}: source_git_revision is unknown")
+    else:
+        repo_root = path.parent.parent
+        actual_revision = _git_head_sha(repo_root)
+        if (
+            actual_revision is not None
+            and not _git_revision_is_ancestor(repo_root, source_revision, actual_revision)
+        ):
+            violations.append(
+                f"{path}: source_git_revision {source_revision} "
+                f"is not an ancestor of repository HEAD {actual_revision}"
+            )
 
     if ledger.get("execution_mode") != "fresh_kernel_per_notebook":
         violations.append(
@@ -1945,6 +1956,20 @@ def _git_head_sha(path: Path) -> str | None:
     except (OSError, subprocess.CalledProcessError):
         return None
     return completed.stdout.strip()
+
+
+def _git_revision_is_ancestor(repo_root: Path, ancestor: str, descendant: str) -> bool:
+    try:
+        subprocess.run(
+            ("git", "merge-base", "--is-ancestor", ancestor, descendant),
+            cwd=repo_root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return False
+    return True
 
 
 def _string_set(value: object) -> set[str]:

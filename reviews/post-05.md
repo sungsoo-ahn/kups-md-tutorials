@@ -192,7 +192,122 @@ Open items:
 
 - Keep mobile table wrapping as a final typography-polish item after the rest
   of the articles are expanded.
-- Add the dynamic argon/kUPS NPT diagnostic with moving cell degrees of freedom
-  before treating this post as final.
-- Re-run the page snapshot workflow again after the final production-cell
-  figure and citations are added.
+- Add final kUPS production NPT dynamics with full thermostat/barostat,
+  energy/temperature, and pressure/cell diagnostics before public indexing.
+- Re-run the page snapshot workflow again after final production-cell figures
+  and citations are added.
+
+## Update 2026-07-15: Reduced-Unit Argon Moving-Cell Diagnostic
+
+Scope:
+
+- Added an optional `argon_npt_dynamics` configuration block for Post 05 smoke
+  and full profiles.
+- Implemented a compact reduced-unit isotropic moving-cell argon diagnostic in
+  `src/kups_md_tutorials/barostats.py`.
+- Regenerated `results/post-05/`, `notebooks/post-05-barostats.ipynb`,
+  `figures/post-05/`, and `snapshots/post-05/`.
+- Refreshed the hidden website page and exported assets in
+  `../sungsoo-ahn.github.io`.
+
+Commands:
+
+- `uv run kups-tutorial run 05 --profile smoke`
+- `uv run kups-tutorial verify 05 --profile smoke`
+- `uv run kups-tutorial run 05 --profile full`
+- `uv run kups-tutorial verify 05 --profile full`
+- `uv run python scripts/generate_post05_figures.py`
+- `uv run jupyter execute notebooks/post-05-barostats.ipynb --inplace`
+- `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/barostats.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py tests/test_config.py`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `uv run kups-tutorial verify-reviews`
+- `git diff --check`
+- `uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io --profile full --posts 5`
+- Website validation in `../sungsoo-ahn.github.io`:
+  `python3 scripts/validate_kups_pages.py`,
+  `python3 scripts/validate_blog.py`, and `git diff --check`.
+
+Code and reproducibility review:
+
+- The new full-profile output `results/post-05/full/argon_npt_dynamics.csv`
+  records time, volume factor, number density, and reduced pressure for the
+  compact moving-cell diagnostic.
+- `results/post-05/full/barostat_summary.json` now records
+  `argon_npt_dynamics` with `1000` samples, `N = 108`, initial `V/V0 = 0.90`,
+  mean `V/V0 = 0.9297`, mean density `1.0758`, mean pressure `1.0621` against
+  target pressure `1.0`, volume-factor span `0.0532`, and volume effective
+  samples `92.2`.
+- The manifest records `argon_npt_dynamics_file:
+  "argon_npt_dynamics.csv"` and the exact moving-cell configuration.
+- The local run reported CPU fallback because CUDA-enabled `jaxlib` is not
+  installed. That is acceptable for this deterministic reduced-unit hidden
+  draft diagnostic and remains insufficient for a final kUPS production NPT
+  article.
+- Tutorial commit reviewed:
+  `15d4536179235efbef89db82b03b02cbe26d2873`.
+- Tutorial verify run: `29379747365`.
+
+Scientific review:
+
+- The compact moving-cell diagnostic starts from a compressed reduced-unit FCC
+  argon cell and evolves an isotropic volume factor with pressure feedback and
+  controlled noise.
+- The full-profile mean pressure is close to the target, while the volume
+  factor remains below one because the reduced-unit LJ virial pressure at this
+  density balances near the compressed state. This is a useful sign and
+  relaxation check, not an equation-of-state claim.
+- The effective-sample count is much smaller than the stored sample count,
+  which reinforces the article's point that slow cell variables reduce
+  independent density/volume information.
+- The diagnostic now exercises actual coordinates, periodic boundaries,
+  pressure evaluation, and a moving isotropic cell; it still does not exercise
+  a full kUPS production NPT trajectory with energy/temperature diagnostics.
+
+Figure feedback:
+
+- Inspected figure asset:
+  `figures/post-05/barostat_diagnostics_full.svg`.
+- Inspected snapshot:
+  `snapshots/post-05/barostat_diagnostics_full_snapshot.png`.
+- Intended visual claim: scalar fluctuation targets and barostat memory should
+  be reviewed together with an atomistic moving-cell pressure/density check.
+- The revised fourth panel is titled `Argon moving-cell check`, shows the
+  volume factor trajectory, includes the `V/V0 = 1` reference line, and annotates
+  `Neff = 92.2` and `Pmean = 1.06`.
+- Labels, tick marks, and annotations fit inside the panel. The volume factor
+  sits below one rather than relaxing exactly to one; this is accepted because
+  it reflects the reduced-unit pressure balance and is described as a compact
+  moving-cell check rather than a production NPT result.
+
+Website review:
+
+- Website commit reviewed:
+  `1d822d55239551f8a1c07299f2386c5fe1fd4d31`.
+- Website deploy run: `29379768876`.
+- Live hidden-route check with `?v=1d822d5` confirmed the page contains the
+  new `moving-cell` prose and no longer contains the stale phrase
+  `does not yet run dynamic`.
+- Snapshot workflow run: `29379867440`.
+- Snapshot artifact downloaded to `/tmp/kups-post05-moving-cell-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-moving-cell-snapshots/manifest.json`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post05-moving-cell-snapshots/post-05-desktop.png` and
+  `/tmp/kups-post05-moving-cell-snapshots/post-05-mobile.png`.
+- Desktop feedback: the page renders end to end with the updated author note,
+  tables, moving-cell figure panel, reproduction block, Practical Checklist,
+  Current Status, references, and footer present. The figure caption and prose
+  now match the fourth panel.
+- Mobile feedback: the title, sidebar links, tables, updated figure, code
+  block, Current Status, references, and footer stay contained. Tables and the
+  compact navigation remain dense, but no overlap, missing figure, or broken
+  page chrome was found.
+
+Release-readiness decision:
+
+- The hidden draft now includes a compact reduced-unit moving-cell diagnostic
+  and rendered page snapshots for that page state.
+- Final public release still requires a real kUPS production NPT diagnostic
+  with full thermostat/barostat settings, energy/temperature checks, final
+  citations, and another desktop/mobile snapshot pass.

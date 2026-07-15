@@ -1426,3 +1426,63 @@ Revision decisions:
 - Keep mobile table density as a final typography-polish item.
 - Re-run rendered snapshots if a chemistry-specific estimator figure is added
   or if the page is made public.
+
+## Post 05 Moving-Cell Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29379867440`.
+- Website commit reviewed:
+  `1d822d55239551f8a1c07299f2386c5fe1fd4d31`.
+- Website deploy run: `29379768876`.
+- Tutorial commit reviewed:
+  `15d4536179235efbef89db82b03b02cbe26d2873`.
+- Tutorial verify run for that commit: `29379747365`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post05-moving-cell-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-moving-cell-snapshots/manifest.json`.
+- Capture scope: post 05 after adding the reduced-unit argon moving-cell
+  diagnostic, exported `argon_npt_dynamics.csv`, updated four-panel figure,
+  and refreshed hidden-page prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Should Pressure and Cell Degrees of Freedom Be Coupled? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post05-moving-cell-snapshots/post-05-desktop.png`
+- `/tmp/kups-post05-moving-cell-snapshots/post-05-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the hidden draft end to end with the updated author
+  note, source links, barostat tables, moving-cell diagnostic figure,
+  reproduction block, Practical Checklist, Current Status, references, and
+  footer present.
+- The fourth figure panel is visible in the article column and now shows the
+  reduced-unit argon moving-cell volume-factor trajectory with pressure and
+  effective-sample annotations. The caption matches the revised claim.
+- Mobile capture keeps the title, navigation, tables, figure, caption,
+  reproduction block, Current Status, references, and footer contained. The
+  left navigation and tables are dense at mobile width, but no overlap,
+  clipped figure, missing asset, or broken page chrome was found.
+- The page remains hidden from public navigation and direct-link reachable.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 05 moving-cell hidden draft.
+- The compact moving-cell figure/prose update is snapshot-reviewed for the
+  hidden draft state.
+- Keep mobile title/table/navigation density as final typography-polish items.
+- Replace the compact reduced-unit moving-cell harness with a real kUPS
+  production NPT diagnostic before public indexing.
+- Re-run rendered snapshots after final production NPT figures/citations or
+  any public-indexing change.

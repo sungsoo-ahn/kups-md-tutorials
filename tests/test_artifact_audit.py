@@ -32,6 +32,11 @@ def test_artifact_audit_rejects_raw_or_cached_artifacts() -> None:
         Path("models/mace.pt"),
         Path(".venv/lib/example.py"),
         Path("src/pkg/__pycache__/module.pyc"),
+        Path("_site/kups-md-tutorials/index.html"),
+        Path("node_modules/playwright/index.js"),
+        Path("playwright-report/index.html"),
+        Path("test-results/post-01/error-context.md"),
+        Path("snapshots/kups-md-pages/post-01-desktop.png"),
         Path("hello.py"),
     )
     result = audit_tracked_artifacts(paths=paths)
@@ -41,6 +46,11 @@ def test_artifact_audit_rejects_raw_or_cached_artifacts() -> None:
         "models/mace.pt",
         ".venv/lib/example.py",
         "src/pkg/__pycache__/module.pyc",
+        "_site/kups-md-tutorials/index.html",
+        "node_modules/playwright/index.js",
+        "playwright-report/index.html",
+        "test-results/post-01/error-context.md",
+        "snapshots/kups-md-pages/post-01-desktop.png",
         "hello.py",
     )
     with pytest.raises(ValueError, match="forbidden tracked artifacts"):

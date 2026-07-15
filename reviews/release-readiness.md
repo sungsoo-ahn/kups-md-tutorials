@@ -2259,6 +2259,54 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Render-Output Artifact Hygiene Gate
+
+Scope:
+
+- Tightened `verify-artifacts` so tracked browser/Jekyll render outputs are
+  rejected alongside raw simulations, model archives, caches, and oversized
+  files.
+- Added forbidden path coverage for `_site/`, `node_modules/`,
+  `playwright-report/`, `test-results/`, and `snapshots/kups-md-pages/`.
+- Extended the artifact-audit regression test with representative generated
+  website/build/test-output paths.
+- No configs, results, notebooks, figure assets, snapshots, website pages,
+  website assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/artifact_audit.py tests/test_artifact_audit.py`
+  passed.
+- `uv run pytest tests/test_artifact_audit.py -q` passed with 5 tests.
+- `uv run kups-tutorial verify-artifacts` passed for 280 tracked files.
+
+Code and reproducibility review:
+
+- The previous artifact audit rejected simulation outputs, model archives,
+  Python caches, virtual environments, and oversized files, but did not block
+  common website build outputs or browser-test report directories.
+- The new policy matches the PLAN instruction not to commit browser caches,
+  bulky intermediate render outputs, raw trajectories, or model archives.
+- The current tracked file surface satisfies the stricter policy.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or
+  CSS-sensitive markup changed, so no rendered desktop/mobile page snapshots
+  were required. Existing rendered-page evidence remains in
+  `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the artifact-audit tooling milestone after focused lint,
+  artifact-audit tests, and `verify-artifacts` against the real tracked file
+  set.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

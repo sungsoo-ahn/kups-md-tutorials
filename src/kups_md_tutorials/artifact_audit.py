@@ -8,10 +8,17 @@ FORBIDDEN_PATH_PARTS = {
     ".pytest_cache",
     ".ruff_cache",
     ".venv",
+    "_site",
     "__pycache__",
     "models",
+    "node_modules",
     "notebook-runs",
+    "playwright-report",
     "runs",
+    "test-results",
+}
+FORBIDDEN_PATH_PREFIXES = {
+    Path("snapshots") / "kups-md-pages",
 }
 FORBIDDEN_SUFFIXES = {
     ".ckpt",
@@ -88,9 +95,19 @@ def _is_forbidden(path: Path) -> bool:
     parts = set(path.parts)
     if parts & FORBIDDEN_PATH_PARTS:
         return True
+    if any(_path_has_prefix(path, prefix) for prefix in FORBIDDEN_PATH_PREFIXES):
+        return True
     if path.suffix in FORBIDDEN_SUFFIXES:
         return True
     return path.name in FORBIDDEN_FILENAMES
+
+
+def _path_has_prefix(path: Path, prefix: Path) -> bool:
+    try:
+        path.relative_to(prefix)
+    except ValueError:
+        return False
+    return True
 
 
 def _oversized_reason(repo_root: Path, path: Path) -> str | None:

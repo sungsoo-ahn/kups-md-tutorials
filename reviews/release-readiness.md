@@ -3118,6 +3118,82 @@ Review decision:
   recapturing rendered snapshots after final publication changes, and passing
   strict `verify-release-readiness`.
 
+## Update 2026-07-15: Dry-Run Public Publication Preparation
+
+Scope:
+
+- Added `../sungsoo-ahn.github.io/scripts/prepare_kups_publication.py` as a
+  dry-run and staging tool for the eventual hidden `_pages` to final `_posts`
+  migration.
+- The script requires one shared `--publication-date`, discovers all twelve
+  hidden kUPS pages, computes final `_posts/YYYY-MM-DD-kups-md-post-XX-*.md`
+  destination names, rewrites public front matter by removing hidden-only
+  `permalink`/`nav` fields, updates `date` and `last_updated`, and rewrites the
+  author note to the blog-native final-series form.
+- The script does not change the live site unless an explicit `--output-dir` is
+  provided. In staging mode it writes final-post candidates outside the repo;
+  the current run used `/tmp/kups-publication-stage`.
+- The script reports remaining public blockers in staged body text, including
+  `This page is not the final article`, hidden-draft language, and the required
+  index change from `site.pages` to `site.posts`.
+- Extended the tutorial release-surface audit so a site root must include this
+  publication-prep script and key safeguards. Added regression tests for a
+  missing script and a stale script that omits public-blocker and `site.posts`
+  reporting.
+
+Current command output reviewed:
+
+- `python3 scripts/prepare_kups_publication.py --publication-date 2026-07-15`
+  in the website repo performed a dry run for all twelve posts and printed
+  final `_posts/2026-07-15-kups-md-post-XX-*.md` destinations.
+- `python3 scripts/prepare_kups_publication.py --publication-date 2026-07-15
+  --output-dir /tmp/kups-publication-stage` staged 12 files outside the repo.
+- Staged Post 01 was inspected at
+  `/tmp/kups-publication-stage/2026-07-15-kups-md-post-01-initialization.md`:
+  front matter begins directly with `layout: post`, `date: 2026-07-15`,
+  `last_updated: 2026-07-15`, no `permalink`, no `nav: false`, and the author
+  note no longer says the page is hidden from navigation.
+- The same staged pass correctly reported remaining public blockers for current
+  draft body sections, so the tool does not imply the current hidden drafts are
+  public-ready before production diagnostics and final prose cleanup.
+
+Commands and evidence:
+
+- In `../sungsoo-ahn.github.io`: `python3 -m py_compile
+  scripts/prepare_kups_publication.py` passed.
+- In `../sungsoo-ahn.github.io`: `python3 scripts/prepare_kups_publication.py
+  --publication-date 2026-07-15` passed and wrote the dry-run plan to
+  `/tmp/kups-prep-dry-run.txt`.
+- In `../sungsoo-ahn.github.io`: `python3 scripts/validate_kups_pages.py`
+  passed.
+- In `../sungsoo-ahn.github.io`: `python3 scripts/validate_blog.py` passed with
+  the existing unused-blog-image warnings.
+- In this repository: `uv run ruff check
+  src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- In this repository: `uv run pytest tests/test_release_readiness.py -q`
+  passed with 47 tests.
+- In this repository: `uv run kups-tutorial verify-release-readiness
+  --site-root ../sungsoo-ahn.github.io --allow-current-blockers` passed for 12
+  posts.
+- In this repository: `git diff --check` passed.
+- In this repository: `uv run pytest` passed with 125 tests and 68 ASE
+  deprecation warnings.
+
+Review decision:
+
+- Accepted for the final-publication tooling milestone. The final public
+  migration remains blocked, but the hidden-page-to-`_posts` transformation is
+  now scripted, dry-runable, stageable, and part of the release-surface audit.
+- No figure or rendered-page snapshot was required because this change adds
+  publication-preparation tooling, tests, and review prose only; no live
+  website pages, assets, figures, notebooks, configs, result files, or
+  CSS-sensitive markup changed.
+- Hidden/direct-link-only status remains unchanged. Final release still
+  requires production GPU diagnostics, final prose cleanup, actual `_posts`
+  migration, `site.posts` index switch, public rendered desktop/mobile
+  snapshots, and strict `verify-release-readiness`.
+
 ## Update 2026-07-15: GPU Workflow Pending-Post Synchronization
 
 Scope:

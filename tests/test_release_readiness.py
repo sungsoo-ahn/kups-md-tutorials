@@ -549,6 +549,28 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
         "fs.writeFileSync('manifest.json', JSON.stringify(slugs));\n",
         encoding="utf-8",
     )
+    (scripts / "prepare_kups_publication.py").write_text(
+        "#!/usr/bin/env python3\n"
+        "import argparse\n"
+        "from pathlib import Path\n"
+        "PAGES_DIR = Path('_pages')\n"
+        "def destination_name(source, publication_date):\n"
+        "    return f'{publication_date}-{source.stem}.md'\n"
+        "def rewrite_frontmatter(lines):\n"
+        "    return lines\n"
+        "def rewrite_author_note(body):\n"
+        "    return body\n"
+        "def public_blockers(text):\n"
+        "    return ['This page is not the final article', 'intentionally hidden from site navigation']\n"
+        "def main():\n"
+        "    parser = argparse.ArgumentParser()\n"
+        "    parser.add_argument('--publication-date')\n"
+        "    parser.add_argument('--output-dir')\n"
+        "    for post in [f'{value:02d}' for value in range(1, 13)]:\n"
+        "        PAGES_DIR.glob(f\"kups-md-post-{post}-*.md\")\n"
+        "    print('site.pages -> site.posts')\n",
+        encoding="utf-8",
+    )
     body_words = " ".join(f"sample{idx}" for idx in range(3600))
     exported_files = []
     nav = "false" if hidden else "true"
@@ -1807,6 +1829,64 @@ def test_release_readiness_reports_stale_site_snapshot_capture(
     assert any("missing kUPS snapshot snapshot artifact name" in violation for violation in result.violations)
     assert any("missing kUPS snapshot mobile viewport" in violation for violation in result.violations)
     assert any("missing kUPS snapshot full-page capture" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_missing_kups_publication_prep(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    script_path = tmp_path / "site" / "scripts" / "prepare_kups_publication.py"
+    script_path.unlink()
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "missing kUPS public publication prep script" in violation
+        for violation in result.violations
+    )
+
+
+def test_release_readiness_reports_stale_kups_publication_prep(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    script_path = tmp_path / "site" / "scripts" / "prepare_kups_publication.py"
+    text = script_path.read_text(encoding="utf-8")
+    script_path.write_text(
+        text.replace("public_blockers", "blockers").replace("site.posts", "site.pages"),
+        encoding="utf-8",
+    )
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "missing kUPS publication prep public blocker report" in violation
+        for violation in result.violations
+    )
+    assert any(
+        "missing kUPS publication prep public index target report" in violation
+        for violation in result.violations
+    )
 
 
 def test_release_readiness_reports_stale_ci_workflow(

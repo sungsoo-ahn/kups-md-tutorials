@@ -113,6 +113,7 @@ def audit_release_readiness(
     _check_post12_model_artifact(config_root, results_root, violations)
     if site_root is not None:
         _check_site_snapshot_capture(site_root, violations)
+        _check_site_publication_prep(site_root, violations)
         _check_site_publication_state(
             site_root,
             source_root=review_dir.parent,
@@ -1008,6 +1009,34 @@ def _check_site_snapshot_capture(site_root: Path, violations: list[str]) -> None
         if fragment not in script_text:
             violations.append(
                 f"{script_path}: missing kUPS snapshot {description}: {fragment}"
+            )
+
+
+def _check_site_publication_prep(site_root: Path, violations: list[str]) -> None:
+    script_path = site_root / "scripts" / "prepare_kups_publication.py"
+    if not script_path.exists():
+        violations.append(f"{script_path}: missing kUPS public publication prep script")
+        return
+
+    text = script_path.read_text(encoding="utf-8")
+    required_fragments = {
+        "--publication-date": "shared publication-date argument",
+        "--output-dir": "staging output directory argument",
+        "PAGES_DIR.glob(f\"kups-md-post-{post}-*.md\")": "hidden page discovery",
+        "destination_name": "final _posts filename construction",
+        "rewrite_frontmatter": "front matter rewrite",
+        "rewrite_author_note": "author-note rewrite",
+        "public_blockers": "public blocker report",
+        "site.pages": "hidden index source report",
+        "site.posts": "public index target report",
+        "This page is not the final article": "non-final blocker detection",
+        "intentionally hidden from site navigation": "hidden blocker detection",
+    }
+    for fragment, description in required_fragments.items():
+        if fragment not in text:
+            violations.append(
+                f"{script_path}: missing kUPS publication prep {description}: "
+                f"{fragment}"
             )
 
 

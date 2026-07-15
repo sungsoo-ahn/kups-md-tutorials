@@ -231,7 +231,7 @@ def _argon_rdf_pmf(
         return None, None, None, None, None
 
     container = _ArgonTrajectoryContainer(spec)
-    trajectory_summary, rdf_curve, _ = _summarize_argon_trajectory(container)
+    trajectory_summary, rdf_curve, _, _ = _summarize_argon_trajectory(container)
     simulated = _simulate_argon_trajectory(container)
     if trajectory_summary is None or rdf_curve is None or simulated is None:
         return None, None, None, None, None

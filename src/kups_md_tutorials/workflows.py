@@ -563,6 +563,15 @@ def _verify_post07(post: str, profile: str, output_root: Path) -> None:
         if summary.argon_trajectory.coordination_number <= 0.0:
             msg = "argon trajectory coordination estimate must be positive"
             raise ValueError(msg)
+        if summary.argon_trajectory.uncertainty_replica_count < 2:
+            msg = "argon trajectory observable summary should record replicas"
+            raise ValueError(msg)
+        if summary.argon_trajectory.coordination_replica_standard_error <= 0.0:
+            msg = "argon trajectory coordination replica uncertainty should be positive"
+            raise ValueError(msg)
+        if summary.argon_trajectory.max_rdf_replica_std <= 0.0:
+            msg = "argon trajectory RDF replica uncertainty should be positive"
+            raise ValueError(msg)
         if summary.argon_trajectory.vacf_lag1_autocorrelation <= 0.0:
             msg = "argon trajectory VACF lag-1 autocorrelation should be positive"
             raise ValueError(msg)

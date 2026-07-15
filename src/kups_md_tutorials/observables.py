@@ -1,6 +1,6 @@
 """Observable-estimator diagnostics for post 07."""
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 import csv
 import json
@@ -60,8 +60,17 @@ class ArgonTrajectoryObservableSummary:
     rdf_first_peak_value: float
     coordination_cutoff: float
     coordination_number: float
+    uncertainty_block_count: int
     coordination_block_standard_error: float
     coordination_relative_standard_error: float
+    uncertainty_replica_count: int
+    coordination_replica_standard_error: float
+    coordination_replica_min: float
+    coordination_replica_max: float
+    rdf_first_peak_radius_replica_std: float
+    rdf_first_peak_value_replica_std: float
+    mean_rdf_replica_std: float
+    max_rdf_replica_std: float
     vacf_normalized_integral: float
     vacf_first_zero_lag: int | None
     vacf_lag1_autocorrelation: float
@@ -284,11 +293,12 @@ def _summarize_argon_trajectory(
     ArgonTrajectoryObservableSummary | None,
     tuple[np.ndarray, np.ndarray] | None,
     tuple[np.ndarray, np.ndarray] | None,
+    tuple[np.ndarray, np.ndarray] | None,
 ]:
     argon = spec.argon_trajectory
     simulated = _simulate_argon_trajectory(spec)
     if argon is None or simulated is None:
-        return None, None, None
+        return None, None, None, None
     frames, velocities, cell_length = simulated
     radii, rdf = estimate_rdf(
         frames,
@@ -313,11 +323,61 @@ def _summarize_argon_trajectory(
         max_radius=argon.rdf_max_radius,
         bin_width=argon.rdf_bin_width,
         cutoff=argon.coordination_cutoff,
+        block_count=argon.uncertainty_block_count,
     )
     peak_mask = (radii > 0.5 * argon.rdf_bin_width) & (radii <= usable_radius)
     peak_idx = int(np.argmax(rdf[peak_mask]))
     peak_radii = radii[peak_mask]
     peak_values = rdf[peak_mask]
+
+    replica_rdfs = [rdf]
+    replica_peak_radii = [float(peak_radii[peak_idx])]
+    replica_peak_values = [float(peak_values[peak_idx])]
+    replica_coordinations = [coordination]
+    for replica_idx in range(1, argon.uncertainty_replica_count):
+        replica_argon = replace(argon, seed=argon.seed + 1009 * replica_idx)
+        replica_simulated = _simulate_argon_trajectory(
+            replace(spec, argon_trajectory=replica_argon)
+        )
+        if replica_simulated is None:
+            continue
+        replica_frames, _, replica_cell_length = replica_simulated
+        replica_radii, replica_rdf = estimate_rdf(
+            replica_frames,
+            cell_length=replica_cell_length,
+            number_density=replica_argon.number_density,
+            max_radius=replica_argon.rdf_max_radius,
+            bin_width=replica_argon.rdf_bin_width,
+        )
+        replica_usable_radius = 0.5 * replica_cell_length
+        replica_rdf = np.where(replica_radii <= replica_usable_radius, replica_rdf, np.nan)
+        replica_peak_mask = (
+            (replica_radii > 0.5 * replica_argon.rdf_bin_width)
+            & (replica_radii <= replica_usable_radius)
+        )
+        replica_peak_idx = int(np.argmax(replica_rdf[replica_peak_mask]))
+        replica_rdfs.append(replica_rdf)
+        replica_peak_radii.append(float(replica_radii[replica_peak_mask][replica_peak_idx]))
+        replica_peak_values.append(float(replica_rdf[replica_peak_mask][replica_peak_idx]))
+        replica_coordinations.append(
+            coordination_number(
+                replica_radii,
+                replica_rdf,
+                number_density=replica_argon.number_density,
+                cutoff=replica_argon.coordination_cutoff,
+                bin_width=replica_argon.rdf_bin_width,
+            )
+        )
+
+    rdf_stack = np.asarray(replica_rdfs, dtype=float)
+    finite_count = np.count_nonzero(np.isfinite(rdf_stack), axis=0)
+    rdf_replica_std = np.full(rdf_stack.shape[1], np.nan, dtype=float)
+    enough_replicas = finite_count >= 2
+    if np.any(enough_replicas):
+        rdf_replica_std[enough_replicas] = np.nanstd(
+            rdf_stack[:, enough_replicas], axis=0, ddof=1
+        )
+    coordination_replicas = np.asarray(replica_coordinations, dtype=float)
     lags, vacf = estimate_vacf(velocities, argon.max_vacf_lag)
     zero_crossings = np.flatnonzero(vacf <= 0.0)
     summary = ArgonTrajectoryObservableSummary(
@@ -329,13 +389,24 @@ def _summarize_argon_trajectory(
         rdf_first_peak_value=float(peak_values[peak_idx]),
         coordination_cutoff=argon.coordination_cutoff,
         coordination_number=coordination,
+        uncertainty_block_count=argon.uncertainty_block_count,
         coordination_block_standard_error=block_se,
         coordination_relative_standard_error=float(block_se / coordination),
+        uncertainty_replica_count=len(replica_coordinations),
+        coordination_replica_standard_error=float(
+            np.std(coordination_replicas, ddof=1) / np.sqrt(len(coordination_replicas))
+        ),
+        coordination_replica_min=float(np.min(coordination_replicas)),
+        coordination_replica_max=float(np.max(coordination_replicas)),
+        rdf_first_peak_radius_replica_std=float(np.std(replica_peak_radii, ddof=1)),
+        rdf_first_peak_value_replica_std=float(np.std(replica_peak_values, ddof=1)),
+        mean_rdf_replica_std=float(np.nanmean(rdf_replica_std)),
+        max_rdf_replica_std=float(np.nanmax(rdf_replica_std)),
         vacf_normalized_integral=float(np.trapezoid(vacf, lags)),
         vacf_first_zero_lag=None if len(zero_crossings) == 0 else int(zero_crossings[0]),
         vacf_lag1_autocorrelation=float(vacf[1]),
     )
-    return summary, (radii, rdf), (lags.astype(float), vacf)
+    return summary, (radii, rdf), (lags.astype(float), vacf), (radii, rdf_replica_std)
 
 
 def _summarize_system(
@@ -408,6 +479,7 @@ def run_observable_experiment(
     tuple[np.ndarray, np.ndarray],
     tuple[np.ndarray, np.ndarray] | None,
     tuple[np.ndarray, np.ndarray] | None,
+    tuple[np.ndarray, np.ndarray] | None,
 ]:
     """Run all configured observable-estimator diagnostics."""
 
@@ -439,7 +511,9 @@ def run_observable_experiment(
         first_zero_lag=None if len(zero_crossings) == 0 else int(zero_crossings[0]),
         lag1_autocorrelation=float(vacf[1]),
     )
-    argon_summary, argon_rdf, argon_vacf = _summarize_argon_trajectory(spec)
+    argon_summary, argon_rdf, argon_vacf, argon_rdf_replica_std = (
+        _summarize_argon_trajectory(spec)
+    )
     return (
         ObservableExperimentSummary(
             post=spec.post,
@@ -459,6 +533,7 @@ def run_observable_experiment(
         (lags.astype(float), vacf),
         argon_rdf,
         argon_vacf,
+        argon_rdf_replica_std,
     )
 
 
@@ -469,7 +544,7 @@ def _write_rdf_samples(
     names = list(rdf_by_system)
     radii = next(iter(rdf_by_system.values()))[0]
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(["radius", *[f"{name}_rdf" for name in names]])
         for idx, radius in enumerate(radii):
             writer.writerow(
@@ -480,18 +555,30 @@ def _write_rdf_samples(
 
 def _write_vacf_samples(path: Path, lags: np.ndarray, vacf: np.ndarray) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(["lag", "normalized_vacf"])
         for lag, value in zip(lags, vacf, strict=True):
             writer.writerow([f"{lag:.0f}", f"{value:.12g}"])
 
 
-def _write_argon_rdf_samples(path: Path, radii: np.ndarray, rdf: np.ndarray) -> None:
+def _write_argon_rdf_samples(
+    path: Path,
+    radii: np.ndarray,
+    rdf: np.ndarray,
+    rdf_replica_std: np.ndarray | None = None,
+) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["radius", "argon_trajectory_rdf"])
-        for radius, value in zip(radii, rdf, strict=True):
-            writer.writerow([f"{radius:.12g}", f"{value:.12g}"])
+        writer = csv.writer(handle, lineterminator="\n")
+        if rdf_replica_std is None:
+            writer.writerow(["radius", "argon_trajectory_rdf"])
+            for radius, value in zip(radii, rdf, strict=True):
+                writer.writerow([f"{radius:.12g}", f"{value:.12g}"])
+        else:
+            writer.writerow(
+                ["radius", "argon_trajectory_rdf", "argon_trajectory_rdf_replica_std"]
+            )
+            for radius, value, std in zip(radii, rdf, rdf_replica_std, strict=True):
+                writer.writerow([f"{radius:.12g}", f"{value:.12g}", f"{std:.12g}"])
 
 
 def write_observable_outputs(
@@ -505,8 +592,8 @@ def write_observable_outputs(
     output_dir.mkdir(parents=True, exist_ok=True)
     config_path = config_root / f"post-{spec.post}" / f"{spec.profile}.json"
     prov = provenance(config_path)
-    summary, rdf_by_system, vacf, argon_rdf, argon_vacf = run_observable_experiment(
-        spec, prov.config_sha256
+    summary, rdf_by_system, vacf, argon_rdf, argon_vacf, argon_rdf_replica_std = (
+        run_observable_experiment(spec, prov.config_sha256)
     )
 
     summary_path = output_dir / "observable_summary.json"
@@ -522,7 +609,12 @@ def write_observable_outputs(
     _write_rdf_samples(rdf_path, rdf_by_system)
     _write_vacf_samples(vacf_path, *vacf)
     if argon_rdf is not None and argon_vacf is not None:
-        _write_argon_rdf_samples(argon_rdf_path, *argon_rdf)
+        _write_argon_rdf_samples(
+            argon_rdf_path,
+            argon_rdf[0],
+            argon_rdf[1],
+            None if argon_rdf_replica_std is None else argon_rdf_replica_std[1],
+        )
         _write_vacf_samples(argon_vacf_path, *argon_vacf)
     manifest = {
         "config": asdict(spec),

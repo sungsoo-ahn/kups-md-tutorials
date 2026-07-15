@@ -1675,3 +1675,65 @@ Revision decisions:
   public indexing.
 - Re-run rendered snapshots after final production RDF-PMF figures/citations or
   any public-indexing change.
+
+## Post 07 Replica Observable Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29382588504`.
+- Website commit reviewed:
+  `1c9520bcbabef814ca91e2e58fbe8bb622ba6e53`.
+- Website deploy run: `29382464261`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post07-replica-observable-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post07-replica-observable-snapshots/manifest.json`.
+- Capture scope: post 07 after adding compact seed-shifted replica RDF and
+  coordination diagnostics, exporting the refreshed full-profile figure and
+  JSON/CSV assets, and updating hidden-page prose/status.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post07-replica-observable-snapshots/post-07-desktop.png`
+  (`1440 x 14689`)
+- `/tmp/kups-post07-replica-observable-snapshots/post-07-mobile.png`
+  (`390 x 22356`)
+
+Feedback:
+
+- Desktop capture renders the hidden Post 07 draft end to end with the new
+  compact trajectory replica rows, updated uncertainty prose, refreshed
+  four-panel figure, revised caption, reproduction block, Current Status
+  section, references, and footer present.
+- The refreshed figure shows the compact trajectory RDF panel with a replica
+  standard-deviation band and `rep SE = 0.028` annotation. The legend and
+  annotation remain contained and do not obscure the first RDF peak.
+- Mobile capture keeps the title, tables, refreshed figure, caption, code
+  block, Current Status section, references, and footer contained. The full
+  diagnostic figure remains small on mobile, but no overlap, clipped table,
+  missing asset, or broken page chrome was found.
+- Live checks confirmed the direct hidden URL contains `coordination replica
+  standard error`, while `/` and `/blog/` do not expose
+  `post-07-observables` or `kups-md-tutorials`.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 07 replica-observable hidden
+  draft.
+- The compact replica RDF/coordination diagnostic is snapshot-reviewed for the
+  hidden draft state.
+- Keep mobile title/table/figure density as a final typography-polish item.
+- Add larger GPU kUPS trajectory diagnostics for physical observables before
+  public indexing.
+- Re-run rendered snapshots after final production observable figures/citations
+  or any public-indexing change.

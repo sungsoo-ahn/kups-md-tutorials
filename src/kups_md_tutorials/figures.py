@@ -1391,11 +1391,26 @@ def _draw_post07_figure(
     axes[3].set_title("Trajectory RDF is physical")
     argon_summary = summary.get("argon_trajectory")
     if argon_rdf_samples is not None and argon_summary is not None:
+        radius_argon = argon_rdf_samples["radius"]
+        rdf_argon = argon_rdf_samples["argon_trajectory_rdf"]
+        rdf_replica_std = argon_rdf_samples.get("argon_trajectory_rdf_replica_std")
+        if rdf_replica_std is not None:
+            finite_band = np.isfinite(rdf_argon) & np.isfinite(rdf_replica_std)
+            axes[3].fill_between(
+                radius_argon[finite_band],
+                rdf_argon[finite_band] - rdf_replica_std[finite_band],
+                rdf_argon[finite_band] + rdf_replica_std[finite_band],
+                color="#2b8a6e",
+                alpha=0.18,
+                linewidth=0,
+                label="replica std",
+            )
         axes[3].plot(
-            argon_rdf_samples["radius"],
-            argon_rdf_samples["argon_trajectory_rdf"],
+            radius_argon,
+            rdf_argon,
             color="#2b8a6e",
             linewidth=1.5,
+            label="trajectory RDF",
         )
         axes[3].axhline(1.0, color="#333333", linewidth=0.8, linestyle="--")
         axes[3].axvline(
@@ -1406,11 +1421,13 @@ def _draw_post07_figure(
         )
         axes[3].set_xlabel("radius")
         axes[3].set_ylabel("g(r)")
+        axes[3].legend(frameon=False, fontsize=8)
         axes[3].text(
             0.03,
             0.95,
             f"N = {argon_summary['atom_count']}\n"
-            f"coord = {argon_summary['coordination_number']:.2f}",
+            f"coord = {argon_summary['coordination_number']:.2f}\n"
+            f"rep SE = {argon_summary['coordination_replica_standard_error']:.3f}",
             transform=axes[3].transAxes,
             va="top",
             ha="left",

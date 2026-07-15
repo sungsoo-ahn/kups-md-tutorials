@@ -101,6 +101,7 @@ def test_load_observable_spec() -> None:
     assert spec.experiment.coordination_cutoff < spec.experiment.rdf_max_radius
     assert spec.argon_trajectory is not None
     assert spec.argon_trajectory.repetitions == 2
+    assert spec.argon_trajectory.uncertainty_replica_count == 3
 
 
 def test_load_free_energy_spec() -> None:

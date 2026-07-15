@@ -73,7 +73,13 @@ Open items:
 - The compact full-profile argon trajectory uses 108 atoms and 551 sampled
   frames. Its trajectory RDF has a first peak near radius `1.095`, first peak
   value about `3.02`, and first-shell coordination number about `11.66` with
-  block standard error about `0.035`.
+  four-block standard error about `0.030`.
+- The compact trajectory now runs three seed-shifted replicas for an
+  initialization-sensitivity check: coordination replica SE is about `0.028`,
+  coordination ranges from about `11.60` to `11.70`, first-peak-radius replica
+  standard deviation is about `0.017`, first-peak-value replica standard
+  deviation is about `0.019`, mean RDF-bin replica standard deviation is about
+  `0.011`, and max RDF-bin replica standard deviation is about `0.051`.
 - The compact trajectory VACF has lag-1 autocorrelation about `0.800` and a
   first zero crossing at lag `4`; this supports only a wiring check for
   time-correlated velocity samples, not a transport claim.
@@ -103,6 +109,10 @@ Feedback loop:
   `snapshots/post-07/observable_diagnostics_full_snapshot.png`; `g(r)` and
   radius labels fit, the first peak and coordination cutoff marker are visible,
   and the `N = 108`, `coord = 11.66` annotation does not cover the peak.
+- Compact replica refresh: the fourth panel now shows a seed-shifted replica
+  RDF standard-deviation band and reports `rep SE = 0.028`. The band is visible
+  without obscuring the first peak, the legend fits in the panel, and the
+  annotation box remains away from the main RDF peak.
 - The current figure includes a physical reduced-unit trajectory RDF, but it
   does not yet show larger GPU kUPS production observables, finite-size
   production comparisons, or transport-quality VACF uncertainty.
@@ -117,7 +127,8 @@ Open items:
 - `notebooks/post-07-observables.ipynb` executes from a clean kernel.
 - The notebook loads smoke and full configurations, displays committed summary
   values, reports compact argon trajectory RDF/coordination/VACF summary
-  values, and regenerates the full-profile diagnostic figure from committed
+  values including block SE, replica SE, and max RDF replica standard
+  deviation, and regenerates the full-profile diagnostic figure from committed
   result files.
 - The notebook keeps the explanation focused on RDF normalization,
   coordination integration, finite-size support, error bars, and time
@@ -202,6 +213,82 @@ Rendered page feedback:
   code block, current-status section, and references present. The embedded
   plot text is small, as expected for a full-width diagnostic on mobile, but
   the figure, caption, and surrounding prose remain coherent and unclipped.
+- Website deploy run `29382464261` succeeded for compact replica observable
+  refresh commit `1c9520bcbabef814ca91e2e58fbe8bb622ba6e53`.
+- Snapshot workflow run `29382588504` captured the refreshed hidden page.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post07-replica-observable-snapshots/`.
+- Replica-refresh manifest reviewed:
+  `/tmp/kups-post07-replica-observable-snapshots/manifest.json`.
+- Replica-refresh manifest coverage: desktop and mobile snapshots were captured
+  for `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`;
+  both returned HTTP 200 with page title
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+- Replica-refresh rendered snapshots visually inspected:
+  `/tmp/kups-post07-replica-observable-snapshots/post-07-desktop.png` and
+  `/tmp/kups-post07-replica-observable-snapshots/post-07-mobile.png`.
+- Replica-refresh desktop capture renders the new trajectory-replica rows,
+  updated uncertainty prose, revised figure/caption, reproduction block,
+  current-status section, references, and footer. No missing figure, clipped
+  table, overlap, or broken page chrome was found.
+- Replica-refresh mobile capture renders the same new rows/prose/figure through
+  the mobile layout. The article remains dense and the full diagnostic figure is
+  small on mobile, but the new table and caption are contained and readable.
+- Live checks confirmed the direct hidden URL contains the updated
+  `coordination replica standard error` text, while `/` and `/blog/` do not
+  expose `post-07-observables` or `kups-md-tutorials`.
+
+## Update 2026-07-15: Compact Replica Observable Diagnostic
+
+Commands run for this update:
+
+- `uv run ruff check src/kups_md_tutorials/observables.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py src/kups_md_tutorials/free_energies.py tests/test_config.py`
+- `uv run pytest tests/test_config.py tests/test_figures.py -q`
+- `uv run kups-tutorial run 07 --profile smoke`
+- `uv run kups-tutorial verify 07 --profile smoke`
+- `uv run kups-tutorial run 07 --profile full`
+- `uv run kups-tutorial verify 07 --profile full`
+- `uv run python scripts/generate_post07_figures.py`
+- `uv run jupyter execute notebooks/post-07-observables.ipynb --inplace`
+- `uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io --profile full`
+- `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `git diff --check` in `../sungsoo-ahn.github.io`
+
+Code and reproducibility changes:
+
+- Added `uncertainty_block_count` to the compact trajectory summary and wired it
+  into the trajectory coordination block-SE estimator.
+- Added three seed-shifted compact trajectory replicas and exported
+  `argon_trajectory_rdf_replica_std` in
+  `results/post-07/full/argon_trajectory_rdf_samples.csv`.
+- Updated the Post 07 verifier to reject missing or zero-valued compact
+  trajectory replica diagnostics.
+- Preserved Post 08 compatibility by allowing the shared argon trajectory
+  summarizer to operate on its lightweight container.
+
+Full-profile compact trajectory metrics:
+
+- `uncertainty_block_count = 4`
+- `coordination_number = 11.655481602089955`
+- `coordination_block_standard_error = 0.030055183447317606`
+- `uncertainty_replica_count = 3`
+- `coordination_replica_standard_error = 0.02829313477003499`
+- `coordination_replica_min = 11.600600018185911`
+- `coordination_replica_max = 11.698365216194265`
+- `rdf_first_peak_radius_replica_std = 0.017320508075688787`
+- `rdf_first_peak_value_replica_std = 0.018813132994856912`
+- `mean_rdf_replica_std = 0.01050357350467306`
+- `max_rdf_replica_std = 0.05092733709807738`
+
+Review decisions:
+
+- The compact replica observable diagnostic is accepted for the hidden draft
+  state.
+- It narrows the previous uncertainty gap for the compact trajectory panel, but
+  it does not replace the larger GPU kUPS trajectory-observable diagnostic
+  required before public finalization.
+- Keep mobile title/table/figure density as a final typography-polish item.
 
 Open items:
 

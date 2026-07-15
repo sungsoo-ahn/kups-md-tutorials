@@ -1355,6 +1355,7 @@ def _check_result_manifest_file(
         profile=profile,
         violations=violations,
     )
+    _check_manifest_output_files(path, manifest, violations)
 
 
 def _check_manifest_provenance(
@@ -1425,6 +1426,39 @@ def _check_manifest_provenance(
     else:
         for package in ("kups", "numpy"):
             _check_required_string(path, versions, package, violations)
+
+
+def _check_manifest_output_files(
+    path: Path,
+    manifest: dict[str, object],
+    violations: list[str],
+) -> None:
+    output_fields = {
+        key: value
+        for key, value in manifest.items()
+        if key.endswith("_file") and key != "config_file"
+    }
+    if not output_fields:
+        violations.append(f"{path}: missing result output file references")
+        return
+
+    result_dir = path.parent
+    for field, value in sorted(output_fields.items()):
+        if not isinstance(value, str) or not value:
+            violations.append(f"{path}: missing manifest {field}")
+            continue
+        output_path = Path(value)
+        if output_path.is_absolute():
+            violations.append(f"{path}: manifest {field} should be result-relative")
+            continue
+        resolved_path = result_dir / output_path
+        if not _path_is_within(resolved_path, result_dir):
+            violations.append(f"{path}: manifest {field} escapes result directory")
+            continue
+        if not resolved_path.exists():
+            violations.append(
+                f"{path}: manifest {field} does not exist: {value}"
+            )
 
 
 def _check_manifest_file_hash(

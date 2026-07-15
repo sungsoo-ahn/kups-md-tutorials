@@ -1758,6 +1758,55 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Result Manifest Output File Gate
+
+Scope:
+
+- Tightened `verify-release-readiness` so every result manifest must contain
+  at least one `*_file` output reference.
+- Added checks that each manifest output path is result-directory relative,
+  stays inside the result directory, and points to an existing committed
+  compact output.
+- Added regression coverage that breaks a summary path and makes a samples
+  path escape the result directory.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py::test_release_readiness_reports_manifest_output_file_violations tests/test_release_readiness.py::test_verify_release_readiness_cli_passes_clean_final_state -q`
+  passed: 2 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+
+Code and reproducibility review:
+
+- The existing manifest provenance gate verified config hashes, lock hashes,
+  runtime, precision, versions, and post/profile identity, but did not prove
+  that manifest output-file fields still resolved to current compact outputs.
+- The new gate protects the compact-output contract without changing the
+  generated manifest schema: existing `summary_file`, `samples_file`,
+  `curves_file`, `windows_file`, and post-specific sample fields are audited
+  directly.
+- Current smoke/full manifests for all twelve posts pass the new output-file
+  reference audit.
+
+Figure and rendered-page review:
+
+- No tutorial configs, results, notebooks, figure-generation code, figure
+  assets, website pages, website assets, or CSS-sensitive markup changed.
+- No new figure snapshot or rendered desktop/mobile page snapshot was required
+  for this validation-only milestone.
+- Existing figure and rendered-page snapshot evidence remains in the per-post
+  review files and `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the result-manifest output-file gate after focused lint,
+  regression tests, and site-aware release-surface validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

@@ -1420,6 +1420,38 @@ def test_release_readiness_reports_stale_manifest_file_hashes(tmp_path: Path) ->
     )
 
 
+def test_release_readiness_reports_manifest_output_file_violations(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    manifest_path = tmp_path / "results" / "post-04" / "full" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["summary_file"] = "missing_summary.json"
+    manifest["samples_file"] = "../escaped.csv"
+    manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "manifest summary_file does not exist: missing_summary.json" in violation
+        for violation in result.violations
+    )
+    assert any(
+        "manifest samples_file escapes result directory" in violation
+        for violation in result.violations
+    )
+
+
 def test_verify_release_readiness_cli_passes_clean_final_state(tmp_path: Path) -> None:
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)

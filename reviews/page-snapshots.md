@@ -1308,3 +1308,67 @@ Revision decisions:
   before public indexing.
 - Re-run rendered snapshots after any final production MD or public-indexing
   change.
+
+## Post 12 Pinned MACE Artifact Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29378598376`.
+- Website commit reviewed:
+  `a755ec8f3a2f2d3cf48081e9bd48f4b9c178c588`.
+- Website deploy run: `29378460379`.
+- Tutorial commit reviewed:
+  `35f16fe7df747b97c77e474312d529e3865f7707`.
+- Initial tutorial verify run for that commit: `29378375343`; it failed only
+  because the release-readiness test still expected a placeholder-artifact
+  violation after the placeholder was removed. The test has been updated to
+  assert the remaining real GPU capstone blocker instead.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post12-pinned-artifact-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post12-pinned-artifact-snapshots/manifest.json`.
+- Capture scope: post 12 after replacing placeholder MACE metadata with pinned
+  `mace-mp-0b3-medium.model` provenance, refreshing exported JSON summaries,
+  replacing the website figure asset, and updating hidden-page prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Changes When the Potential Is a Machine-Learned Interatomic Potential? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post12-pinned-artifact-snapshots/post-12-desktop.png`
+- `/tmp/kups-post12-pinned-artifact-snapshots/post-12-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the refreshed hidden draft end to end with the
+  pinned-artifact note, source links, diagnostic tables, updated MLIP figure,
+  production-readiness table, reproduction block, Current Status, references,
+  and footer present.
+- The figure annotation now shows `mace-mp-0b3-medium.model` and revision
+  `e291ace`; no placeholder artifact wording appears in the rendered page.
+- Mobile capture keeps the title, tables, figure, caption, reproduction block,
+  Current Status, references, and footer contained. Tables are dense but
+  readable enough for the hidden draft.
+- Live hidden-route check with `?v=a755ec8` confirmed the full SHA-256 hash is
+  present and the word `placeholder` is absent from the HTML body.
+- The page remains hidden from public navigation and direct-link reachable.
+
+Revision decisions:
+
+- No blocking layout issue was found for the pinned-artifact post 12 hidden
+  draft.
+- The artifact-provenance update is snapshot-reviewed for the hidden draft
+  state.
+- Keep mobile title/table/figure density as final typography-polish items.
+- Replace the deterministic CPU surrogate with a real MACE/fcc-Al GPU
+  production run before public indexing.
+- Re-run rendered snapshots after final production diagnostics or any
+  public-indexing change.

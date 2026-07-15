@@ -237,15 +237,127 @@ Blocking items for the current hidden draft:
 Non-blocking items accepted until the final article pass:
 
 - The expanded draft remains explicitly non-final.
-- The model artifact metadata is a placeholder in the hidden draft.
+- The numerical diagnostic remains a deterministic CPU surrogate rather than a
+  real MACE/fcc-Al GPU production run.
 - Mobile title and table wrapping can be polished later if desired, but the
   captured hidden draft is readable and contained.
 
 Final-release blockers:
 
 - Run and review the real MACE/fcc-Al GPU capstone.
-- Pin the MACE repository revision and verify the downloaded artifact hash.
-- Add production diagnostics and regenerate the MLIP figure with final model
-  artifact metadata.
+- Add production diagnostics from the real GPU run and regenerate the MLIP
+  figure with those production diagnostics.
 - Re-run rendered desktop/mobile snapshots after final production diagnostics
-  and figure updates.
+  and any public-indexing changes.
+
+## Update 2026-07-15: Pinned MACE Artifact Metadata
+
+Scope:
+
+- Replaced the Post 12 placeholder model metadata with pinned MACE foundation
+  model metadata in `configs/post-12/smoke.json` and
+  `configs/post-12/full.json`.
+- Regenerated committed smoke/full outputs under `results/post-12/`, executed
+  `notebooks/post-12-mlip-capstone.ipynb`, regenerated
+  `figures/post-12/`, and re-created `snapshots/post-12/`.
+- Refreshed the hidden website page and exported assets in
+  `../sungsoo-ahn.github.io`.
+
+Artifact provenance:
+
+- Model file: `mace-mp-0b3-medium.model`.
+- Repository: `mace-foundations/mace-mp-0`.
+- Revision: `e291ace`.
+- SHA-256:
+  `2f2be696351ac9e94fbe01cdfb6f017679acdbd2db7645209ef55fec9826b012`.
+- Source evidence checked:
+  `https://huggingface.co/mace-foundations/mace-mp-0/blob/main/mace-mp-0b3-medium.model`,
+  `https://github.com/ACEsuit/mace-foundations`, and
+  `https://mace-docs.readthedocs.io/en/latest/guide/foundation_models.html`.
+- Download verification command:
+  `curl -L --fail --retry 3 -o /tmp/kups-mace-artifact/mace-mp-0b3-medium.model https://huggingface.co/mace-foundations/mace-mp-0/resolve/main/mace-mp-0b3-medium.model`
+  followed by `sha256sum /tmp/kups-mace-artifact/mace-mp-0b3-medium.model`.
+- The downloaded artifact hash matched the configured SHA-256 exactly. The
+  model file was kept in `/tmp/kups-mace-artifact/` and was not committed.
+
+Commands:
+
+- `uv run kups-tutorial run 12 --profile smoke`
+- `uv run kups-tutorial verify 12 --profile smoke`
+- `uv run kups-tutorial run 12 --profile full`
+- `uv run kups-tutorial verify 12 --profile full`
+- `uv run python scripts/generate_post12_figures.py`
+- `uv run jupyter execute notebooks/post-12-mlip-capstone.ipynb --inplace`
+- `uv run ruff check src/kups_md_tutorials/mlip_capstone.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `uv run kups-tutorial verify-reviews`
+- `git diff --check`
+- `uv run kups-tutorial verify-release-readiness --skip-site`
+- `uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io --profile full --posts 12`
+- Website validation in `../sungsoo-ahn.github.io`:
+  `python3 scripts/validate_kups_pages.py`,
+  `python3 scripts/validate_blog.py`, and `git diff --check`.
+
+Code and reproducibility review:
+
+- The regenerated `results/post-12/smoke/mlip_summary.json`,
+  `results/post-12/full/mlip_summary.json`, and
+  `results/post-12/full/manifest.json` record the pinned model name,
+  repository, revision, and SHA-256.
+- `rg` over `configs/post-12`, `results/post-12`,
+  `notebooks/post-12-mlip-capstone.ipynb`, `figures/post-12`, and
+  `snapshots/post-12` found the pinned artifact metadata and no old
+  placeholder hash tokens in generated artifacts.
+- The local run reported that an NVIDIA GPU may be present but CUDA-enabled
+  `jaxlib` is not installed, so the workflow fell back to CPU. This is
+  acceptable for the deterministic hidden-draft surrogate and remains
+  insufficient for the final GPU capstone.
+- Tutorial commit `35f16fe7df747b97c77e474312d529e3865f7707` contains the
+  pinned metadata configs, regenerated results, notebook output, figures, and
+  figure snapshots.
+- The first CI run for `35f16fe` was `29378375343`; it failed only because
+  `tests/test_release_readiness.py` still expected a placeholder-artifact
+  violation after that violation was intentionally removed. The test has been
+  updated to expect the remaining real GPU capstone blocker instead.
+
+Figure feedback:
+
+- Inspected `snapshots/post-12/mlip_diagnostics_full_snapshot.png`.
+- The annotation now shows `artifact: mace-mp-0b3-medium.model` and
+  `revision: e291ace`; no placeholder artifact text remains in the figure.
+- Static-error, dynamics/extrapolation, and uncertainty panels remain readable.
+  The annotation fits inside the uncertainty panel without clipping or legend
+  collision.
+
+Website review:
+
+- Website commit reviewed:
+  `a755ec8f3a2f2d3cf48081e9bd48f4b9c178c588`.
+- Website deploy run: `29378460379`.
+- Live hidden-route check with `?v=a755ec8` confirmed the page contains
+  `mace-mp-0b3-medium.model`, the full SHA-256 hash, and no `placeholder`
+  text.
+- Snapshot workflow run: `29378598376`.
+- Snapshot artifact downloaded to
+  `/tmp/kups-post12-pinned-artifact-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post12-pinned-artifact-snapshots/manifest.json`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post12-pinned-artifact-snapshots/post-12-desktop.png` and
+  `/tmp/kups-post12-pinned-artifact-snapshots/post-12-mobile.png`.
+- Desktop feedback: the page renders end to end with the pinned-artifact note,
+  source links, diagnostic tables, updated figure, production-readiness table,
+  reproduction block, current-status section, references, and footer present.
+- Mobile feedback: the long title, tables, updated figure, reproduction block,
+  current-status section, references, and footer stay contained. Tables remain
+  dense but readable enough for the hidden draft.
+
+Release-readiness decision:
+
+- The artifact-provenance blocker is resolved for the hidden draft: the MACE
+  file, repository revision, and downloaded SHA-256 are pinned and recorded in
+  configs, results, manifest, notebook output, figure annotation, and website
+  prose.
+- The final public article remains blocked on a real MACE/fcc-Al GPU
+  production run and production diagnostic figures/snapshots from that run.

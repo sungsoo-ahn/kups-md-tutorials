@@ -93,7 +93,10 @@ def test_release_readiness_reports_current_project_blockers() -> None:
 
     assert result.violations
     assert any("post-12" in violation for violation in result.violations)
-    assert any("placeholder model artifact" in violation for violation in result.violations)
+    assert any("real MACE/fcc-Al GPU capstone" in violation for violation in result.violations)
+    assert not any(
+        "placeholder model artifact" in violation for violation in result.violations
+    )
 
 
 def test_release_readiness_reports_hidden_site_pages(tmp_path: Path) -> None:

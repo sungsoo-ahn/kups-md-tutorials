@@ -849,6 +849,40 @@ def _check_ci_workflow(path: Path, violations: list[str]) -> None:
             violations.append(f"{path}: missing CI {description}: {fragment}")
 
     required_order = (
+        (
+            "uv run kups-tutorial run-all --profile smoke",
+            "uv run kups-tutorial verify --profile smoke",
+            "smoke reproduction",
+            "smoke verification",
+        ),
+        (
+            "uv run kups-tutorial verify --profile smoke",
+            "uv run kups-tutorial verify --profile full",
+            "smoke verification",
+            "committed full verification",
+        ),
+        (
+            "uv run kups-tutorial verify-reviews",
+            "uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers",
+            "review audit",
+            "release-surface audit",
+        ),
+        (
+            "uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers",
+            "uv run kups-tutorial verify-notebooks",
+            "release-surface audit",
+            "clean notebook execution",
+        ),
+    )
+    for before, after, before_label, after_label in required_order:
+        before_index = text.find(before)
+        after_index = text.find(after)
+        if before_index != -1 and after_index != -1 and before_index > after_index:
+            violations.append(
+                f"{path}: CI {before_label} must run before {after_label}"
+            )
+
+    required_order = (
         ("uv sync --locked", "locked dependency installation"),
         ("uv run ruff check .", "ruff check"),
         ("uv run pytest -q", "pytest"),

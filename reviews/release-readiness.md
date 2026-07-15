@@ -2415,6 +2415,60 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: CI Smoke-Before-Full Ordering Gate
+
+Scope:
+
+- Tightened the release-surface audit for `.github/workflows/verify.yml` so it
+  checks not only that required CI commands exist, but also that they run in
+  PLAN-compatible order.
+- The workflow must reproduce smoke outputs before verifying smoke outputs,
+  verify smoke outputs before verifying committed full outputs, run the review
+  audit before the release-surface audit, and run the release-surface audit
+  before clean notebook execution.
+- Added regression coverage that swaps full verification ahead of smoke
+  verification and confirms the audit reports the ordering violation.
+- No configs, result summaries, notebook sources, figure assets, snapshots,
+  website pages, website assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py` passed with 39 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed.
+
+Code and reproducibility review:
+
+- Runtime `run_post(..., "full")` already verifies smoke outputs before running
+  a full profile, and `tests/test_cli.py` covers that behavior for a full
+  workflow.
+- The previous CI audit checked for the presence of smoke/full commands but did
+  not prove their order. A future workflow edit could have moved committed full
+  verification ahead of smoke verification while still satisfying the old
+  fragment checks.
+- The release-surface audit now treats that ordering regression as structural,
+  so the PLAN requirement to require smoke verification before full runs is
+  enforced both in local workflow code and in CI configuration.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or
+  CSS-sensitive markup changed, so no rendered desktop/mobile page snapshots
+  were required. Existing rendered-page evidence remains in
+  `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the CI/release-surface evidence milestone after focused lint,
+  release-readiness regression tests, and a site-aware current-blocker audit.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

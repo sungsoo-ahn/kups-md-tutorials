@@ -1649,7 +1649,43 @@ def test_release_readiness_reports_misordered_ci_workflow(
     )
 
     assert any(
-        "CI release-surface audit runs before review audit" in violation
+        "CI review audit must run before release-surface audit" in violation
+        for violation in result.violations
+    )
+
+
+def test_release_readiness_reports_full_verification_before_smoke(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    workflow_path = tmp_path / ".github" / "workflows" / "verify.yml"
+    text = workflow_path.read_text(encoding="utf-8")
+    smoke_step = (
+        "      - name: Verify smoke outputs\n"
+        "        run: uv run kups-tutorial verify --profile smoke --output-dir /tmp/kups-md-smoke\n"
+    )
+    full_step = (
+        "      - name: Verify committed full outputs\n"
+        "        run: uv run kups-tutorial verify --profile full\n"
+    )
+    text = text.replace(smoke_step + full_step, full_step + smoke_step)
+    workflow_path.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "CI smoke verification must run before committed full verification"
+        in violation
         for violation in result.violations
     )
 

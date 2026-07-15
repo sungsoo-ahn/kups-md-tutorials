@@ -274,6 +274,7 @@ def _check_site_blog_style(
         violations.append(f"{page_path}: missing source repository link text")
     _check_site_references(page_path, body, violations)
     _check_site_figures(page_path, body, violations)
+    _check_site_footnotes(page_path, body, violations)
     word_count = _body_word_count(body)
     if not MIN_POST_WORDS <= word_count <= MAX_POST_WORDS:
         violations.append(
@@ -390,6 +391,38 @@ def _liquid_include_attrs(include: str) -> dict[str, str]:
 
 def _sentence_count(text: str) -> int:
     return len(re.findall(r"[.!?](?:\s|$)", text))
+
+
+def _check_site_footnotes(
+    page_path: Path,
+    body: str,
+    violations: list[str],
+) -> None:
+    body_without_definitions = re.sub(r"(?m)^\[\^[^\]]+\]:.*$", "", body)
+    used_ids = set(re.findall(r"\[\^([^\]]+)\]", body_without_definitions))
+    definition_ids = set(re.findall(r"(?m)^\[\^([^\]]+)\]:", body))
+    footnote_ids = used_ids | definition_ids
+
+    for footnote_id in sorted(footnote_ids):
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9]{0,19}", footnote_id):
+            violations.append(
+                f"{page_path}: footnote id {footnote_id!r} must be a short "
+                "single word without hyphens"
+            )
+
+    missing_definitions = sorted(used_ids - definition_ids)
+    if missing_definitions:
+        violations.append(
+            f"{page_path}: missing footnote definition(s) for "
+            + ", ".join(missing_definitions)
+        )
+
+    unused_definitions = sorted(definition_ids - used_ids)
+    if unused_definitions:
+        violations.append(
+            f"{page_path}: unused footnote definition(s): "
+            + ", ".join(unused_definitions)
+        )
 
 
 def _front_matter(text: str) -> str | None:

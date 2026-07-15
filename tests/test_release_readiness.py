@@ -367,6 +367,38 @@ def test_release_readiness_reports_site_figure_violations(tmp_path: Path) -> Non
     assert any("caption should have at least two sentences" in violation for violation in result.violations)
 
 
+def test_release_readiness_reports_site_footnote_violations(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = tmp_path / "site" / "_pages" / "kups-md-post-07-example.md"
+    text = page.read_text(encoding="utf-8")
+    text = text.replace(
+        "sample0",
+        "sample0 with malformed footnote[^bad-id] and missing footnote[^missing]",
+        1,
+    )
+    text += "\n[^bad-id]: A distracting caveat.\n[^unused]: Not referenced.\n"
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "footnote id 'bad-id' must be a short single word without hyphens" in violation
+        for violation in result.violations
+    )
+    assert any("missing footnote definition(s) for missing" in violation for violation in result.violations)
+    assert any("unused footnote definition(s): unused" in violation for violation in result.violations)
+
+
 def test_release_readiness_reports_placeholder_model_metadata(tmp_path: Path) -> None:
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path, placeholder=True)

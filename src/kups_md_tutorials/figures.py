@@ -172,10 +172,12 @@ def generate_post05_figures(
     argon_samples = (
         _read_post05_samples(argon_samples_path) if argon_samples_path.exists() else None
     )
+    argon_npt_path = result_dir / "argon_npt_dynamics.csv"
+    argon_npt = _read_post05_samples(argon_npt_path) if argon_npt_path.exists() else None
 
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-05"}):
         fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.2), constrained_layout=True)
-        _draw_post05_figure(fig, axes.ravel(), summary, samples, argon_samples)
+        _draw_post05_figure(fig, axes.ravel(), summary, samples, argon_samples, argon_npt)
 
         svg_path = figure_dir / f"{name}.svg"
         png_path = figure_dir / f"{name}.png"
@@ -1049,6 +1051,7 @@ def _draw_post05_figure(
     summary: dict,
     samples: dict[str, np.ndarray],
     argon_samples: dict[str, np.ndarray] | None,
+    argon_npt: dict[str, np.ndarray] | None,
 ) -> None:
     fig.patch.set_facecolor("white")
     runs = sorted(summary["runs"], key=lambda run: run["relaxation_time"])
@@ -1104,8 +1107,31 @@ def _draw_post05_figure(
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
     )
 
-    axes[3].set_title("Argon cell response")
-    if argon_samples is not None:
+    axes[3].set_title("Argon moving-cell check")
+    if argon_npt is not None:
+        axes[3].plot(
+            argon_npt["time"],
+            argon_npt["volume_factor"],
+            color="#2b8a6e",
+            linewidth=1.4,
+            label="V / V0",
+        )
+        axes[3].axhline(1.0, color="#333333", linewidth=0.8, linestyle=":")
+        axes[3].set_xlabel("time")
+        axes[3].set_ylabel("volume factor")
+        dynamics = summary.get("argon_npt_dynamics") or {}
+        axes[3].text(
+            0.04,
+            0.95,
+            f"Neff = {dynamics.get('volume_effective_samples', float('nan')):.1f}\n"
+            f"Pmean = {dynamics.get('mean_pressure', float('nan')):.2f}",
+            transform=axes[3].transAxes,
+            va="top",
+            ha="left",
+            fontsize=8.5,
+            bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
+        )
+    elif argon_samples is not None:
         axes[3].plot(
             argon_samples["volume_factor"],
             argon_samples["pressure"],
@@ -1114,9 +1140,9 @@ def _draw_post05_figure(
             linewidth=1.6,
         )
         axes[3].axvline(1.0, color="#333333", linewidth=0.8, linestyle=":")
-        response = summary.get("argon_cell_response") or {}
         axes[3].set_xlabel("V / V0")
         axes[3].set_ylabel("reduced pressure")
+        response = summary.get("argon_cell_response") or {}
         axes[3].text(
             0.04,
             0.95,

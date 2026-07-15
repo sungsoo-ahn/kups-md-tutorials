@@ -360,6 +360,7 @@ def _verify_post05(post: str, profile: str, output_root: Path) -> None:
     manifest_path = output_dir / "manifest.json"
     samples_path = output_dir / "barostat_samples.csv"
     argon_samples_path = output_dir / "argon_cell_response.csv"
+    argon_npt_path = output_dir / "argon_npt_dynamics.csv"
     missing = [
         str(path)
         for path in (summary_path, manifest_path, samples_path)
@@ -367,6 +368,8 @@ def _verify_post05(post: str, profile: str, output_root: Path) -> None:
     ]
     if spec.argon_cell_response is not None and not argon_samples_path.exists():
         missing.append(str(argon_samples_path))
+    if spec.argon_npt_dynamics is not None and not argon_npt_path.exists():
+        missing.append(str(argon_npt_path))
     if missing:
         msg = "missing expected output files: " + ", ".join(missing)
         raise FileNotFoundError(msg)
@@ -404,6 +407,22 @@ def _verify_post05(post: str, profile: str, output_root: Path) -> None:
             raise ValueError(msg)
         if summary.argon_cell_response.pressure_span <= 0.5:
             msg = "argon cell-response pressure span is too small"
+            raise ValueError(msg)
+    if spec.argon_npt_dynamics is not None:
+        if summary.argon_npt_dynamics is None:
+            msg = "argon NPT dynamics summary is missing"
+            raise ValueError(msg)
+        if summary.argon_npt_dynamics.samples <= 0:
+            msg = "argon NPT dynamics summary contains no samples"
+            raise ValueError(msg)
+        if summary.argon_npt_dynamics.volume_factor_span <= 0.005:
+            msg = "argon NPT moving-cell span is too small"
+            raise ValueError(msg)
+        if summary.argon_npt_dynamics.density_relaxation_fraction <= 0.01:
+            msg = "argon NPT density relaxation is too small"
+            raise ValueError(msg)
+        if summary.argon_npt_dynamics.volume_effective_samples <= 5.0:
+            msg = "argon NPT effective sample count is too small"
             raise ValueError(msg)
 
 

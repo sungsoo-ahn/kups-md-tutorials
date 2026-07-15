@@ -43,8 +43,22 @@
     "reference_pressure": -0.5224312476230537,
     "reference_volume": 31.999999999999993
   },
+  "argon_npt_dynamics": {
+    "atom_count": 32,
+    "density_relaxation_fraction": 0.05311753145580465,
+    "initial_volume_factor": 0.92,
+    "mean_density": 1.0292200745045603,
+    "mean_pressure": 0.5833135347183426,
+    "mean_volume_factor": 0.9719035490707018,
+    "pressure_error": -0.4166864652816574,
+    "samples": 400,
+    "target_pressure": 1.0,
+    "volume_effective_samples": 13.800678661621026,
+    "volume_factor_span": 0.08361539111683436,
+    "volume_integrated_autocorrelation_time": 28.984081856233587
+  },
   "compressibility": 0.01,
-  "config_sha256": "3a6d876f3232091bdf24574caad43c51717b2db6e5aa091d2381f78a232550bf",
+  "config_sha256": "69784d9610371fe27fa75819bfa480fa587b9def9a560fa98d9833ae5c24dbfa",
   "equilibrium_volume": 1000.0,
   "post": "05",
   "profile": "smoke",

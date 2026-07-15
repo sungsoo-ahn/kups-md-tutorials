@@ -1,5 +1,6 @@
 {
   "argon_cell_response_file": "argon_cell_response.csv",
+  "argon_npt_dynamics_file": "argon_npt_dynamics.csv",
   "config": {
     "argon_cell_response": {
       "cutoff": 2.5,
@@ -15,6 +16,23 @@
         1.03,
         1.06
       ]
+    },
+    "argon_npt_dynamics": {
+      "compressibility": 0.015,
+      "cutoff": 2.5,
+      "epsilon": 1.0,
+      "initial_volume_factor": 0.92,
+      "num_steps": 4000,
+      "number_density": 1.0,
+      "relaxation_time": 1.5,
+      "repetitions": 2,
+      "sample_every": 8,
+      "seed": 2026071505,
+      "sigma": 1.0,
+      "target_pressure": 1.0,
+      "temperature": 0.7,
+      "time_step": 0.02,
+      "warmup_steps": 800
     },
     "experiment": {
       "barostats": [
@@ -43,8 +61,8 @@
   },
   "provenance": {
     "config_path": "configs/post-05/smoke.json",
-    "config_sha256": "3a6d876f3232091bdf24574caad43c51717b2db6e5aa091d2381f78a232550bf",
-    "git_revision": "ee9d062400b8737e812279685f67911967621ad1",
+    "config_sha256": "69784d9610371fe27fa75819bfa480fa587b9def9a560fa98d9833ae5c24dbfa",
+    "git_revision": "f62d88266e9977cc37ebbfcf3fe7cf76bf4edcc6",
     "lock_path": "uv.lock",
     "lock_sha256": "1e3d7f63e177a6a9a753cdb7a62667b8dc1c9d6bb5563b1deebdd70de4168844",
     "platform": "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",

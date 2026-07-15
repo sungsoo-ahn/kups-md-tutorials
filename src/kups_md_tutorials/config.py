@@ -487,6 +487,68 @@ class ArgonCellResponseSpec:
 
 
 @dataclass(frozen=True)
+class ArgonNPTDynamicsSpec:
+    """Configuration for compact reduced-unit argon moving-cell checks."""
+
+    repetitions: int
+    number_density: float
+    target_pressure: float
+    temperature: float
+    compressibility: float
+    relaxation_time: float
+    time_step: float
+    num_steps: int
+    warmup_steps: int
+    sample_every: int
+    initial_volume_factor: float
+    seed: int
+    epsilon: float = 1.0
+    sigma: float = 1.0
+    cutoff: float = 2.5
+
+    def validate(self) -> None:
+        if self.repetitions <= 0:
+            msg = "argon NPT repetitions must be positive"
+            raise ValueError(msg)
+        if self.number_density <= 0.0:
+            msg = "argon NPT number_density must be positive"
+            raise ValueError(msg)
+        if self.temperature <= 0.0:
+            msg = "argon NPT temperature must be positive"
+            raise ValueError(msg)
+        if self.compressibility <= 0.0:
+            msg = "argon NPT compressibility must be positive"
+            raise ValueError(msg)
+        if self.relaxation_time <= 0.0:
+            msg = "argon NPT relaxation_time must be positive"
+            raise ValueError(msg)
+        if self.time_step <= 0.0:
+            msg = "argon NPT time_step must be positive"
+            raise ValueError(msg)
+        if self.num_steps <= 0:
+            msg = "argon NPT num_steps must be positive"
+            raise ValueError(msg)
+        if self.warmup_steps < 0 or self.warmup_steps >= self.num_steps:
+            msg = "argon NPT warmup_steps must be non-negative and smaller than num_steps"
+            raise ValueError(msg)
+        if self.sample_every <= 0:
+            msg = "argon NPT sample_every must be positive"
+            raise ValueError(msg)
+        if self.initial_volume_factor <= 0.0:
+            msg = "argon NPT initial_volume_factor must be positive"
+            raise ValueError(msg)
+        if self.epsilon <= 0.0:
+            msg = "argon NPT epsilon must be positive"
+            raise ValueError(msg)
+        if self.sigma <= 0.0:
+            msg = "argon NPT sigma must be positive"
+            raise ValueError(msg)
+        if self.cutoff <= 0.0:
+            msg = "argon NPT cutoff must be positive"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
 class BarostatTutorialSpec:
     """Configuration for post-05 barostat experiments."""
 
@@ -495,6 +557,7 @@ class BarostatTutorialSpec:
     title: str
     experiment: BarostatExperimentSpec
     argon_cell_response: ArgonCellResponseSpec | None = None
+    argon_npt_dynamics: ArgonNPTDynamicsSpec | None = None
 
     @property
     def result_dir_name(self) -> Path:
@@ -1525,6 +1588,8 @@ def load_barostat_spec(
     experiment = _expect_mapping(
         root.get("barostat_experiment"), "barostat_experiment"
     )
+    cell_response = root.get("argon_cell_response")
+    npt_dynamics = root.get("argon_npt_dynamics")
     spec = BarostatTutorialSpec(
         post=str(root["post"]),
         profile=str(root["profile"]),
@@ -1551,44 +1616,41 @@ def load_barostat_spec(
         ),
         argon_cell_response=(
             None
-            if root.get("argon_cell_response") is None
+            if cell_response is None
             else ArgonCellResponseSpec(
-                repetitions=int(
-                    _expect_mapping(
-                        root.get("argon_cell_response"), "argon_cell_response"
-                    )["repetitions"]
-                ),
-                number_density=float(
-                    _expect_mapping(
-                        root.get("argon_cell_response"), "argon_cell_response"
-                    )["number_density"]
-                ),
-                temperature=float(
-                    _expect_mapping(
-                        root.get("argon_cell_response"), "argon_cell_response"
-                    )["temperature"]
-                ),
+                repetitions=int(_expect_mapping(cell_response, "argon_cell_response")["repetitions"]),
+                number_density=float(_expect_mapping(cell_response, "argon_cell_response")["number_density"]),
+                temperature=float(_expect_mapping(cell_response, "argon_cell_response")["temperature"]),
                 volume_factors=tuple(
                     float(value)
-                    for value in _expect_mapping(
-                        root.get("argon_cell_response"), "argon_cell_response"
-                    )["volume_factors"]
+                    for value in _expect_mapping(cell_response, "argon_cell_response")[
+                        "volume_factors"
+                    ]
                 ),
-                epsilon=float(
-                    _expect_mapping(
-                        root.get("argon_cell_response"), "argon_cell_response"
-                    ).get("epsilon", 1.0)
-                ),
-                sigma=float(
-                    _expect_mapping(
-                        root.get("argon_cell_response"), "argon_cell_response"
-                    ).get("sigma", 1.0)
-                ),
-                cutoff=float(
-                    _expect_mapping(
-                        root.get("argon_cell_response"), "argon_cell_response"
-                    ).get("cutoff", 2.5)
-                ),
+                epsilon=float(_expect_mapping(cell_response, "argon_cell_response").get("epsilon", 1.0)),
+                sigma=float(_expect_mapping(cell_response, "argon_cell_response").get("sigma", 1.0)),
+                cutoff=float(_expect_mapping(cell_response, "argon_cell_response").get("cutoff", 2.5)),
+            )
+        ),
+        argon_npt_dynamics=(
+            None
+            if npt_dynamics is None
+            else ArgonNPTDynamicsSpec(
+                repetitions=int(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["repetitions"]),
+                number_density=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["number_density"]),
+                target_pressure=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["target_pressure"]),
+                temperature=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["temperature"]),
+                compressibility=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["compressibility"]),
+                relaxation_time=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["relaxation_time"]),
+                time_step=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["time_step"]),
+                num_steps=int(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["num_steps"]),
+                warmup_steps=int(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["warmup_steps"]),
+                sample_every=int(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["sample_every"]),
+                initial_volume_factor=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["initial_volume_factor"]),
+                seed=int(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["seed"]),
+                epsilon=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics").get("epsilon", 1.0)),
+                sigma=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics").get("sigma", 1.0)),
+                cutoff=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics").get("cutoff", 2.5)),
             )
         ),
     )
@@ -1603,6 +1665,8 @@ def load_barostat_spec(
     spec.experiment.validate()
     if spec.argon_cell_response is not None:
         spec.argon_cell_response.validate()
+    if spec.argon_npt_dynamics is not None:
+        spec.argon_npt_dynamics.validate()
     return spec
 
 

@@ -26,5 +26,22 @@
     "epsilon": 1.0,
     "sigma": 1.0,
     "cutoff": 2.5
+  },
+  "argon_npt_dynamics": {
+    "repetitions": 3,
+    "number_density": 1.0,
+    "target_pressure": 1.0,
+    "temperature": 0.70,
+    "compressibility": 0.015,
+    "relaxation_time": 2.5,
+    "time_step": 0.02,
+    "num_steps": 24000,
+    "warmup_steps": 4000,
+    "sample_every": 20,
+    "initial_volume_factor": 0.90,
+    "seed": 2026071505,
+    "epsilon": 1.0,
+    "sigma": 1.0,
+    "cutoff": 2.5
   }
 }

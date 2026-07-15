@@ -421,18 +421,45 @@ Figure feedback:
 Website review:
 
 - Hidden website page updated at
-  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/` in the
-  working tree of `../sungsoo-ahn.github.io`.
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`.
 - The prose now states the three-replica full-profile metrics, pressure SEM,
   kinetic-temperature mean, and total-energy sanity signal.
-- Rendered desktop/mobile page snapshots for this refreshed page state are
-  pending until the website update is committed, deployed, captured, inspected,
-  and recorded.
+- Website commit reviewed:
+  `06cbf7c59f4f40eb79675d60be1d9dc58f588456`.
+- Website deploy run: `29386632830`.
+- Snapshot workflow run: `29386749372`.
+- Snapshot artifact: `kups-md-page-snapshots`.
+- Snapshot artifact downloaded to
+  `/tmp/kups-post05-replica-moving-cell-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-replica-moving-cell-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`; both
+  returned HTTP 200 with page title
+  `How Should Pressure and Cell Degrees of Freedom Be Coupled? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post05-replica-moving-cell-snapshots/post-05-desktop.png`
+  (`1440 x 12267`) and
+  `/tmp/kups-post05-replica-moving-cell-snapshots/post-05-mobile.png`
+  (`616 x 19414`).
+- Desktop feedback: the page renders end to end with sidebar table of contents,
+  updated three-replica prose, source links, tables, refreshed four-panel
+  figure, caption, reproduction block, Practical Checklist, Current Status,
+  references, and footer present. The updated figure panel is visible and not
+  clipped.
+- Mobile feedback: the long title, navigation, author note, tables, refreshed
+  figure, caption, code block, Current Status, references, and footer remain
+  contained. The figure is small at mobile width but readable enough for the
+  hidden draft, and no missing asset, broken page chrome, or overlap was found.
+- Live hidden-route check with `?v=06cbf7c` confirmed the page contains
+  `three moving-cell replicas`, `0.925 +/- 0.005`, `kinetic temperature is
+  0.699`, and the refreshed figure asset path. The public home and blog pages
+  do not expose `kups-md-tutorials` or `post-05-barostats`.
 
 Release-readiness decision:
 
 - Blocking items for the current hidden draft: none found after local figure
-  inspection and source validation.
+  inspection, website validation, and rendered page snapshot review.
 - Non-blocking items accepted until the final article pass: mobile tables and
   compact figure density remain acceptable for the hidden page state.
 - Final-release blockers:

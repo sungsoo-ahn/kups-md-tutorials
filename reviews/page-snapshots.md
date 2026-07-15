@@ -1911,3 +1911,69 @@ Revision decisions:
   navigation.
 - Re-run rendered index snapshots before public indexing or after changing the
   list metadata, navigation state, or series ordering.
+
+## Post 05 Replica Moving-Cell Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29386749372`.
+- Website commit reviewed:
+  `06cbf7c59f4f40eb79675d60be1d9dc58f588456`.
+- Website deploy run: `29386632830`.
+- Tutorial commit reviewed:
+  `74e974776d0d052e81a50386932788c2ea131f73`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post05-replica-moving-cell-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-replica-moving-cell-snapshots/manifest.json`.
+- Capture scope: post 05 after adding three full-profile moving-cell replicas,
+  kinetic-temperature samples, energy-like samples, pressure SEM, refreshed
+  figure assets, exported JSON/CSV assets, and hidden-page prose updates.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Should Pressure and Cell Degrees of Freedom Be Coupled? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post05-replica-moving-cell-snapshots/post-05-desktop.png`
+  (`1440 x 12267`)
+- `/tmp/kups-post05-replica-moving-cell-snapshots/post-05-mobile.png`
+  (`616 x 19414`)
+
+Feedback:
+
+- Desktop capture renders the hidden Post 05 draft end to end with sidebar TOC,
+  updated three-replica prose, source links, scalar and argon configuration
+  tables, refreshed four-panel figure, revised caption, reproduction block,
+  Practical Checklist, Current Status, references, and footer present.
+- The refreshed figure is visible in the article body; the fourth panel is not
+  clipped and the caption now matches the replica uncertainty and
+  kinetic-temperature content.
+- Mobile capture keeps the long title, hidden-draft note, tables, refreshed
+  figure, caption, reproduction block, Current Status, references, and footer
+  contained. Tables are dense but contained, and the figure is small at mobile
+  width but not broken or missing.
+- Live checks with cache-buster `?v=06cbf7c` confirmed the direct hidden post
+  contains `three moving-cell replicas`, `0.925 +/- 0.005`, `kinetic
+  temperature is 0.699`, and the refreshed figure asset path; `/` and `/blog/`
+  do not expose `kups-md-tutorials` or `post-05-barostats`.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 05 replica moving-cell hidden
+  draft.
+- The three-replica reduced-unit moving-cell diagnostic is accepted for the
+  hidden draft state.
+- Keep mobile table/figure density as a final typography-polish item.
+- Add real CUDA/GPU kUPS production NPT diagnostics with full atomistic
+  thermostat/barostat settings, GPU provenance, and production stress/cell
+  checks before public indexing.
+- Re-run rendered snapshots after final production NPT diagnostics, final
+  citations, or any public-indexing change.

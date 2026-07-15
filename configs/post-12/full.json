@@ -9,10 +9,10 @@
     "sample_count": 50000,
     "time_step_fs": 1.0,
     "model_artifact": {
-      "name": "mace-mp-0-medium",
-      "repository": "ACEsuit/mace",
-      "revision": "pinned-placeholder",
-      "sha256": "pending-gpu-artifact-hash"
+      "name": "mace-mp-0b3-medium.model",
+      "repository": "mace-foundations/mace-mp-0",
+      "revision": "e291ace",
+      "sha256": "2f2be696351ac9e94fbe01cdfb6f017679acdbd2db7645209ef55fec9826b012"
     },
     "cases": [
       {

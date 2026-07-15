@@ -2469,6 +2469,67 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Pyproject Contract Regression Coverage
+
+Scope:
+
+- Tightened the stale-pyproject release-readiness regression test so it now
+  mutates and asserts every enforced PLAN packaging clause, including the
+  Hugging Face `mlff = ["kups[hf]==1.0.3"]` optional extra and the
+  `kups-tutorial = "kups_md_tutorials.cli:main"` console script target.
+- The production release-readiness check already enforced these clauses; this
+  pass closes the test-evidence gap so future edits cannot silently weaken the
+  optional model-download extra or CLI entrypoint contract while preserving the
+  existing Python, core kUPS, CUDA, and Ruff checks.
+- No configs, result summaries, notebook sources, figure assets, snapshots,
+  website pages, website assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check tests/test_release_readiness.py src/kups_md_tutorials/release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py` passed with 39 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `uv run pytest` passed with 113 tests and the existing ASE/NumPy
+  deprecation warnings.
+- `uv run ruff check .` passed.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run kups-tutorial verify-artifacts` passed for 280 tracked files.
+- `git diff --check` passed.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers: production GPU
+  diagnostics, hidden/non-final kUPS pages, missing final `_posts`, public
+  indexing, and rendered snapshot recapture after final publication changes.
+
+Code and reproducibility review:
+
+- The pyproject fixture still represents the intended minimal packaging
+  contract: Python `>=3.13,<3.14`, core `kups==1.0.3`, CUDA extra, Hugging
+  Face extra, console script, and Ruff `py313`.
+- The stale-contract test now proves the audit reports each of those fields
+  when it is weakened, which makes the PLAN dependency surface less dependent
+  on reader trust in the implementation.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or
+  CSS-sensitive markup changed, so no rendered desktop/mobile page snapshots
+  were required. Existing rendered-page evidence remains in
+  `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the pyproject regression-coverage milestone after focused
+  lint, focused release-readiness tests, full tests, review/artifact audits,
+  site-aware current-blocker release audit, and strict-readiness confirmation
+  of only known final blockers.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

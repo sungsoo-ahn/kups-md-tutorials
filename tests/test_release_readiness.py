@@ -1729,6 +1729,11 @@ def test_release_readiness_reports_stale_pyproject_contract(
     text = text.replace('requires-python = ">=3.13,<3.14"', 'requires-python = ">=3.12"')
     text = text.replace('"kups==1.0.3"', '"kups>=1.0"')
     text = text.replace('"kups[cuda]==1.0.3"', '"kups[cuda]>=1.0"')
+    text = text.replace('"kups[hf]==1.0.3"', '"kups[hf]>=1.0"')
+    text = text.replace(
+        'kups-tutorial = "kups_md_tutorials.cli:main"',
+        'kups-tutorial = "kups_md_tutorials.cli:broken"',
+    )
     text = text.replace('target-version = "py313"', 'target-version = "py312"')
     pyproject_path.write_text(text, encoding="utf-8")
 
@@ -1745,6 +1750,8 @@ def test_release_readiness_reports_stale_pyproject_contract(
     assert any("expected requires-python >=3.13,<3.14" in violation for violation in result.violations)
     assert any("missing pinned dependency kups==1.0.3" in violation for violation in result.violations)
     assert any("missing gpu extra kups[cuda]==1.0.3" in violation for violation in result.violations)
+    assert any("missing mlff extra kups[hf]==1.0.3" in violation for violation in result.violations)
+    assert any("expected kups-tutorial script" in violation for violation in result.violations)
     assert any("expected Ruff target-version py313" in violation for violation in result.violations)
 
 

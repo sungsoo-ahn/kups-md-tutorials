@@ -2758,6 +2758,88 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Page Snapshot Website-Freshness Gate
+
+Scope:
+
+- Tightened the site-aware release-readiness audit so
+  `reviews/page-snapshots.md` must include website commit evidence when
+  `--site-root` points at a Git checkout.
+- The audit now finds the newest recorded snapshot website commit that is an
+  ancestor of the current website HEAD and checks whether kUPS-sensitive page,
+  figure, layout, include, stylesheet, or snapshot-capture files changed after
+  that commit.
+- Exported kUPS JSON data changes are intentionally not treated as rendered
+  page snapshot-sensitive by this gate; they are covered by the website build
+  ledger and export manifest checks, while rendered snapshots are required
+  after prose, front matter, linked figures, CSS-sensitive markup, page assets,
+  or final public-indexing changes.
+- Added a synthetic Git regression test that records snapshot evidence for one
+  website commit, edits a final kUPS post file in a later commit, and confirms
+  the release audit reports stale rendered page snapshots.
+- Against the current website checkout `e90347c`, the newest recorded page
+  snapshot website commit `7b4bdd6` is an ancestor of HEAD and no
+  kUPS-rendered-page-sensitive files changed after it. The later website commit
+  only synced runtime manifest JSON exports, so no page snapshot recapture is
+  required for the current hidden draft state.
+- No configs, result summaries, notebook sources, notebook execution evidence,
+  figure assets, local snapshots, website prose, website front matter, linked
+  figures, CSS-sensitive markup, page assets, or website files changed in this
+  pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 41 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `uv run ruff check .` passed.
+- `uv run pytest` passed with 115 tests and the existing ASE/NumPy
+  deprecation warnings.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run kups-tutorial verify-artifacts` passed for 280 tracked files.
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_blog.py` passed
+  with the existing unused-image warnings, `python3 scripts/validate_kups_pages.py`
+  passed, and `git diff --check` passed.
+- `git diff --check` passed in this repository.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers: production GPU
+  diagnostics, hidden/non-final kUPS pages, missing final `_posts`, public
+  indexing, and rendered snapshot recapture after final publication changes.
+
+Code and reproducibility review:
+
+- The previous rendered-page snapshot gate checked for the workflow name,
+  artifact name, manifest coverage text, inspected snapshot references, and
+  desktop/mobile coverage for the hidden index and posts 01-12.
+- The new freshness check closes the gap where a stale but well-formed
+  snapshot ledger could survive after a kUPS page, figure, layout, include, or
+  stylesheet change.
+- The check is Git-aware but conservative: it is skipped for non-Git site
+  exports, requires a recorded snapshot commit for Git checkouts, accepts
+  ordinary non-rendering commits after the latest snapshot commit, and reports
+  the changed kUPS-sensitive paths when recapture is needed.
+
+Figure and rendered-page review:
+
+- No figure asset or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, CSS-sensitive
+  markup, or website source file changed in this pass, so no rendered
+  desktop/mobile page snapshots were required. This milestone strengthens the
+  verifier that decides when existing rendered-page evidence has gone stale.
+
+Review decision:
+
+- Accepted for the page snapshot website-freshness milestone after focused
+  lint, release-readiness regression tests, and a site-aware current-blocker
+  release audit.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after final publication changes, and passing strict
+  `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

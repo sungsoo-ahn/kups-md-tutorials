@@ -78,7 +78,11 @@ def audit_release_readiness(
         notebook_root=notebook_root,
         violations=violations,
     )
-    _check_page_snapshot_ledger(review_dir / "page-snapshots.md", violations)
+    _check_page_snapshot_ledger(
+        review_dir / "page-snapshots.md",
+        violations,
+        site_root=site_root,
+    )
     _check_website_build_ledger(
         review_dir / "website-build.json",
         site_root=site_root,
@@ -660,7 +664,12 @@ def _check_notebook_execution_ledger(
         )
 
 
-def _check_page_snapshot_ledger(path: Path, violations: list[str]) -> None:
+def _check_page_snapshot_ledger(
+    path: Path,
+    violations: list[str],
+    *,
+    site_root: Path | None = None,
+) -> None:
     if not path.exists():
         violations.append(f"{path}: missing rendered page snapshot ledger")
         return
@@ -689,6 +698,94 @@ def _check_page_snapshot_ledger(path: Path, violations: list[str]) -> None:
                     f"{path}: missing rendered page snapshot reference "
                     f"for {label} {viewport}"
                 )
+
+    if site_root is not None:
+        _check_page_snapshot_site_freshness(
+            path,
+            text,
+            site_root=site_root,
+            violations=violations,
+        )
+
+
+def _check_page_snapshot_site_freshness(
+    path: Path,
+    text: str,
+    *,
+    site_root: Path,
+    violations: list[str],
+) -> None:
+    actual_head = _git_head_sha(site_root)
+    if actual_head is None:
+        return
+
+    snapshot_commits = _snapshot_website_commits(text)
+    if not snapshot_commits:
+        violations.append(f"{path}: missing rendered page snapshot website commit")
+        return
+
+    latest_snapshot_commit = None
+    for commit in snapshot_commits:
+        if _git_revision_is_ancestor(site_root, commit, actual_head):
+            latest_snapshot_commit = commit
+    if latest_snapshot_commit is None:
+        violations.append(
+            f"{path}: no rendered page snapshot website commit is an ancestor "
+            f"of site root HEAD {actual_head}"
+        )
+        return
+
+    changed_paths = _git_changed_files(site_root, latest_snapshot_commit, actual_head)
+    if changed_paths is None:
+        return
+    stale_paths = sorted(path for path in changed_paths if _kups_snapshot_sensitive_path(path))
+    if stale_paths:
+        shown_paths = ", ".join(stale_paths[:8])
+        if len(stale_paths) > 8:
+            shown_paths += f", ... ({len(stale_paths)} total)"
+        violations.append(
+            f"{path}: rendered page snapshots predate kUPS-sensitive website "
+            f"changes since {latest_snapshot_commit}: {shown_paths}"
+        )
+
+
+def _snapshot_website_commits(text: str) -> list[str]:
+    commits: list[str] = []
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if "Website commit" not in line:
+            continue
+        nearby_text = "\n".join(lines[index : index + 6])
+        commits.extend(re.findall(r"`([0-9a-f]{7,40})`", nearby_text))
+    return commits
+
+
+def _kups_snapshot_sensitive_path(path_text: str) -> bool:
+    path = Path(path_text)
+    parts = path.parts
+    if len(parts) >= 2 and parts[0] == "_pages":
+        return parts[1] == "kups-md-tutorials.md" or parts[1].startswith(
+            "kups-md-post-"
+        )
+    if len(parts) >= 2 and parts[0] == "_posts" and "kups-md-post-" in parts[1]:
+        return True
+    if len(parts) >= 4 and parts[:3] == ("assets", "img", "blog"):
+        return parts[3].startswith("kups_md_post")
+    if len(parts) >= 4 and parts[:3] == ("assets", "json", "kups-md-tutorials"):
+        return False
+    sensitive_files = {
+        "_layouts/default.liquid",
+        "_layouts/page.liquid",
+        "_layouts/post.liquid",
+        "_includes/figure.liquid",
+        "_includes/head.liquid",
+        "_includes/header.liquid",
+        "_includes/scripts.liquid",
+        "_sass/_base.scss",
+        "assets/css/main.scss",
+        "scripts/capture_kups_snapshots.js",
+    }
+    return path_text in sensitive_files
 
 
 def _check_website_build_ledger(
@@ -1970,6 +2067,24 @@ def _git_revision_is_ancestor(repo_root: Path, ancestor: str, descendant: str) -
     except (OSError, subprocess.CalledProcessError):
         return False
     return True
+
+
+def _git_changed_files(repo_root: Path, ancestor: str, descendant: str) -> tuple[str, ...] | None:
+    try:
+        completed = subprocess.run(
+            ("git", "diff", "--name-only", f"{ancestor}..{descendant}"),
+            cwd=repo_root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return tuple(
+        line.strip()
+        for line in completed.stdout.splitlines()
+        if line.strip()
+    )
 
 
 def _string_set(value: object) -> set[str]:

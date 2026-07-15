@@ -1538,6 +1538,86 @@ def test_release_readiness_reports_stale_page_snapshot_ledger(
     assert any("post-12 desktop" in violation for violation in result.violations)
 
 
+def test_release_readiness_reports_snapshots_before_site_page_changes(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    site_root = tmp_path / "site"
+    _write_site_pages(site_root, hidden=False)
+    subprocess.run(["git", "init"], cwd=site_root, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "tester@example.com"],
+        cwd=site_root,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Tester"],
+        cwd=site_root,
+        check=True,
+    )
+    subprocess.run(["git", "add", "."], cwd=site_root, check=True)
+    subprocess.run(
+        ["git", "commit", "-m", "snapshot state"],
+        cwd=site_root,
+        check=True,
+        capture_output=True,
+    )
+    snapshot_commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=site_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    ledger_path = tmp_path / "reviews" / "page-snapshots.md"
+    ledger_path.write_text(
+        ledger_path.read_text(encoding="utf-8")
+        + f"\n- Website commit reviewed: `{snapshot_commit}`.\n",
+        encoding="utf-8",
+    )
+    page_path = site_root / "_posts" / "2026-07-14-kups-md-post-01-example.md"
+    page_path.write_text(
+        page_path.read_text(encoding="utf-8") + "\n\nSnapshot-sensitive edit.\n",
+        encoding="utf-8",
+    )
+    subprocess.run(["git", "add", str(page_path)], cwd=site_root, check=True)
+    subprocess.run(
+        ["git", "commit", "-m", "edit kups page"],
+        cwd=site_root,
+        check=True,
+        capture_output=True,
+    )
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=site_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    website_build_path = tmp_path / "reviews" / "website-build.json"
+    website_build = json.loads(website_build_path.read_text(encoding="utf-8"))
+    website_build["head_sha"] = head
+    website_build_path.write_text(json.dumps(website_build) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=site_root,
+    )
+
+    assert any(
+        "rendered page snapshots predate kUPS-sensitive website changes"
+        in violation
+        and "_posts/2026-07-14-kups-md-post-01-example.md" in violation
+        for violation in result.violations
+    )
+
+
 def test_release_readiness_reports_stale_website_build_ledger(
     tmp_path: Path,
 ) -> None:

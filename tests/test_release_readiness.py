@@ -110,6 +110,7 @@ def _write_post12_model_metadata(root: Path, *, placeholder: bool) -> None:
 def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
     pages = site_root / "_pages"
     pages.mkdir(parents=True)
+    body_words = " ".join(f"sample{idx}" for idx in range(3600))
     for post in range(1, 13):
         post_id = f"{post:02d}"
         nav = "false" if hidden else "true"
@@ -144,7 +145,8 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
             '<p style="color: #666; font-size: 0.9em; margin-bottom: 1.5em;">\n'
             f"<em>Note: {note_context}Corrections and replication issues should be tracked in "
             '<a href="https://github.com/sungsoo-ahn/kups-md-tutorials">sungsoo-ahn/kups-md-tutorials</a>.</em>\n'
-            "</p>\n",
+            "</p>\n"
+            f"\n{body_words}\n",
             encoding="utf-8",
         )
 
@@ -240,6 +242,35 @@ def test_release_readiness_reports_blog_style_violations(tmp_path: Path) -> None
     assert any("post_type: tutorial" in violation for violation in result.violations)
     assert any("toc sidebar: left" in violation for violation in result.violations)
     assert any("author-note Note text" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_short_site_page(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = tmp_path / "site" / "_pages" / "kups-md-post-04-example.md"
+    text = page.read_text(encoding="utf-8")
+    front_matter, body = text.split("---\n\n", 1)
+    note = body.split("</p>", 1)[0] + "</p>\n"
+    page.write_text(
+        front_matter + "---\n\n" + note + "\nshort body\n",
+        encoding="utf-8",
+    )
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "expected 3500-10000 body words" in violation
+        for violation in result.violations
+    )
 
 
 def test_release_readiness_reports_placeholder_model_metadata(tmp_path: Path) -> None:

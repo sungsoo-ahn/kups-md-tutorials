@@ -299,6 +299,86 @@ Final-release blockers:
 
 - None.
 
+## Update 2026-07-15: Claim-Narrowing Guidance And Word-Count Pass
+
+Scope:
+
+- Expanded the hidden Post 09 page at website commit `9b79ab3` with a new
+  "When Should the Claim Be Narrowed?" section.
+- The new section clarifies that overlap, ESS, directional agreement,
+  high-weight model checks, and negative diagnostics should determine whether a
+  free-energy claim is accepted, narrowed, or reported as a protocol/model
+  validation failure.
+- No estimator code, configs, notebooks, numerical summaries, local figures, or
+  local figure snapshots changed in this pass.
+- The repository-side word-count counter reports `3636` body words for the
+  updated hidden page, placing it inside the PLAN target range of 3,500-10,000
+  words.
+
+Website validation:
+
+- `python3 scripts/validate_kups_pages.py` passed in
+  `../sungsoo-ahn.github.io`.
+- `python3 scripts/validate_blog.py` passed in `../sungsoo-ahn.github.io` with
+  pre-existing unused-image warnings.
+- `git diff --check` passed in the website repository.
+- Website deploy run `29412243173` passed after validating blog posts, hidden
+  kUPS pages, and the Jekyll build.
+- Live hidden-route check with cache-buster `?v=9b79ab3` confirmed the
+  deployed page contains the new claim-narrowing heading and prose.
+- Live homepage and `/blog/` checks with cache-buster `?v=9b79ab3` found no
+  `kups-md-tutorials` or `post-09-estimators` links, so the page remains
+  direct-link only.
+
+Rendered-page review:
+
+- First snapshot workflow attempt `29412398778` failed before capture during
+  `npm ci` because Playwright WebKit download timed out. No page snapshots were
+  produced by that failed attempt.
+- Successful snapshot workflow run: `29412462655`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post09-claim-guidance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post09-claim-guidance-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile captures of
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/` both
+  returned HTTP 200 with title
+  `What Do Free-Energy Estimators Assume? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post09-claim-guidance-snapshots/post-09-desktop.png`
+  (`1440 x 11715`) and
+  `/tmp/kups-post09-claim-guidance-snapshots/post-09-mobile.png`
+  (`573 x 17682`).
+- Desktop feedback: the new claim-narrowing section appears between the common
+  reporting mistakes and diagnostic-figure sections. The estimator figure,
+  practical checklist, provenance table, Current Status, references, and footer
+  remain visible and contained, with no missing assets or obvious clipping.
+- Mobile feedback: the new section wraps cleanly in the article column. Dense
+  tables, the four-panel figure, reproduction code block, provenance table,
+  Current Status, references, and footer remain contained; the long provenance
+  values still wrap as intended.
+
+Prose and style review:
+
+- The added prose is concept-led and ML-facing: it explains how estimator
+  diagnostics change the defensible scientific claim rather than adding
+  notebook-output detail.
+- No new scientific citation was required because the section applies the
+  already cited FEP/BAR/WHAM/MBAR diagnostics to reporting decisions without
+  introducing a new external method claim.
+- The page remains hidden and explicitly non-final.
+
+Open items:
+
+- Blocking items for the current hidden draft: none from this prose/word-count
+  pass.
+- Non-blocking items accepted until the final article pass: the page remains
+  direct-link only and explicitly non-final.
+- Final-release blockers: none specific to this controlled estimator post
+  unless a later public article adds a chemistry-specific production WHAM/MBAR
+  or alchemical example; if so, add that figure and rerun snapshot review.
+
 ## Update 2026-07-15: Provenance Restamp And Page Snapshot Refresh
 
 - Tutorial restamp commit reviewed:

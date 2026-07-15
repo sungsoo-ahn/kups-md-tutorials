@@ -6,6 +6,8 @@ import json
 import re
 
 SUPPORTED_POSTS = tuple(f"{post:02d}" for post in range(1, 13))
+MIN_POST_WORDS = 3500
+MAX_POST_WORDS = 10000
 PLACEHOLDER_MARKERS = (
     "pending-gpu-artifact-hash",
     "pinned-placeholder",
@@ -270,6 +272,12 @@ def _check_site_blog_style(
         violations.append(f"{page_path}: missing author-note Note text")
     if "sungsoo-ahn/kups-md-tutorials" not in body:
         violations.append(f"{page_path}: missing source repository link text")
+    word_count = _body_word_count(body)
+    if not MIN_POST_WORDS <= word_count <= MAX_POST_WORDS:
+        violations.append(
+            f"{page_path}: expected {MIN_POST_WORDS}-{MAX_POST_WORDS} body words, "
+            f"found {word_count}"
+        )
 
 
 def _front_matter(text: str) -> str | None:
@@ -286,6 +294,13 @@ def _front_matter_value(front_matter: str, key: str) -> str | None:
     if match is None:
         return None
     return match.group(1).strip()
+
+
+def _body_word_count(body: str) -> int:
+    body = re.sub(r"```.*?```", " ", body, flags=re.DOTALL)
+    body = re.sub(r"`[^`]*`", " ", body)
+    body = re.sub(r"<[^>]+>", " ", body)
+    return len(re.findall(r"[A-Za-z0-9][A-Za-z0-9'/-]*", body))
 
 
 def _check_json_file(

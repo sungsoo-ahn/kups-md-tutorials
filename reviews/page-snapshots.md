@@ -3383,3 +3383,65 @@ Revision decisions:
   production diagnostics, regenerated production figure if numerical evidence
   changes, and new rendered snapshots after final production diagnostics or
   any public-indexing change.
+
+## Post 09 Claim-Narrowing Guidance Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Failed snapshot attempt: `29412398778`; it failed during `npm ci` before
+  capture because Playwright WebKit download timed out, so no page snapshots
+  were produced by that run.
+- Successful snapshot run: `29412462655`.
+- Website commit reviewed:
+  `9b79ab3`.
+- Website deploy run:
+  `29412243173`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post09-claim-guidance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post09-claim-guidance-snapshots/manifest.json`.
+- Capture scope: hidden Post 09 page after adding the claim-narrowing section
+  that explains when estimator diagnostics force a free-energy claim to be
+  narrowed, rejected, or reported as a model/protocol validation failure.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Do Free-Energy Estimators Assume? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post09-claim-guidance-snapshots/post-09-desktop.png`
+  (`1440 x 11715`)
+- `/tmp/kups-post09-claim-guidance-snapshots/post-09-mobile.png`
+  (`573 x 17682`)
+
+Feedback:
+
+- Desktop capture renders the title, hidden-draft note, source links,
+  estimator tables, new `When Should the Claim Be Narrowed?` section,
+  four-panel diagnostic figure, methods/checklist sections, reproduction block,
+  provenance table, Current Status, references, and footer without visible
+  clipping or missing assets.
+- Mobile capture keeps the new section, dense tables, figure and caption,
+  checklist, reproduction code block, provenance table, Current Status,
+  references, and footer contained within the article width. The figure remains
+  dense but accepted for the hidden draft, and no text overlap was found.
+- Live check with cache-buster `?v=9b79ab3` confirmed the deployed page
+  contains the new claim-narrowing heading and guidance text.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-09-estimators` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after the claim-guidance refresh.
+- No figure revision was required because figures, figure captions, notebooks,
+  configs, and result files were unchanged.
+- The refreshed hidden page is now within the PLAN word-count target by the
+  repository-side counter. A separate release-readiness gate now checks the
+  3,500-10,000 word range for site-aware final-publication readiness.

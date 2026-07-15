@@ -217,6 +217,62 @@ Review decision:
   pages must stop being hidden/non-final before public release, and they must
   retain the blog-style metadata/author-note shape required by `PLAN.md`.
 
+## Update 2026-07-15: Website Word-Count Gate
+
+Scope:
+
+- Added a site-aware final-publication check that each kUPS page body has
+  3,500-10,000 words, matching the PLAN article-length requirement.
+- Updated `tests/test_release_readiness.py` so clean final-state fixtures
+  include long enough page bodies, and added a regression test that shortens
+  one page and confirms the release gate reports the word-count violation.
+- Expanded the hidden Post 09 page at website commit `9b79ab3` with
+  claim-narrowing guidance so all twelve current hidden pages satisfy the same
+  repository-side word counter.
+
+Commands:
+
+- Website validation before deploy:
+  `python3 scripts/validate_kups_pages.py`,
+  `python3 scripts/validate_blog.py`, and `git diff --check` in
+  `../sungsoo-ahn.github.io`.
+- Website deploy run `29412243173`.
+- Website snapshot workflow: first attempt `29412398778` failed during
+  Playwright WebKit download before capture; rerun `29412462655` passed.
+- Tutorial validation:
+  `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`,
+  `uv run pytest tests/test_release_readiness.py -q`,
+  `uv run kups-tutorial verify-release-readiness --skip-site 2>&1 | tail -n 140`,
+  and `uv run kups-tutorial verify-release-readiness 2>&1 | tail -n 100`.
+
+Code and reproducibility review:
+
+- The word counter strips fenced code blocks, inline code, and HTML tags before
+  counting body tokens.
+- Current hidden page word counts checked from `../sungsoo-ahn.github.io/_pages`
+  are all inside the PLAN range:
+  Post 01 `3632`, Post 02 `3538`, Post 03 `3941`, Post 04 `3739`, Post 05
+  `4216`, Post 06 `3916`, Post 07 `3910`, Post 08 `3948`, Post 09 `3636`,
+  Post 10 `4036`, Post 11 `4040`, and Post 12 `3599`.
+- The site-aware readiness audit reports hidden/non-final page state and
+  hidden-draft notes, but no word-count violations.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no new figure snapshot
+  capture was required.
+- Post 09 website prose changed, so deployed desktop/mobile page snapshots were
+  required and are recorded in `reviews/post-09.md` and
+  `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone and Post 09 hidden-page
+  prose refresh.
+- The final-publication gate now enforces article length in addition to
+  artifact surface, blog-style metadata, hidden/non-final state, and unresolved
+  final-release blockers.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

@@ -3118,6 +3118,52 @@ Review decision:
   recapturing rendered snapshots after final publication changes, and passing
   strict `verify-release-readiness`.
 
+## Update 2026-07-15: Website Build Ledger Refresh After Publication Prep
+
+Scope:
+
+- Refreshed `reviews/website-build.json` to point at the latest successful
+  `sungsoo-ahn.github.io` deployment after adding the dry-run public
+  publication preparation script.
+- Website deploy run `29448565911` completed successfully for commit
+  `99ad4849a5d34592274046bfc14be9275b416c3b`.
+- The deploy included the same validated steps required by the release ledger:
+  blog validation, hidden kUPS page validation, Jekyll build, and GitHub Pages
+  deployment.
+
+Commands and evidence:
+
+- `gh run view 29448565911 --json headSha,conclusion,status,url,createdAt,updatedAt`
+  in `../sungsoo-ahn.github.io` returned `status = completed`,
+  `conclusion = success`, and head SHA
+  `99ad4849a5d34592274046bfc14be9275b416c3b`.
+- `gh run watch 29448574277 --exit-status` in this repository passed for the
+  paired tutorial commit `5478b53`; the workflow completed Ruff, pytest, smoke
+  output reproduction, artifact audit, review audit, release-surface audit,
+  notebook execution, and whitespace checks.
+- Strict `uv run kups-tutorial verify-release-readiness --site-root
+  ../sungsoo-ahn.github.io` was intentionally rerun before this update and
+  failed on the expected final-release blockers plus the stale website-build
+  ledger. The stale ledger issue is fixed by this entry and JSON update; the
+  production GPU, public `_posts`, hidden/non-final draft language, and final
+  snapshot blockers remain.
+
+Review decision:
+
+- Accepted as a bookkeeping and release-evidence refresh. This update does not
+  change simulation configs, notebooks, results, figures, website prose, page
+  front matter, CSS-sensitive markup, or rendered publication assets.
+- No new figure snapshot was required because no figure asset changed.
+- No new rendered-page snapshot was required because the website change since
+  the last inspected hidden-index snapshot was a publication-preparation script
+  under `scripts/`; the live hidden kUPS pages and index remained unchanged and
+  direct-link-only.
+- Final release remains blocked on executing and reviewing the real production
+  GPU diagnostics, migrating the hidden pages into final public `_posts`,
+  removing non-final hidden-draft language, switching the series index from
+  hidden pages to public posts, recapturing desktop/mobile snapshots after
+  those publication changes, and passing strict `verify-release-readiness`.
+
 ## Update 2026-07-15: Dry-Run Public Publication Preparation
 
 Scope:

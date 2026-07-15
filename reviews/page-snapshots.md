@@ -3113,3 +3113,84 @@ Revision decisions:
   are the larger GPU kUPS trajectory diagnostics for physical observables and
   new desktop/mobile snapshots after that production update or any
   public-indexing change.
+
+## Post 08 Citation Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29407440841`.
+- Website commit reviewed:
+  `f88202f`.
+- Website deploy run:
+  `29407274298`.
+- Tutorial review state: working tree after Post 08 citation-review update on
+  top of tutorial commit `bacd49d`, plus the stale Post 07 review blocker
+  cleanup in the same working tree.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post08-citation-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post08-citation-snapshots/manifest.json`.
+- Capture scope: hidden Post 08 page after adding final citations for PMF
+  definitions, histogram estimators, reweighting/WHAM-style weights, MBAR
+  overlap assumptions, RDF-derived PMFs, and histogram uncertainty context.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Equilibrium Samples Become Free Energies? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post08-citation-snapshots/post-08-desktop.png`
+  (`1440 x 12805`)
+- `/tmp/kups-post08-citation-snapshots/post-08-mobile.png`
+  (`550 x 19585`)
+- Focused crops:
+  `/tmp/kups-post08-citation-snapshots/desktop-top-citations.png`,
+  `/tmp/kups-post08-citation-snapshots/desktop-mid-citations.png`,
+  `/tmp/kups-post08-citation-snapshots/desktop-status-refs.png`,
+  `/tmp/kups-post08-citation-snapshots/mobile-top-citations.png`,
+  `/tmp/kups-post08-citation-snapshots/mobile-mid-citations.png`, and
+  `/tmp/kups-post08-citation-snapshots/mobile-lower-status-refs.png`.
+
+Feedback:
+
+- Desktop top-section capture renders the title, hidden-draft note, source
+  links, PMF definition equation, Tuckerman/Frenkel/Smit citations, and
+  Kirkwood/Chandler mean-force citations without overflow. Sidebar navigation
+  remains intact.
+- Desktop middle capture renders Ferrenberg/Swendsen histogram citations,
+  Kumar and Souaille/Roux reweighting citations, Shirts/Chodera MBAR-overlap
+  citation, Kirkwood/Chandler RDF-PMF citations, and the diagnostic figure
+  without clipping. The figure and caption remain unchanged and contained.
+- Desktop status/reference capture confirms final free-energy citations moved
+  to the implemented list; the missing-pieces list no longer includes citation
+  work. All expanded reference entries, DOI links, reverse backlinks, and the
+  footer fit in the article column.
+- Mobile top capture keeps the long title, author note, source links,
+  definition equation, first citations, and diagnostic table contained.
+- Mobile middle capture keeps the histogram, reweighting, RDF-derived PMF,
+  figure, uncertainty, and methods sections readable at `550 px`; citation
+  links wrap naturally and the figure is dense but unchanged from the accepted
+  hidden draft.
+- Mobile lower-status/reference capture renders Current Status, the expanded
+  references, DOI links, backlinks, and footer without clipping.
+- Live check with cache-buster `?v=f88202f` confirmed the deployed page
+  contains the new citation/status text and Kirkwood, Ferrenberg, Kumar,
+  Souaille, and Shirts reference entries.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-08-free-energies` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after citation refresh.
+- No figure revision was required because figures, figure captions, notebooks,
+  configs, and results were unchanged.
+- The Post 08 citation blocker is resolved; remaining final-release blockers
+  are larger GPU kUPS RDF-derived PMF diagnostics and new rendered snapshots
+  after that production update or any public-indexing change.

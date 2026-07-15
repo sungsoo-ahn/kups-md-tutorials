@@ -661,7 +661,5 @@ Final-release blockers:
 
 - Add larger GPU kUPS trajectory diagnostics for physical observables before
   treating this post as final.
-- Add final citations for RDF normalization, coordination integrals,
-  finite-size effects, and time-correlation functions.
 - Re-run rendered desktop/mobile snapshots after final production-observable
-  figures, final citations, or any public-indexing change.
+  figures or any public-indexing change.

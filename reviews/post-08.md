@@ -134,8 +134,10 @@ Open items:
 
 Open items:
 
-- Add citations for PMFs, histogram estimators, reweighting, and RDF-derived
-  potentials of mean force before final publication.
+- Citation coverage for PMFs, histogram estimators, reweighting, and
+  RDF-derived potentials of mean force is now implemented in the hidden
+  website page. Keep the citations synchronized with any final production
+  RDF-PMF rewrite.
 
 ## Website Draft Review
 
@@ -224,10 +226,10 @@ Open items:
 
 - Keep mobile title and table wrapping as final typography-polish items after
   the rest of the articles are expanded.
-- Add larger GPU kUPS RDF-derived PMF diagnostics and final citations before
-  treating this post as final.
+- Add larger GPU kUPS RDF-derived PMF diagnostics before treating this post as
+  final.
 - Re-run the page snapshot workflow again after the final production
-  RDF-derived PMF figure and citations are added.
+  RDF-derived PMF figure is added.
 
 ## Update 2026-07-15: RDF-PMF Block And Replica Uncertainty
 
@@ -418,8 +420,8 @@ Commands run:
   `kups-md-tutorials` or `post-08-free-energies` links. The draft remains
   direct-link only.
 - Revision decision: accept the rendered page for hidden draft. Re-run
-  deployed snapshots after final production RDF-PMF figures, final citations,
-  or any public-indexing change.
+  deployed snapshots after final production RDF-PMF figures or any
+  public-indexing change.
 
 ### Prose and style review
 
@@ -435,10 +437,9 @@ Commands run:
 
 Blocking for final publication:
 
-- Add larger GPU kUPS RDF-derived PMF diagnostics and final citations before
-  public indexing.
+- Add larger GPU kUPS RDF-derived PMF diagnostics before public indexing.
 - Re-run figure and rendered desktop/mobile snapshots after final production
-  RDF-PMF figures/citations or any public-indexing change.
+  RDF-PMF figures or any public-indexing change.
 
 Accepted hidden-draft limitations:
 
@@ -549,10 +550,9 @@ Revision decisions:
 - The compact block/replica RDF-PMF uncertainty diagnostic is accepted for the
   hidden draft state.
 - Keep mobile title/table density as a final typography-polish item.
-- Add larger GPU kUPS RDF-derived PMF diagnostics and final citations before
-  public indexing.
-- Re-run rendered snapshots after final production RDF-PMF figures/citations
-  or any public-indexing change.
+- Add larger GPU kUPS RDF-derived PMF diagnostics before public indexing.
+- Re-run rendered snapshots after final production RDF-PMF figures or any
+  public-indexing change.
 
 ## Update 2026-07-15: RDF-PMF Support-Threshold Sensitivity
 
@@ -662,7 +662,111 @@ Website review status:
 
 Final-release blockers:
 
-- Add larger GPU kUPS RDF-derived PMF diagnostics and final citations before
-  public indexing.
-- Re-run rendered snapshots after final production RDF-PMF figures/citations
-  or any public-indexing change.
+- Add larger GPU kUPS RDF-derived PMF diagnostics before public indexing.
+- Re-run rendered snapshots after final production RDF-PMF figures or any
+  public-indexing change.
+
+## Update 2026-07-15: Free-Energy Citation Completion
+
+Scope:
+
+- Resolved the Post 08 citation blocker for the hidden draft without changing
+  simulations, configs, committed results, notebooks, figure sources, or figure
+  snapshots.
+- Website page updated:
+  `../sungsoo-ahn.github.io/_pages/kups-md-post-08-free-energies.md`.
+- Hidden page URL:
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`.
+
+Citation review:
+
+- Added inline citation anchors for the PMF probability relation, potential of
+  mean force interpretation, histogram estimators, bin-width sensitivity,
+  reweighting/WHAM-style weighting, MBAR overlap assumptions, RDF-derived PMFs,
+  and bootstrap/histogram uncertainty context.
+- Added reverse backlinks in the `## References` section for Frenkel/Smit,
+  Tuckerman, Chandler, Kirkwood, Ferrenberg/Swendsen, Kumar/Rosenberg/Bouzida/
+  Swendsen/Kollman, Souaille/Roux, and Shirts/Chodera.
+- The page's Current Status now lists final free-energy citations as
+  implemented and no longer lists citation work as a missing piece.
+- No figure snapshot was required for this citation-only prose pass because
+  `figures/post-08/`, `snapshots/post-08/`, notebooks, configs, and results
+  were unchanged. The existing reviewed figure snapshots remain
+  `snapshots/post-08/free_energy_diagnostics_snapshot.png` and
+  `snapshots/post-08/free_energy_diagnostics_full_snapshot.png`.
+
+Source checks:
+
+- Kirkwood `Statistical mechanics of fluid mixtures`: AIP/JCP DOI
+  `10.1063/1.1749657`.
+- Ferrenberg/Swendsen `Optimized Monte Carlo data analysis`: APS/PRL DOI
+  `10.1103/PhysRevLett.63.1195`.
+- Kumar/Rosenberg/Bouzida/Swendsen/Kollman `The weighted histogram analysis
+  method for free-energy calculations on biomolecules`: Wiley/JCC DOI
+  `10.1002/jcc.540130812`.
+- Souaille/Roux `Extension to the weighted histogram analysis method`:
+  Computer Physics Communications DOI `10.1016/S0010-4655(00)00215-0`.
+- Shirts/Chodera `Statistically optimal analysis of samples from multiple
+  equilibrium states`: JCP DOI `10.1063/1.2978177`.
+- PMF/statistical-mechanics context checked against Frenkel/Smit, Tuckerman,
+  and Chandler references.
+
+Validation and page review:
+
+- Website validation passed before deployment:
+  `python3 scripts/validate_kups_pages.py`,
+  `python3 scripts/validate_blog.py`, and `git diff --check`.
+- Website commit reviewed and deployed: `f88202f`.
+- Website deploy workflow run: `29407274298`, passed.
+- Snapshot workflow run: `29407440841`, passed.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post08-citation-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post08-citation-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`,
+  both with HTTP 200 and page title
+  `How Do Equilibrium Samples Become Free Energies? | Sungsoo Ahn`.
+- Full-page snapshots visually inspected:
+  `/tmp/kups-post08-citation-snapshots/post-08-desktop.png`
+  (`1440 x 12805`) and
+  `/tmp/kups-post08-citation-snapshots/post-08-mobile.png`
+  (`550 x 19585`).
+- Focused crops visually inspected:
+  `/tmp/kups-post08-citation-snapshots/desktop-top-citations.png`,
+  `/tmp/kups-post08-citation-snapshots/desktop-mid-citations.png`,
+  `/tmp/kups-post08-citation-snapshots/desktop-status-refs.png`,
+  `/tmp/kups-post08-citation-snapshots/mobile-top-citations.png`,
+  `/tmp/kups-post08-citation-snapshots/mobile-mid-citations.png`, and
+  `/tmp/kups-post08-citation-snapshots/mobile-lower-status-refs.png`.
+- Desktop feedback: the PMF-definition citations, Kirkwood/Chandler mean-force
+  citations, histogram/reweighting/MBAR citations, RDF-derived PMF citations,
+  Current Status, and expanded References section render inside the article
+  column. The figure section, runtime table, and practical checklist remain
+  contained and unchanged.
+- Mobile feedback: the long title, hidden-draft note, source links, equations,
+  citation clusters, dense tables, figure, Current Status, references,
+  backlinks, and footer fit at `550 px` width. No citation overflow, table
+  clipping, missing reference, or broken page chrome was found in the inspected
+  crops.
+- Live check with cache-buster `?v=f88202f` confirmed the deployed Post 08 page
+  contains the new citation/status text and Kirkwood, Ferrenberg, Kumar,
+  Souaille, and Shirts reference entries.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-08-free-energies` links, so the page remains direct-link only.
+
+Blocking items for the current hidden draft:
+
+- None from this citation refresh.
+
+Non-blocking items accepted until the final article pass:
+
+- Mobile title, table, and figure density remain accepted for the hidden draft.
+- The compact reduced-unit argon RDF-PMF remains a teaching diagnostic rather
+  than a final GPU kUPS production free-energy study.
+
+Final-release blockers after this refresh:
+
+- Add larger GPU kUPS RDF-derived PMF diagnostics before public indexing.
+- Re-run rendered snapshots after final production RDF-PMF figures or any
+  public-indexing change.

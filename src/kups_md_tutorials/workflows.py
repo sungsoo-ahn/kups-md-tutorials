@@ -994,6 +994,27 @@ def _verify_post11(post: str, profile: str, output_root: Path) -> None:
     if summary.steered_hysteresis.hysteresis_gap_ratio <= 1.25:
         msg = "steered-pulling hysteresis ratio is too weak for review"
         raise ValueError(msg)
+    if spec.pair_distance_steered is not None:
+        if summary.pair_distance_steered is None:
+            msg = "pair-distance steered diagnostic is configured but missing"
+            raise ValueError(msg)
+        pair = summary.pair_distance_steered
+        if pair.target_requests_gpu and not pair.production_gpu_ready:
+            if not pair.gpu_blocking_reason:
+                msg = "GPU-targeted pair-distance steered artifact lacks blocking reason"
+                raise ValueError(msg)
+        if pair.fast_hysteresis_gap <= pair.slow_hysteresis_gap:
+            msg = "fast pair-distance pulling should show larger hysteresis"
+            raise ValueError(msg)
+        if pair.hysteresis_gap_ratio <= 1.20:
+            msg = "pair-distance hysteresis ratio is too weak for review"
+            raise ValueError(msg)
+        if pair.jarzynski_spread > 3.0:
+            msg = "pair-distance Jarzynski directions disagree too strongly"
+            raise ValueError(msg)
+        if min(pair.forward_ess_fraction, pair.reverse_ess_fraction) <= 0.02:
+            msg = "pair-distance exponential-work ESS is too low for review"
+            raise ValueError(msg)
 
 
 def _verify_post12(post: str, profile: str, output_root: Path) -> None:

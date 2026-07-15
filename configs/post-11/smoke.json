@@ -23,5 +23,20 @@
       "end_center": 1.1,
       "noise_scale": 0.20
     }
+  },
+  "pair_distance_steered": {
+    "temperature": 0.70,
+    "domain_min": 0.92,
+    "domain_max": 2.45,
+    "grid_points": 501,
+    "path_count": 1600,
+    "fast_path_steps": 60,
+    "slow_path_steps": 300,
+    "seed": 2026071811,
+    "trap_force_constant": 42.0,
+    "start_radius": 1.08,
+    "end_radius": 2.20,
+    "noise_scale": 0.030,
+    "target_device": "cpu"
   }
 }

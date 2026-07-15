@@ -1255,6 +1255,63 @@ class PullingSpec:
 
 
 @dataclass(frozen=True)
+class PairDistanceSteeredSpec:
+    """Compact pair-distance steered-pulling diagnostic for post 11."""
+
+    temperature: float
+    domain_min: float
+    domain_max: float
+    grid_points: int
+    path_count: int
+    fast_path_steps: int
+    slow_path_steps: int
+    seed: int
+    trap_force_constant: float
+    start_radius: float
+    end_radius: float
+    noise_scale: float
+    epsilon: float = 1.0
+    sigma: float = 1.0
+    target_device: str = "cpu"
+
+    def validate(self) -> None:
+        if self.temperature <= 0.0:
+            msg = "pair-distance steered temperature must be positive"
+            raise ValueError(msg)
+        if self.domain_min <= 0.0 or self.domain_min >= self.domain_max:
+            msg = "pair-distance steered domain must be positive and ordered"
+            raise ValueError(msg)
+        if self.grid_points < 16:
+            msg = "pair-distance steered grid_points must be at least 16"
+            raise ValueError(msg)
+        if self.path_count <= 0:
+            msg = "pair-distance steered path_count must be positive"
+            raise ValueError(msg)
+        if self.fast_path_steps <= 1 or self.slow_path_steps <= 1:
+            msg = "pair-distance steered path counts must exceed one"
+            raise ValueError(msg)
+        if self.slow_path_steps <= self.fast_path_steps:
+            msg = "pair-distance slow path must have more steps than fast path"
+            raise ValueError(msg)
+        if self.trap_force_constant <= 0.0:
+            msg = "pair-distance steered trap_force_constant must be positive"
+            raise ValueError(msg)
+        if self.noise_scale < 0.0:
+            msg = "pair-distance steered noise_scale must be non-negative"
+            raise ValueError(msg)
+        for radius in (self.start_radius, self.end_radius):
+            if radius < self.domain_min or radius > self.domain_max:
+                msg = "pair-distance steered radii must lie inside the domain"
+                raise ValueError(msg)
+        if self.epsilon <= 0.0 or self.sigma <= 0.0:
+            msg = "pair-distance steered epsilon and sigma must be positive"
+            raise ValueError(msg)
+        if not self.target_device:
+            msg = "pair-distance steered target_device must be non-empty"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
 class EnhancedSamplingExperimentSpec:
     """Configuration for adaptive and nonequilibrium sampling diagnostics."""
 
@@ -1317,6 +1374,7 @@ class EnhancedSamplingTutorialSpec:
     profile: str
     title: str
     experiment: EnhancedSamplingExperimentSpec
+    pair_distance_steered: PairDistanceSteeredSpec | None = None
 
     @property
     def result_dir_name(self) -> Path:
@@ -2260,6 +2318,30 @@ def load_enhanced_sampling_spec(
     )
     metadynamics = _expect_mapping(experiment.get("metadynamics"), "metadynamics")
     pulling = _expect_mapping(experiment.get("pulling"), "pulling")
+    pair_distance_data = root.get("pair_distance_steered")
+    pair_distance_steered = None
+    if pair_distance_data is not None:
+        pair_distance = _expect_mapping(
+            pair_distance_data,
+            "pair_distance_steered",
+        )
+        pair_distance_steered = PairDistanceSteeredSpec(
+            temperature=float(pair_distance["temperature"]),
+            domain_min=float(pair_distance["domain_min"]),
+            domain_max=float(pair_distance["domain_max"]),
+            grid_points=int(pair_distance["grid_points"]),
+            path_count=int(pair_distance["path_count"]),
+            fast_path_steps=int(pair_distance["fast_path_steps"]),
+            slow_path_steps=int(pair_distance["slow_path_steps"]),
+            seed=int(pair_distance["seed"]),
+            trap_force_constant=float(pair_distance["trap_force_constant"]),
+            start_radius=float(pair_distance["start_radius"]),
+            end_radius=float(pair_distance["end_radius"]),
+            noise_scale=float(pair_distance["noise_scale"]),
+            epsilon=float(pair_distance.get("epsilon", 1.0)),
+            sigma=float(pair_distance.get("sigma", 1.0)),
+            target_device=str(pair_distance.get("target_device", "cpu")),
+        )
     spec = EnhancedSamplingTutorialSpec(
         post=str(root["post"]),
         profile=str(root["profile"]),
@@ -2286,6 +2368,7 @@ def load_enhanced_sampling_spec(
                 noise_scale=float(pulling["noise_scale"]),
             ),
         ),
+        pair_distance_steered=pair_distance_steered,
     )
     if spec.post != post:
         msg = f"config post {spec.post!r} does not match requested {post!r}"
@@ -2296,6 +2379,8 @@ def load_enhanced_sampling_spec(
         )
         raise ValueError(msg)
     spec.experiment.validate()
+    if spec.pair_distance_steered is not None:
+        spec.pair_distance_steered.validate()
     return spec
 
 

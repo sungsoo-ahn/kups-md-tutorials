@@ -153,6 +153,11 @@ def test_load_enhanced_sampling_spec() -> None:
     assert spec.experiment.temperature == 1.0
     assert spec.experiment.metadynamics.bias_factor > 1.0
     assert spec.experiment.pulling.path_count > 0
+    assert spec.pair_distance_steered is not None
+    assert spec.pair_distance_steered.target_device == "cpu"
+    assert spec.pair_distance_steered.slow_path_steps > (
+        spec.pair_distance_steered.fast_path_steps
+    )
 
 
 def test_load_mlip_spec() -> None:

@@ -413,7 +413,16 @@ def generate_post11_figures(
     curves = _read_post11_curves(result_dir / "enhanced_sampling_curves.csv")
 
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-11"}):
-        fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.0), constrained_layout=True)
+        has_pair_steered = summary.get("pair_distance_steered") is not None
+        if has_pair_steered:
+            fig, axes = plt.subplots(
+                2,
+                3,
+                figsize=(13.6, 7.6),
+                constrained_layout=True,
+            )
+        else:
+            fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.0), constrained_layout=True)
         _draw_post11_figure(fig, axes.ravel(), summary, curves)
 
         svg_path = figure_dir / f"{name}.svg"
@@ -2184,6 +2193,7 @@ def _draw_post11_figure(
     meta = summary["metadynamics"]
     pulling = summary["pulling"]
     hysteresis = summary["steered_hysteresis"]
+    pair = summary.get("pair_distance_steered")
 
     axes[0].plot(
         curves["grid"],
@@ -2315,6 +2325,89 @@ def _draw_post11_figure(
         fontsize=8.5,
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
     )
+
+    if pair is not None and len(axes) >= 6:
+        pair_forward = curves["pair_slow_forward_work"]
+        pair_reverse = curves["pair_slow_reverse_work"]
+        bins = np.linspace(
+            min(float(np.min(pair_forward)), float(np.min(-pair_reverse))),
+            max(float(np.max(pair_forward)), float(np.max(-pair_reverse))),
+            42,
+        )
+        axes[4].hist(
+            pair_forward,
+            bins=bins,
+            density=True,
+            color="#4f8f7a",
+            alpha=0.56,
+            label="slow forward",
+        )
+        axes[4].hist(
+            -pair_reverse,
+            bins=bins,
+            density=True,
+            color="#b95f30",
+            alpha=0.50,
+            label="- slow reverse",
+        )
+        axes[4].axvline(
+            pair["true_delta_f"],
+            color="#222222",
+            linewidth=1.0,
+            label="true Delta F",
+        )
+        axes[4].axvline(
+            pair["forward_jarzynski_delta_f"],
+            color="#4f8f7a",
+            linewidth=1.0,
+            linestyle="--",
+            label="forward Jarzynski",
+        )
+        axes[4].axvline(
+            pair["reverse_jarzynski_delta_f"],
+            color="#b95f30",
+            linewidth=1.0,
+            linestyle=":",
+            label="reverse Jarzynski",
+        )
+        axes[4].set_title("Pair-distance steered pulling")
+        axes[4].set_xlabel("work")
+        axes[4].set_ylabel("density")
+        axes[4].legend(frameon=False, fontsize=7.0)
+        axes[4].text(
+            0.03,
+            0.95,
+            f"fast/slow gap = {pair['hysteresis_gap_ratio']:.2f}\n"
+            f"Jarzynski spread = {pair['jarzynski_spread']:.3f}\n"
+            f"runtime: {'GPU' if pair.get('production_gpu_ready') else 'CPU fallback'}",
+            transform=axes[4].transAxes,
+            va="top",
+            ha="left",
+            fontsize=8.0,
+            bbox={"boxstyle": "round,pad=0.26", "facecolor": "white", "alpha": 0.9},
+        )
+
+        axes[5].axis("off")
+        lines = [
+            "Compact MD context",
+            f"coordinate: {pair['coordinate']}",
+            f"r path: {pair['start_radius']:.2f} to {pair['end_radius']:.2f}",
+            f"paths: {pair['path_count']}",
+            f"target: {pair['target_device']}",
+            f"runtime: {pair['runtime_device']}",
+            f"GPU ready: {str(pair['production_gpu_ready']).lower()}",
+        ]
+        for idx, line in enumerate(lines):
+            axes[5].text(
+                0.02,
+                0.92 - idx * 0.115,
+                line,
+                transform=axes[5].transAxes,
+                va="top",
+                ha="left",
+                fontsize=8.0 if idx else 9.0,
+                weight="bold" if idx == 0 else "normal",
+            )
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

@@ -8,9 +8,18 @@ import json
 import kups
 import numpy as np
 
-from kups_md_tutorials.config import EnhancedSamplingTutorialSpec
+from kups_md_tutorials.config import (
+    EnhancedSamplingTutorialSpec,
+    PairDistanceSteeredSpec,
+)
 from kups_md_tutorials.free_energies import double_well_potential
-from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.provenance import (
+    gpu_blocking_reason,
+    provenance,
+    runtime_device,
+    runtime_is_gpu,
+    target_requests_gpu,
+)
 
 
 @dataclass(frozen=True)
@@ -73,6 +82,39 @@ class SteeredHysteresisSummary:
 
 
 @dataclass(frozen=True)
+class PairDistanceSteeredSummary:
+    """Compact atomistic-coordinate steered-pulling diagnostic."""
+
+    coordinate: str
+    target_device: str
+    runtime_device: str
+    target_requests_gpu: bool
+    production_gpu_ready: bool
+    gpu_blocking_reason: str | None
+    path_count: int
+    fast_path_steps: int
+    slow_path_steps: int
+    start_radius: float
+    end_radius: float
+    trap_force_constant: float
+    true_delta_f: float
+    fast_forward_mean_work: float
+    fast_reverse_mean_work: float
+    slow_forward_mean_work: float
+    slow_reverse_mean_work: float
+    fast_hysteresis_gap: float
+    slow_hysteresis_gap: float
+    fast_hysteresis_gap_sem: float
+    slow_hysteresis_gap_sem: float
+    hysteresis_gap_ratio: float
+    forward_jarzynski_delta_f: float
+    reverse_jarzynski_delta_f: float
+    jarzynski_spread: float
+    forward_ess_fraction: float
+    reverse_ess_fraction: float
+
+
+@dataclass(frozen=True)
 class EnhancedSamplingExperimentSummary:
     """Summary table for one post/profile enhanced-sampling experiment."""
 
@@ -86,6 +128,7 @@ class EnhancedSamplingExperimentSummary:
     metadynamics: MetadynamicsSummary
     pulling: PullingSummary
     steered_hysteresis: SteeredHysteresisSummary
+    pair_distance_steered: PairDistanceSteeredSummary | None = None
 
 
 def _normalized_probabilities(energies: np.ndarray, temperature: float) -> np.ndarray:
@@ -170,6 +213,18 @@ def _trap_bias(values: np.ndarray, center: float, force_constant: float) -> np.n
     return 0.5 * force_constant * (values - center) ** 2
 
 
+def _lennard_jones_pair_pmf(
+    radius: np.ndarray,
+    *,
+    epsilon: float,
+    sigma: float,
+) -> np.ndarray:
+    scaled = sigma / radius
+    scaled6 = scaled**6
+    energy = 4.0 * epsilon * (scaled6 * scaled6 - scaled6)
+    return energy - np.nanmin(energy)
+
+
 def _sample_trap_equilibrium(
     *,
     grid: np.ndarray,
@@ -191,6 +246,19 @@ def _equilibrium_trap_free_energy(
     temperature: float,
 ) -> float:
     energies = double_well_potential(grid) + _trap_bias(grid, center, force_constant)
+    weights = np.exp(-(energies - np.min(energies)) / temperature)
+    integral = np.trapezoid(weights, grid)
+    return float(np.min(energies) - temperature * np.log(integral))
+
+
+def _equilibrium_pair_trap_free_energy(
+    grid: np.ndarray,
+    pair_pmf: np.ndarray,
+    center: float,
+    force_constant: float,
+    temperature: float,
+) -> float:
+    energies = pair_pmf + _trap_bias(grid, center, force_constant)
     weights = np.exp(-(energies - np.min(energies)) / temperature)
     integral = np.trapezoid(weights, grid)
     return float(np.min(energies) - temperature * np.log(integral))
@@ -235,6 +303,70 @@ def _run_pulling_direction(
             rng=rng,
         )
         relaxation = 0.055
+        positions = (1.0 - relaxation) * positions + relaxation * target
+        if noise_scale > 0.0:
+            positions += rng.normal(0.0, noise_scale, size=path_count)
+        positions = np.clip(positions, grid[0], grid[-1])
+    return works
+
+
+def _sample_pair_trap_equilibrium(
+    *,
+    grid: np.ndarray,
+    pair_pmf: np.ndarray,
+    center: float,
+    force_constant: float,
+    temperature: float,
+    count: int,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    energies = pair_pmf + _trap_bias(grid, center, force_constant)
+    probabilities = _normalized_probabilities(energies, temperature)
+    return rng.choice(grid, size=count, replace=True, p=probabilities)
+
+
+def _run_pair_pulling_direction(
+    *,
+    grid: np.ndarray,
+    pair_pmf: np.ndarray,
+    start_center: float,
+    end_center: float,
+    force_constant: float,
+    temperature: float,
+    path_count: int,
+    path_steps: int,
+    noise_scale: float,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    lambdas = np.linspace(start_center, end_center, path_steps + 1)
+    positions = _sample_pair_trap_equilibrium(
+        grid=grid,
+        pair_pmf=pair_pmf,
+        center=start_center,
+        force_constant=force_constant,
+        temperature=temperature,
+        count=path_count,
+        rng=rng,
+    )
+    works = np.zeros(path_count, dtype=float)
+    relaxation = 0.08
+    for idx in range(path_steps):
+        old_center = lambdas[idx]
+        new_center = lambdas[idx + 1]
+        works += _trap_bias(positions, new_center, force_constant) - _trap_bias(
+            positions,
+            old_center,
+            force_constant,
+        )
+        target = _sample_pair_trap_equilibrium(
+            grid=grid,
+            pair_pmf=pair_pmf,
+            center=new_center,
+            force_constant=force_constant,
+            temperature=temperature,
+            count=path_count,
+            rng=rng,
+        )
         positions = (1.0 - relaxation) * positions + relaxation * target
         if noise_scale > 0.0:
             positions += rng.normal(0.0, noise_scale, size=path_count)
@@ -437,6 +569,128 @@ def _run_steered_hysteresis(
     )
 
 
+def _run_pair_distance_steered(
+    spec: PairDistanceSteeredSpec | None,
+) -> tuple[PairDistanceSteeredSummary | None, dict[str, np.ndarray] | None]:
+    if spec is None:
+        return None, None
+
+    grid = np.linspace(spec.domain_min, spec.domain_max, spec.grid_points)
+    pair_pmf = _lennard_jones_pair_pmf(
+        grid,
+        epsilon=spec.epsilon,
+        sigma=spec.sigma,
+    )
+    rng = np.random.default_rng(spec.seed)
+    true_delta_f = _equilibrium_pair_trap_free_energy(
+        grid,
+        pair_pmf,
+        spec.end_radius,
+        spec.trap_force_constant,
+        spec.temperature,
+    ) - _equilibrium_pair_trap_free_energy(
+        grid,
+        pair_pmf,
+        spec.start_radius,
+        spec.trap_force_constant,
+        spec.temperature,
+    )
+    fast_forward = _run_pair_pulling_direction(
+        grid=grid,
+        pair_pmf=pair_pmf,
+        start_center=spec.start_radius,
+        end_center=spec.end_radius,
+        force_constant=spec.trap_force_constant,
+        temperature=spec.temperature,
+        path_count=spec.path_count,
+        path_steps=spec.fast_path_steps,
+        noise_scale=spec.noise_scale,
+        rng=rng,
+    )
+    fast_reverse = _run_pair_pulling_direction(
+        grid=grid,
+        pair_pmf=pair_pmf,
+        start_center=spec.end_radius,
+        end_center=spec.start_radius,
+        force_constant=spec.trap_force_constant,
+        temperature=spec.temperature,
+        path_count=spec.path_count,
+        path_steps=spec.fast_path_steps,
+        noise_scale=spec.noise_scale,
+        rng=rng,
+    )
+    slow_forward = _run_pair_pulling_direction(
+        grid=grid,
+        pair_pmf=pair_pmf,
+        start_center=spec.start_radius,
+        end_center=spec.end_radius,
+        force_constant=spec.trap_force_constant,
+        temperature=spec.temperature,
+        path_count=spec.path_count,
+        path_steps=spec.slow_path_steps,
+        noise_scale=spec.noise_scale,
+        rng=rng,
+    )
+    slow_reverse = _run_pair_pulling_direction(
+        grid=grid,
+        pair_pmf=pair_pmf,
+        start_center=spec.end_radius,
+        end_center=spec.start_radius,
+        force_constant=spec.trap_force_constant,
+        temperature=spec.temperature,
+        path_count=spec.path_count,
+        path_steps=spec.slow_path_steps,
+        noise_scale=spec.noise_scale,
+        rng=rng,
+    )
+
+    fast_gap = float(np.mean(fast_forward) + np.mean(fast_reverse))
+    slow_gap = float(np.mean(slow_forward) + np.mean(slow_reverse))
+    forward_jarzynski = _jarzynski(slow_forward, spec.temperature)
+    reverse_jarzynski = -_jarzynski(slow_reverse, spec.temperature)
+    runtime = runtime_device()
+    requests_gpu = target_requests_gpu(spec.target_device)
+    production_gpu_ready = requests_gpu and runtime_is_gpu(runtime)
+    summary = PairDistanceSteeredSummary(
+        coordinate="reduced pair distance r/sigma",
+        target_device=spec.target_device,
+        runtime_device=runtime,
+        target_requests_gpu=requests_gpu,
+        production_gpu_ready=production_gpu_ready,
+        gpu_blocking_reason=gpu_blocking_reason(spec.target_device, runtime),
+        path_count=spec.path_count,
+        fast_path_steps=spec.fast_path_steps,
+        slow_path_steps=spec.slow_path_steps,
+        start_radius=spec.start_radius,
+        end_radius=spec.end_radius,
+        trap_force_constant=spec.trap_force_constant,
+        true_delta_f=float(true_delta_f),
+        fast_forward_mean_work=float(np.mean(fast_forward)),
+        fast_reverse_mean_work=float(np.mean(fast_reverse)),
+        slow_forward_mean_work=float(np.mean(slow_forward)),
+        slow_reverse_mean_work=float(np.mean(slow_reverse)),
+        fast_hysteresis_gap=fast_gap,
+        slow_hysteresis_gap=slow_gap,
+        fast_hysteresis_gap_sem=_hysteresis_gap_sem(fast_forward, fast_reverse),
+        slow_hysteresis_gap_sem=_hysteresis_gap_sem(slow_forward, slow_reverse),
+        hysteresis_gap_ratio=float(fast_gap / slow_gap),
+        forward_jarzynski_delta_f=forward_jarzynski,
+        reverse_jarzynski_delta_f=reverse_jarzynski,
+        jarzynski_spread=float(abs(forward_jarzynski - reverse_jarzynski)),
+        forward_ess_fraction=_ess_fraction(-slow_forward / spec.temperature),
+        reverse_ess_fraction=_ess_fraction(-slow_reverse / spec.temperature),
+    )
+    curves = {
+        "pair_grid": grid,
+        "pair_true_pmf": pair_pmf,
+        "pair_fast_forward_work": fast_forward,
+        "pair_fast_reverse_work": fast_reverse,
+        "pair_slow_forward_work": slow_forward,
+        "pair_slow_reverse_work": slow_reverse,
+    }
+    return summary, curves
+
+
 def run_enhanced_sampling_experiment(
     spec: EnhancedSamplingTutorialSpec,
     config_sha256: str,
@@ -448,7 +702,10 @@ def run_enhanced_sampling_experiment(
     meta_summary, meta_curves = _run_metadynamics(spec, grid)
     pulling_summary, pulling_curves = _run_pulling(spec, grid)
     hysteresis_summary, hysteresis_curves = _run_steered_hysteresis(spec, grid)
+    pair_summary, pair_curves = _run_pair_distance_steered(spec.pair_distance_steered)
     curves = {**meta_curves, **pulling_curves, **hysteresis_curves}
+    if pair_curves is not None:
+        curves.update(pair_curves)
     return (
         EnhancedSamplingExperimentSummary(
             post=spec.post,
@@ -461,6 +718,7 @@ def run_enhanced_sampling_experiment(
             metadynamics=meta_summary,
             pulling=pulling_summary,
             steered_hysteresis=hysteresis_summary,
+            pair_distance_steered=pair_summary,
         ),
         curves,
     )
@@ -473,6 +731,8 @@ def _write_enhanced_curves(path: Path, curves: dict[str, np.ndarray]) -> None:
         len(curves["record_step"]),
         len(curves["forward_work"]),
         len(curves["fast_forward_steered_work"]),
+        len(curves.get("pair_grid", [])),
+        len(curves.get("pair_fast_forward_work", [])),
     )
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle, lineterminator="\n")
@@ -491,6 +751,12 @@ def _write_enhanced_curves(path: Path, curves: dict[str, np.ndarray]) -> None:
                 "fast_reverse_steered_work",
                 "slow_forward_steered_work",
                 "slow_reverse_steered_work",
+                "pair_grid",
+                "pair_true_pmf",
+                "pair_fast_forward_work",
+                "pair_fast_reverse_work",
+                "pair_slow_forward_work",
+                "pair_slow_reverse_work",
             ]
         )
         for idx in range(max_len):
@@ -509,8 +775,14 @@ def _write_enhanced_curves(path: Path, curves: dict[str, np.ndarray]) -> None:
                 "fast_reverse_steered_work",
                 "slow_forward_steered_work",
                 "slow_reverse_steered_work",
+                "pair_grid",
+                "pair_true_pmf",
+                "pair_fast_forward_work",
+                "pair_fast_reverse_work",
+                "pair_slow_forward_work",
+                "pair_slow_reverse_work",
             ):
-                values = curves[key]
+                values = curves.get(key, np.array([], dtype=float))
                 row.append(f"{values[idx]:.12g}" if idx < len(values) else "")
             writer.writerow(row)
 
@@ -557,6 +829,9 @@ def load_enhanced_sampling_summary(path: Path) -> EnhancedSamplingExperimentSumm
     """Read a previously written post-11 enhanced-sampling summary."""
 
     data = json.loads(path.read_text(encoding="utf-8"))
+    pair_distance_steered = data.pop("pair_distance_steered", None)
+    if pair_distance_steered is not None:
+        pair_distance_steered = PairDistanceSteeredSummary(**pair_distance_steered)
     metadynamics = MetadynamicsSummary(**data.pop("metadynamics"))
     pulling = PullingSummary(**data.pop("pulling"))
     steered_hysteresis = SteeredHysteresisSummary(**data.pop("steered_hysteresis"))
@@ -564,5 +839,6 @@ def load_enhanced_sampling_summary(path: Path) -> EnhancedSamplingExperimentSumm
         metadynamics=metadynamics,
         pulling=pulling,
         steered_hysteresis=steered_hysteresis,
+        pair_distance_steered=pair_distance_steered,
         **data,
     )

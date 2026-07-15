@@ -1161,6 +1161,62 @@ class UmbrellaExperimentSpec:
 
 
 @dataclass(frozen=True)
+class PairDistanceUmbrellaSpec:
+    """Compact pair-distance umbrella diagnostic for post 10."""
+
+    temperature: float
+    domain_min: float
+    domain_max: float
+    grid_points: int
+    bin_width: float
+    sample_count_per_window: int
+    seed: int
+    force_constant: float
+    window_centers: tuple[float, ...]
+    epsilon: float = 1.0
+    sigma: float = 1.0
+    target_device: str = "cpu"
+
+    def validate(self) -> None:
+        if self.temperature <= 0.0:
+            msg = "pair-distance temperature must be positive"
+            raise ValueError(msg)
+        if self.domain_min <= 0.0 or self.domain_min >= self.domain_max:
+            msg = "pair-distance domain must be positive and ordered"
+            raise ValueError(msg)
+        if self.grid_points < 16:
+            msg = "pair-distance grid_points must be at least 16"
+            raise ValueError(msg)
+        if self.bin_width <= 0.0:
+            msg = "pair-distance bin_width must be positive"
+            raise ValueError(msg)
+        if self.sample_count_per_window <= 0:
+            msg = "pair-distance sample_count_per_window must be positive"
+            raise ValueError(msg)
+        if self.force_constant <= 0.0:
+            msg = "pair-distance force_constant must be positive"
+            raise ValueError(msg)
+        if len(self.window_centers) < 2:
+            msg = "pair-distance umbrella requires at least two windows"
+            raise ValueError(msg)
+        if tuple(sorted(self.window_centers)) != self.window_centers:
+            msg = "pair-distance window_centers must be sorted"
+            raise ValueError(msg)
+        if any(
+            center < self.domain_min or center > self.domain_max
+            for center in self.window_centers
+        ):
+            msg = "pair-distance window centers must lie inside the domain"
+            raise ValueError(msg)
+        if self.epsilon <= 0.0 or self.sigma <= 0.0:
+            msg = "pair-distance epsilon and sigma must be positive"
+            raise ValueError(msg)
+        if not self.target_device:
+            msg = "pair-distance target_device must be non-empty"
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
 class UmbrellaTutorialSpec:
     """Configuration for post-10 umbrella-sampling experiments."""
 
@@ -1168,6 +1224,7 @@ class UmbrellaTutorialSpec:
     profile: str
     title: str
     experiment: UmbrellaExperimentSpec
+    pair_distance_umbrella: PairDistanceUmbrellaSpec | None = None
 
     @property
     def result_dir_name(self) -> Path:
@@ -2117,6 +2174,29 @@ def load_umbrella_spec(
 
     root = _expect_mapping(data, "umbrella config")
     experiment = _expect_mapping(root.get("umbrella_experiment"), "umbrella_experiment")
+    pair_distance_data = root.get("pair_distance_umbrella")
+    pair_distance_umbrella = None
+    if pair_distance_data is not None:
+        pair_distance = _expect_mapping(
+            pair_distance_data,
+            "pair_distance_umbrella",
+        )
+        pair_distance_umbrella = PairDistanceUmbrellaSpec(
+            temperature=float(pair_distance["temperature"]),
+            domain_min=float(pair_distance["domain_min"]),
+            domain_max=float(pair_distance["domain_max"]),
+            grid_points=int(pair_distance["grid_points"]),
+            bin_width=float(pair_distance["bin_width"]),
+            sample_count_per_window=int(pair_distance["sample_count_per_window"]),
+            seed=int(pair_distance["seed"]),
+            force_constant=float(pair_distance["force_constant"]),
+            window_centers=tuple(
+                float(center) for center in pair_distance["window_centers"]
+            ),
+            epsilon=float(pair_distance.get("epsilon", 1.0)),
+            sigma=float(pair_distance.get("sigma", 1.0)),
+            target_device=str(pair_distance.get("target_device", "cpu")),
+        )
     spec = UmbrellaTutorialSpec(
         post=str(root["post"]),
         profile=str(root["profile"]),
@@ -2148,6 +2228,7 @@ def load_umbrella_spec(
                 for value in experiment["protocols"]
             ),
         ),
+        pair_distance_umbrella=pair_distance_umbrella,
     )
     if spec.post != post:
         msg = f"config post {spec.post!r} does not match requested {post!r}"
@@ -2158,6 +2239,8 @@ def load_umbrella_spec(
         )
         raise ValueError(msg)
     spec.experiment.validate()
+    if spec.pair_distance_umbrella is not None:
+        spec.pair_distance_umbrella.validate()
     return spec
 
 

@@ -910,6 +910,33 @@ def _verify_post10(post: str, profile: str, output_root: Path) -> None:
     if dense.forward_reverse_pmf_rmse >= sparse.forward_reverse_pmf_rmse:
         msg = "dense windows should improve replica PMF consistency"
         raise ValueError(msg)
+    if spec.pair_distance_umbrella is not None:
+        pair = summary.pair_distance_umbrella
+        if pair is None:
+            msg = "configured pair-distance umbrella summary is missing"
+            raise ValueError(msg)
+        if not pair.runtime_device:
+            msg = "pair-distance umbrella summary is missing runtime-device provenance"
+            raise ValueError(msg)
+        if (
+            pair.target_requests_gpu
+            and not pair.production_gpu_ready
+            and not pair.gpu_blocking_reason
+        ):
+            msg = "pair-distance umbrella GPU-targeted fallback must record a blocking reason"
+            raise ValueError(msg)
+        if pair.min_adjacent_overlap <= 0.05:
+            msg = "pair-distance umbrella should maintain adjacent overlap"
+            raise ValueError(msg)
+        if pair.pmf_rmse_vs_true > 0.45:
+            msg = "pair-distance umbrella PMF reconstruction is outside tolerance"
+            raise ValueError(msg)
+        if abs(pair.well_depth_error) > 0.50:
+            msg = "pair-distance umbrella well depth is outside tolerance"
+            raise ValueError(msg)
+        if pair.min_effective_bins <= 2:
+            msg = "pair-distance umbrella windows have too little support"
+            raise ValueError(msg)
 
 
 def _verify_post11(post: str, profile: str, output_root: Path) -> None:

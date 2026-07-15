@@ -374,8 +374,17 @@ def generate_post10_figures(
     curves = _read_post10_curves(result_dir / "umbrella_curves.csv")
     windows = _read_post10_windows(result_dir / "umbrella_windows.csv")
 
+    has_pair = summary.get("pair_distance_umbrella") is not None
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-10"}):
-        fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.0), constrained_layout=True)
+        if has_pair:
+            fig, axes = plt.subplots(
+                2,
+                3,
+                figsize=(14.4, 7.0),
+                constrained_layout=True,
+            )
+        else:
+            fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.0), constrained_layout=True)
         _draw_post10_figure(fig, axes.ravel(), summary, curves, windows)
 
         svg_path = figure_dir / f"{name}.svg"
@@ -2087,6 +2096,77 @@ def _draw_post10_figure(
         fontsize=8.5,
         bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
     )
+
+    pair = summary.get("pair_distance_umbrella")
+    if pair is not None and len(axes) > 4:
+        key = "pair_distance_umbrella"
+        axes[4].plot(
+            curves[f"{key}_x"],
+            curves[f"{key}_true_pmf"],
+            color="#222222",
+            linewidth=1.3,
+            label="pair-distance PMF",
+        )
+        axes[4].plot(
+            curves[f"{key}_x"],
+            curves[f"{key}_pmf"],
+            color="#6a8f4e",
+            linewidth=1.35,
+            label="umbrella reconstruction",
+        )
+        axes[4].plot(
+            curves[f"{key}_x"],
+            curves[f"{key}_replica_abs_difference"],
+            color="#8c6bb1",
+            linewidth=1.0,
+            linestyle="--",
+            label="replica diff",
+        )
+        axes[4].axvline(
+            pair["minimum_radius"],
+            color="#333333",
+            linewidth=0.85,
+            linestyle=":",
+            label="PMF minimum",
+        )
+        axes[4].set_title("Pair-distance umbrellas")
+        axes[4].set_xlabel("pair distance r/sigma")
+        axes[4].set_ylabel("shifted F(r)")
+        axes[4].legend(frameon=False, fontsize=7.5)
+        axes[4].text(
+            0.03,
+            0.97,
+            f"min overlap = {pair['min_adjacent_overlap']:.3f}\n"
+            f"well error = {pair['well_depth_error']:.3f}\n"
+            f"runtime: {'GPU' if pair.get('production_gpu_ready') else 'CPU fallback'}",
+            transform=axes[4].transAxes,
+            va="top",
+            ha="left",
+            fontsize=8.2,
+            bbox={"boxstyle": "round,pad=0.26", "facecolor": "white", "alpha": 0.9},
+        )
+        axes[5].axis("off")
+        lines = [
+            "Compact MD context",
+            f"coordinate: {pair['coordinate']}",
+            f"windows: {pair['window_count']}",
+            f"samples/window: {pair['sample_count_per_window']}",
+            f"target: {pair['target_device']}",
+            f"runtime: {pair['runtime_device']}",
+            f"GPU ready: {str(pair['production_gpu_ready']).lower()}",
+        ]
+        for idx, line in enumerate(lines):
+            axes[5].text(
+                0.02,
+                0.92 - idx * 0.115,
+                line,
+                transform=axes[5].transAxes,
+                va="top",
+                ha="left",
+                fontsize=9 if idx == 0 else 8.2,
+                fontweight="bold" if idx == 0 else "normal",
+                color="#111111" if idx == 0 else "#333333",
+            )
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

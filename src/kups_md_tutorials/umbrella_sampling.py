@@ -8,9 +8,19 @@ import json
 import kups
 import numpy as np
 
-from kups_md_tutorials.config import UmbrellaProtocolSpec, UmbrellaTutorialSpec
+from kups_md_tutorials.config import (
+    PairDistanceUmbrellaSpec,
+    UmbrellaProtocolSpec,
+    UmbrellaTutorialSpec,
+)
 from kups_md_tutorials.free_energies import double_well_potential
-from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.provenance import (
+    gpu_blocking_reason,
+    provenance,
+    runtime_device,
+    runtime_is_gpu,
+    target_requests_gpu,
+)
 
 
 @dataclass(frozen=True)
@@ -46,6 +56,32 @@ class UmbrellaProtocolSummary:
 
 
 @dataclass(frozen=True)
+class PairDistanceUmbrellaSummary:
+    """Compact pair-distance umbrella diagnostic with runtime provenance."""
+
+    coordinate: str
+    target_device: str
+    runtime_device: str
+    target_requests_gpu: bool
+    production_gpu_ready: bool
+    gpu_blocking_reason: str | None
+    window_count: int
+    sample_count_per_window: int
+    force_constant: float
+    minimum_radius: float
+    well_depth: float
+    reconstructed_well_depth: float
+    well_depth_error: float
+    pmf_rmse_vs_true: float
+    min_adjacent_overlap: float
+    mean_adjacent_overlap: float
+    forward_reverse_pmf_rmse: float
+    max_replica_pmf_difference: float
+    min_effective_bins: int
+    windows: list[UmbrellaWindowSummary]
+
+
+@dataclass(frozen=True)
 class UmbrellaExperimentSummary:
     """Summary table for one post/profile umbrella experiment."""
 
@@ -60,6 +96,7 @@ class UmbrellaExperimentSummary:
     config_sha256: str
     true_barrier_height: float
     protocols: list[UmbrellaProtocolSummary]
+    pair_distance_umbrella: PairDistanceUmbrellaSummary | None = None
 
 
 def umbrella_bias(values: np.ndarray, center: float, force_constant: float) -> np.ndarray:
@@ -175,6 +212,34 @@ def _pmf_rmse(centers: np.ndarray, pmf: np.ndarray) -> float:
     true_pmf -= np.nanmin(true_pmf)
     finite = np.isfinite(pmf)
     return float(np.sqrt(np.mean((pmf[finite] - true_pmf[finite]) ** 2)))
+
+
+def _pmf_rmse_against(estimated: np.ndarray, true_pmf: np.ndarray) -> float:
+    finite = np.isfinite(estimated) & np.isfinite(true_pmf)
+    return float(np.sqrt(np.mean((estimated[finite] - true_pmf[finite]) ** 2)))
+
+
+def _lennard_jones_pair_pmf(
+    radii: np.ndarray,
+    *,
+    temperature: float,
+    epsilon: float,
+    sigma: float,
+) -> np.ndarray:
+    del temperature
+    scaled = sigma / radii
+    pair_energy = 4.0 * epsilon * (scaled**12 - scaled**6)
+    pmf = pair_energy
+    pmf -= np.nanmin(pmf)
+    return pmf
+
+
+def _pair_well_depth(radii: np.ndarray, pmf: np.ndarray) -> float:
+    minimum_radius = float(radii[int(np.nanargmin(pmf))])
+    outer_mask = radii > max(1.5 * minimum_radius, minimum_radius + 0.45)
+    if not np.any(outer_mask):
+        outer_mask = radii > minimum_radius
+    return float(np.nanmedian(pmf[outer_mask]) - np.nanmin(pmf))
 
 
 def _overlap_coefficients(counts: np.ndarray) -> list[float]:
@@ -308,6 +373,158 @@ def _summarize_protocol(
     )
 
 
+def _sample_pair_distance_window(
+    *,
+    grid: np.ndarray,
+    true_pmf: np.ndarray,
+    center: float,
+    force_constant: float,
+    temperature: float,
+    sample_count: int,
+    seed: int,
+) -> np.ndarray:
+    rng = np.random.default_rng(seed)
+    energies = true_pmf + umbrella_bias(grid, center, force_constant)
+    probabilities = _normalized_probabilities(energies, temperature)
+    return rng.choice(grid, size=sample_count, replace=True, p=probabilities)
+
+
+def _summarize_pair_distance_umbrella(
+    spec: PairDistanceUmbrellaSpec | None,
+) -> tuple[PairDistanceUmbrellaSummary | None, dict[str, np.ndarray] | None]:
+    if spec is None:
+        return None, None
+
+    grid = np.linspace(spec.domain_min, spec.domain_max, spec.grid_points)
+    true_pmf_grid = _lennard_jones_pair_pmf(
+        grid,
+        temperature=spec.temperature,
+        epsilon=spec.epsilon,
+        sigma=spec.sigma,
+    )
+    samples_by_window = []
+    replica_samples_by_window = []
+    for idx, center in enumerate(spec.window_centers):
+        samples_by_window.append(
+            _sample_pair_distance_window(
+                grid=grid,
+                true_pmf=true_pmf_grid,
+                center=center,
+                force_constant=spec.force_constant,
+                temperature=spec.temperature,
+                sample_count=spec.sample_count_per_window,
+                seed=spec.seed + idx * 1009,
+            )
+        )
+        replica_samples_by_window.append(
+            _sample_pair_distance_window(
+                grid=grid,
+                true_pmf=true_pmf_grid,
+                center=center,
+                force_constant=spec.force_constant,
+                temperature=spec.temperature,
+                sample_count=spec.sample_count_per_window,
+                seed=spec.seed + 50021 + idx * 1009,
+            )
+        )
+
+    centers, counts = _histograms(
+        samples_by_window,
+        domain_min=spec.domain_min,
+        domain_max=spec.domain_max,
+        bin_width=spec.bin_width,
+    )
+    pmf = _wham_reconstruct(
+        centers=centers,
+        counts=counts,
+        window_centers=spec.window_centers,
+        force_constant=spec.force_constant,
+        temperature=spec.temperature,
+        bin_width=spec.bin_width,
+    )
+    _, replica_counts = _histograms(
+        replica_samples_by_window,
+        domain_min=spec.domain_min,
+        domain_max=spec.domain_max,
+        bin_width=spec.bin_width,
+    )
+    replica_pmf = _wham_reconstruct(
+        centers=centers,
+        counts=replica_counts,
+        window_centers=spec.window_centers,
+        force_constant=spec.force_constant,
+        temperature=spec.temperature,
+        bin_width=spec.bin_width,
+    )
+    true_pmf = _lennard_jones_pair_pmf(
+        centers,
+        temperature=spec.temperature,
+        epsilon=spec.epsilon,
+        sigma=spec.sigma,
+    )
+    overlap = _overlap_coefficients(counts)
+    replica_difference = np.abs(pmf - replica_pmf)
+    true_well_depth = _pair_well_depth(centers, true_pmf)
+    reconstructed_well_depth = _pair_well_depth(centers, pmf)
+    runtime = runtime_device()
+    requests_gpu = target_requests_gpu(spec.target_device)
+    production_gpu_ready = requests_gpu and runtime_is_gpu(runtime)
+    window_summaries = []
+    for idx, center in enumerate(spec.window_centers):
+        samples = samples_by_window[idx]
+        replica = replica_samples_by_window[idx]
+        window_summaries.append(
+            UmbrellaWindowSummary(
+                center=center,
+                sample_mean=float(np.mean(samples)),
+                sample_std=float(np.std(samples, ddof=1)),
+                replica_mean_difference=float(abs(np.mean(samples) - np.mean(replica))),
+                effective_bins=int(np.count_nonzero(counts[idx])),
+            )
+        )
+
+    summary = PairDistanceUmbrellaSummary(
+        coordinate="reduced pair distance r/sigma",
+        target_device=spec.target_device,
+        runtime_device=runtime,
+        target_requests_gpu=requests_gpu,
+        production_gpu_ready=production_gpu_ready,
+        gpu_blocking_reason=gpu_blocking_reason(spec.target_device, runtime),
+        window_count=len(spec.window_centers),
+        sample_count_per_window=spec.sample_count_per_window,
+        force_constant=spec.force_constant,
+        minimum_radius=float(centers[int(np.nanargmin(true_pmf))]),
+        well_depth=true_well_depth,
+        reconstructed_well_depth=reconstructed_well_depth,
+        well_depth_error=float(reconstructed_well_depth - true_well_depth),
+        pmf_rmse_vs_true=_pmf_rmse_against(pmf, true_pmf),
+        min_adjacent_overlap=float(min(overlap)),
+        mean_adjacent_overlap=float(np.mean(overlap)),
+        forward_reverse_pmf_rmse=float(np.sqrt(np.nanmean((pmf - replica_pmf) ** 2))),
+        max_replica_pmf_difference=float(np.nanmax(replica_difference)),
+        min_effective_bins=min(item.effective_bins for item in window_summaries),
+        windows=window_summaries,
+    )
+    curves = {
+        "centers": centers,
+        "pmf": pmf,
+        "replica_pmf": replica_pmf,
+        "replica_abs_difference": replica_difference,
+        "true_pmf": true_pmf,
+        "overlap": np.array(overlap, dtype=float),
+        "window_centers": np.array(spec.window_centers, dtype=float),
+        "window_means": np.array(
+            [item.sample_mean for item in window_summaries],
+            dtype=float,
+        ),
+        "window_stds": np.array(
+            [item.sample_std for item in window_summaries],
+            dtype=float,
+        ),
+    }
+    return summary, curves
+
+
 def run_umbrella_experiment(
     spec: UmbrellaTutorialSpec,
     config_sha256: str,
@@ -331,6 +548,11 @@ def run_umbrella_experiment(
         )
         protocol_summaries.append(summary)
         curves[protocol.name] = protocol_curves
+    pair_summary, pair_curves = _summarize_pair_distance_umbrella(
+        spec.pair_distance_umbrella
+    )
+    if pair_curves is not None:
+        curves["pair_distance_umbrella"] = pair_curves
 
     return (
         UmbrellaExperimentSummary(
@@ -345,6 +567,7 @@ def run_umbrella_experiment(
             config_sha256=config_sha256,
             true_barrier_height=float(double_well_potential(np.array([0.0]))[0]),
             protocols=protocol_summaries,
+            pair_distance_umbrella=pair_summary,
         ),
         curves,
     )
@@ -368,6 +591,8 @@ def _write_umbrella_curves(
                     f"{name}_replica_abs_difference",
                 ]
             )
+            if "true_pmf" in curves[name]:
+                header.append(f"{name}_true_pmf")
         writer.writerow(header)
         true_x = curves[protocol_names[0]]["centers"]
         true_pmf = double_well_potential(true_x)
@@ -388,8 +613,12 @@ def _write_umbrella_curves(
                             f"{protocol['replica_abs_difference'][idx]:.12g}",
                         ]
                     )
+                    if "true_pmf" in protocol:
+                        row.append(f"{protocol['true_pmf'][idx]:.12g}")
                 else:
                     row.extend(["", "", "", ""])
+                    if "true_pmf" in protocol:
+                        row.append("")
             writer.writerow(row)
 
 
@@ -478,8 +707,22 @@ def load_umbrella_summary(path: Path) -> UmbrellaExperimentSummary:
     """Read a previously written post-10 umbrella summary."""
 
     data = json.loads(path.read_text(encoding="utf-8"))
+    pair_distance_umbrella = data.pop("pair_distance_umbrella", None)
+    if pair_distance_umbrella is not None:
+        pair_windows = [
+            UmbrellaWindowSummary(**window)
+            for window in pair_distance_umbrella.pop("windows")
+        ]
+        pair_distance_umbrella = PairDistanceUmbrellaSummary(
+            windows=pair_windows,
+            **pair_distance_umbrella,
+        )
     protocols = []
     for item in data.pop("protocols"):
         windows = [UmbrellaWindowSummary(**window) for window in item.pop("windows")]
         protocols.append(UmbrellaProtocolSummary(windows=windows, **item))
-    return UmbrellaExperimentSummary(protocols=protocols, **data)
+    return UmbrellaExperimentSummary(
+        protocols=protocols,
+        pair_distance_umbrella=pair_distance_umbrella,
+        **data,
+    )

@@ -36,6 +36,27 @@
       "seed": 2026071410,
       "temperature": 1.0
     },
+    "pair_distance_umbrella": {
+      "bin_width": 0.04,
+      "domain_max": 2.4,
+      "domain_min": 0.92,
+      "epsilon": 1.0,
+      "force_constant": 45.0,
+      "grid_points": 501,
+      "sample_count_per_window": 2500,
+      "seed": 2026071810,
+      "sigma": 1.0,
+      "target_device": "cpu",
+      "temperature": 0.7,
+      "window_centers": [
+        0.98,
+        1.15,
+        1.35,
+        1.6,
+        1.9,
+        2.25
+      ]
+    },
     "post": "10",
     "profile": "smoke",
     "title": "What Does Umbrella Sampling Actually Sample?"
@@ -43,8 +64,8 @@
   "curves_file": "umbrella_curves.csv",
   "provenance": {
     "config_path": "configs/post-10/smoke.json",
-    "config_sha256": "d5345a9705aa80d264b7f7eb4480aa97a027e4aae26a9fdaed650a28aa3df739",
-    "git_revision": "a437579ce4b3e734aaf391e3de9175d827d9ab90",
+    "config_sha256": "40f09db64f64a8f0b1ebb831f6474a96e33a80c6523ecbc4afd8814f6d977a22",
+    "git_revision": "d5ac8cec2ae31f24f2c01c04cf88cd683b43cb7f",
     "lock_path": "uv.lock",
     "lock_sha256": "1e3d7f63e177a6a9a753cdb7a62667b8dc1c9d6bb5563b1deebdd70de4168844",
     "platform": "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",

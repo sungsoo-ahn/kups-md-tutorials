@@ -143,6 +143,9 @@ def test_load_umbrella_spec() -> None:
     assert len(spec.experiment.protocols[0].window_centers) > len(
         spec.experiment.protocols[1].window_centers
     )
+    assert spec.pair_distance_umbrella is not None
+    assert spec.pair_distance_umbrella.target_device == "cpu"
+    assert len(spec.pair_distance_umbrella.window_centers) >= 5
 
 
 def test_load_enhanced_sampling_spec() -> None:

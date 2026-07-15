@@ -1,8 +1,73 @@
 {
   "bin_width": 0.08,
-  "config_sha256": "d5345a9705aa80d264b7f7eb4480aa97a027e4aae26a9fdaed650a28aa3df739",
+  "config_sha256": "40f09db64f64a8f0b1ebb831f6474a96e33a80c6523ecbc4afd8814f6d977a22",
   "domain_max": 2.5,
   "domain_min": -2.5,
+  "pair_distance_umbrella": {
+    "coordinate": "reduced pair distance r/sigma",
+    "force_constant": 45.0,
+    "forward_reverse_pmf_rmse": 0.05146447685536046,
+    "gpu_blocking_reason": null,
+    "max_replica_pmf_difference": 0.10263568758631281,
+    "mean_adjacent_overlap": 0.3707999999999999,
+    "min_adjacent_overlap": 0.1704,
+    "min_effective_bins": 12,
+    "minimum_radius": 1.1400000000000001,
+    "pmf_rmse_vs_true": 0.06478952390139159,
+    "production_gpu_ready": false,
+    "reconstructed_well_depth": 0.9321272599090904,
+    "runtime_device": "jax:cpu;devices:cpu",
+    "sample_count_per_window": 2500,
+    "target_device": "cpu",
+    "target_requests_gpu": false,
+    "well_depth": 0.9404519562600374,
+    "well_depth_error": -0.008324696350947014,
+    "window_count": 6,
+    "windows": [
+      {
+        "center": 0.98,
+        "effective_bins": 12,
+        "replica_mean_difference": 0.001152031999999803,
+        "sample_mean": 1.1002261119999999,
+        "sample_std": 0.06842901926781238
+      },
+      {
+        "center": 1.15,
+        "effective_bins": 15,
+        "replica_mean_difference": 0.0017760000000002218,
+        "sample_mean": 1.169271072,
+        "sample_std": 0.09103780729144012
+      },
+      {
+        "center": 1.35,
+        "effective_bins": 20,
+        "replica_mean_difference": 0.0030653760000001196,
+        "sample_mean": 1.317247392,
+        "sample_std": 0.123949691478137
+      },
+      {
+        "center": 1.6,
+        "effective_bins": 23,
+        "replica_mean_difference": 0.005309055999999979,
+        "sample_mean": 1.5746904320000001,
+        "sample_std": 0.12986330024804507
+      },
+      {
+        "center": 1.9,
+        "effective_bins": 22,
+        "replica_mean_difference": 0.0009566720000002693,
+        "sample_mean": 1.8950500480000003,
+        "sample_std": 0.12525417331287053
+      },
+      {
+        "center": 2.25,
+        "effective_bins": 15,
+        "replica_mean_difference": 0.0008205119999997734,
+        "sample_mean": 2.22117456,
+        "sample_std": 0.10492666994140432
+      }
+    ]
+  },
   "post": "10",
   "profile": "smoke",
   "protocols": [

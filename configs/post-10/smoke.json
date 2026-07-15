@@ -22,5 +22,19 @@
         "window_centers": [-1.6, -0.8, 0.8, 1.6]
       }
     ]
+  },
+  "pair_distance_umbrella": {
+    "temperature": 0.70,
+    "domain_min": 0.92,
+    "domain_max": 2.40,
+    "grid_points": 501,
+    "bin_width": 0.04,
+    "sample_count_per_window": 2500,
+    "seed": 2026071810,
+    "force_constant": 45.0,
+    "window_centers": [0.98, 1.15, 1.35, 1.60, 1.90, 2.25],
+    "epsilon": 1.0,
+    "sigma": 1.0,
+    "target_device": "cpu"
   }
 }

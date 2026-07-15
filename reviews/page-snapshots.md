@@ -3445,3 +3445,67 @@ Revision decisions:
 - The refreshed hidden page is now within the PLAN word-count target by the
   repository-side counter. A separate release-readiness gate now checks the
   3,500-10,000 word range for site-aware final-publication readiness.
+
+## Posts 01-04 Citation Backlink Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Successful snapshot run: `29413685814`.
+- Website commit reviewed: `d244d57`.
+- Website deploy run: `29413487745`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-citation-backlinks-snapshots/`.
+- Manifest reviewed: `/tmp/kups-citation-backlinks-snapshots/manifest.json`.
+- Capture scope: hidden Posts 01-04 after adding text citation anchors and
+  reference reverse backlinks required by the website style contract.
+
+Manifest coverage:
+
+- 8 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for Posts 01, 02, 03, and 04.
+- All captured URLs returned HTTP 200.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-citation-backlinks-snapshots/post-01-desktop.png`
+  (`1440 x 10870`)
+- `/tmp/kups-citation-backlinks-snapshots/post-01-mobile.png`
+  (`428 x 16938`)
+- `/tmp/kups-citation-backlinks-snapshots/post-02-desktop.png`
+  (`1440 x 10461`)
+- `/tmp/kups-citation-backlinks-snapshots/post-02-mobile.png`
+  (`416 x 16214`)
+- `/tmp/kups-citation-backlinks-snapshots/post-03-desktop.png`
+  (`1440 x 11726`)
+- `/tmp/kups-citation-backlinks-snapshots/post-03-mobile.png`
+  (`461 x 18708`)
+- `/tmp/kups-citation-backlinks-snapshots/post-04-desktop.png`
+  (`1440 x 12207`)
+- `/tmp/kups-citation-backlinks-snapshots/post-04-mobile.png`
+  (`410 x 19214`)
+
+Feedback:
+
+- Post 01 desktop/mobile: the added initialization citation paragraph wraps
+  normally; tables, figure, code block, References block, and footer remain
+  contained. The new reference backlinks are visible.
+- Post 02 desktop/mobile: the new Verlet and shadow-energy citations render
+  inline without disturbing equations, the diagnostic figure, or dense tables.
+  Reference backlinks are legible.
+- Post 03 desktop/mobile: the new numerical-analysis citation paragraph stays
+  contained; long diagnostic tables, figure, status section, and references
+  remain within the article width.
+- Post 04 desktop/mobile: the new BAOAB and thermostat-family citations fit in
+  their paragraphs; tables, figure, current status, and references remain
+  contained. Backlink markers are readable.
+- Live cache-busted checks with `?v=d244d57` confirmed all four deployed pages
+  contain the expected `cite-*`, `ref-*`, and `href="#cite-*"` anchors.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials`,
+  `post-01-initialization`, or `post-04-thermostats` links, so the refreshed
+  pages remain direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden drafts after the citation-backlink refresh.
+- No figure revision or figure snapshot was required because figure assets,
+  figure captions, notebooks, configs, and result files were unchanged.

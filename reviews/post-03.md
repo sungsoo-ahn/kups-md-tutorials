@@ -372,3 +372,44 @@ Final-release blockers:
   public indexing.
 - Re-run rendered desktop/mobile snapshots after the production GPU NVE
   diagnostic or any public-indexing change.
+
+## Citation Backlink Refresh 2026-07-15
+
+Scope and provenance:
+
+- Website commit reviewed: `d244d57`.
+- Website deploy run: `29413487745`.
+- Snapshot workflow: `29413685814`.
+- Snapshot artifact downloaded to `/tmp/kups-citation-backlinks-snapshots/`.
+- Live cache-busted HTML checked with `?v=d244d57`.
+
+Website and prose review:
+
+- Added a numerical-analysis citation paragraph for geometric timestep error
+  and finite-precision arithmetic, citing Hairer/Lubich/Wanner,
+  Leimkuhler/Reich, and Higham.
+- Added matching `ref-*` anchors and reverse backlinks in `## References`.
+- Live HTML contains the new `cite-*`, `ref-*`, and `href="#cite-*"` backlink
+  anchors for all three references.
+- Live `/` and `/blog/` checks found no `kups-md-tutorials` or
+  `post-03-errors` links, so the page remains direct-link only.
+
+Rendered snapshots reviewed:
+
+- `/tmp/kups-citation-backlinks-snapshots/post-03-desktop.png`
+  (`1440 x 11726`).
+- `/tmp/kups-citation-backlinks-snapshots/post-03-mobile.png`
+  (`461 x 18708`).
+
+Rendered feedback:
+
+- Desktop capture shows the added citation paragraph contained in the
+  introduction; long diagnostic tables, figure, code block, references, and
+  footer still render without visible clipping.
+- Mobile capture keeps the edited paragraph, tables, figure, status section,
+  and References block within the article width.
+- No figure asset changed, so no new figure snapshot was required.
+
+Revision decision:
+
+- Accepted for the hidden draft citation-backlink pass.

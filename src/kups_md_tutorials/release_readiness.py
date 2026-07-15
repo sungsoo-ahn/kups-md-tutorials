@@ -272,12 +272,70 @@ def _check_site_blog_style(
         violations.append(f"{page_path}: missing author-note Note text")
     if "sungsoo-ahn/kups-md-tutorials" not in body:
         violations.append(f"{page_path}: missing source repository link text")
+    _check_site_references(page_path, body, violations)
     word_count = _body_word_count(body)
     if not MIN_POST_WORDS <= word_count <= MAX_POST_WORDS:
         violations.append(
             f"{page_path}: expected {MIN_POST_WORDS}-{MAX_POST_WORDS} body words, "
             f"found {word_count}"
         )
+
+
+def _check_site_references(
+    page_path: Path,
+    body: str,
+    violations: list[str],
+) -> None:
+    if not re.search(r"(?m)^## References\s*$", body):
+        violations.append(f"{page_path}: missing References section")
+        return
+
+    cite_ids = set(re.findall(r'id=["\'](cite-[A-Za-z0-9_-]+)["\']', body))
+    ref_ids = set(re.findall(r'id=["\'](ref-[A-Za-z0-9_-]+)["\']', body))
+    if not cite_ids:
+        violations.append(f"{page_path}: missing cite-* text citation anchors")
+    if not ref_ids:
+        violations.append(f"{page_path}: missing ref-* reference anchors")
+
+    ref_keys = {ref_id.removeprefix("ref-") for ref_id in ref_ids}
+    ref_targets = set(re.findall(r'(?:href=["\']#ref-|]\(#ref-)([A-Za-z0-9_-]+)', body))
+    cite_backlinks = set(re.findall(r'href=["\']#(cite-[A-Za-z0-9_-]+)', body))
+
+    cite_to_ref: dict[str, str | None] = {}
+    for cite_id in sorted(cite_ids):
+        cite_key = cite_id.removeprefix("cite-")
+        ref_key = _matching_ref_key(cite_key, ref_keys)
+        cite_to_ref[cite_id] = ref_key
+        if ref_key is None:
+            violations.append(f"{page_path}: {cite_id} has no matching ref-* anchor")
+            continue
+        if ref_key not in ref_targets:
+            violations.append(f"{page_path}: {cite_id} does not link to #ref-{ref_key}")
+
+    for ref_id in sorted(ref_ids):
+        ref_key = ref_id.removeprefix("ref-")
+        matching_cites = {
+            cite_id
+            for cite_id, matched_ref in cite_to_ref.items()
+            if matched_ref == ref_key
+        }
+        if not matching_cites:
+            violations.append(f"{page_path}: {ref_id} has no matching cite-* anchor")
+            continue
+        missing_backlinks = sorted(matching_cites - cite_backlinks)
+        if missing_backlinks:
+            violations.append(
+                f"{page_path}: {ref_id} missing reverse backlink(s) to "
+                + ", ".join(missing_backlinks)
+            )
+
+
+def _matching_ref_key(cite_key: str, ref_keys: set[str]) -> str | None:
+    if cite_key in ref_keys:
+        return cite_key
+    if len(cite_key) > 1 and cite_key[-1].isalpha() and cite_key[:-1] in ref_keys:
+        return cite_key[:-1]
+    return None
 
 
 def _front_matter(text: str) -> str | None:

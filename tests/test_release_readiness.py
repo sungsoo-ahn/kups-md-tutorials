@@ -146,7 +146,11 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
             f"<em>Note: {note_context}Corrections and replication issues should be tracked in "
             '<a href="https://github.com/sungsoo-ahn/kups-md-tutorials">sungsoo-ahn/kups-md-tutorials</a>.</em>\n'
             "</p>\n"
-            f"\n{body_words}\n",
+            f"\n<span id=\"cite-example{post_id}\"></span>[Example {post_id}](#ref-example{post_id})\n\n"
+            f"{body_words}\n\n"
+            "## References\n\n"
+            f"- <span id=\"ref-example{post_id}\"></span>Example {post_id}. "
+            f'<a href="#cite-example{post_id}" class="reversefootnote" role="doc-backlink">↩</a>\n',
             encoding="utf-8",
         )
 
@@ -269,6 +273,55 @@ def test_release_readiness_reports_short_site_page(tmp_path: Path) -> None:
 
     assert any(
         "expected 3500-10000 body words" in violation
+        for violation in result.violations
+    )
+
+
+def test_release_readiness_reports_site_reference_violations(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = tmp_path / "site" / "_pages" / "kups-md-post-04-example.md"
+    text = page.read_text(encoding="utf-8")
+    text = text.replace('id="ref-example04"', 'id="ref-broken04"')
+    text = text.replace('href="#cite-example04"', 'href="#cite-missing04"')
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("cite-example04 has no matching ref-* anchor" in violation for violation in result.violations)
+    assert any("ref-broken04 has no matching cite-* anchor" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_missing_reference_backlink(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = tmp_path / "site" / "_pages" / "kups-md-post-05-example.md"
+    text = page.read_text(encoding="utf-8")
+    text = text.replace('href="#cite-example05"', 'href="#cite-other05"')
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "ref-example05 missing reverse backlink(s) to cite-example05" in violation
         for violation in result.violations
     )
 

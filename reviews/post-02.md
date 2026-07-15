@@ -149,3 +149,43 @@ Rendered feedback:
 Open items:
 
 - The page remains intentionally hidden from public navigation.
+
+## Citation Backlink Refresh 2026-07-15
+
+Scope and provenance:
+
+- Website commit reviewed: `d244d57`.
+- Website deploy run: `29413487745`.
+- Snapshot workflow: `29413685814`.
+- Snapshot artifact downloaded to `/tmp/kups-citation-backlinks-snapshots/`.
+- Live cache-busted HTML checked with `?v=d244d57`.
+
+Website and prose review:
+
+- Added text citations for Verlet in the opening integrator-map paragraph and
+  for Leimkuhler/Reich plus Hairer/Lubich/Wanner in the shadow-energy
+  diagnostic paragraph.
+- Added matching `ref-*` anchors and reverse backlinks in `## References`.
+- Live HTML contains the new `cite-*`, `ref-*`, and `href="#cite-*"` backlink
+  anchors for all three references.
+- Live `/` and `/blog/` checks found no `kups-md-tutorials` or
+  `post-02-integrators` links, so the page remains direct-link only.
+
+Rendered snapshots reviewed:
+
+- `/tmp/kups-citation-backlinks-snapshots/post-02-desktop.png`
+  (`1440 x 10461`).
+- `/tmp/kups-citation-backlinks-snapshots/post-02-mobile.png`
+  (`416 x 16214`).
+
+Rendered feedback:
+
+- Desktop capture shows the added citations inline, with equations, diagnostic
+  figure, tables, code block, references, and footer still rendered cleanly.
+- Mobile capture keeps the edited paragraphs and dense methods table contained
+  within the article width; the reference backlinks are visible and legible.
+- No figure asset changed, so no new figure snapshot was required.
+
+Revision decision:
+
+- Accepted for the hidden draft citation-backlink pass.

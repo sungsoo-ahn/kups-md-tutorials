@@ -2693,6 +2693,9 @@ Scope:
   or unreachable source state.
 - Added regression coverage by initializing a synthetic Git checkout with a
   stale notebook ledger revision and confirming the release audit reports it.
+- Updated the GitHub Actions checkout to fetch full history (`fetch-depth: 0`)
+  so the ancestry audit can evaluate the notebook ledger revision in CI instead
+  of failing on a shallow clone that lacks older commits.
 - The existing clean-kernel notebook ledger remains valid: its
   `source_git_revision` is in the current repository history, and the ledger's
   source hashes still match the current notebook files.
@@ -2720,6 +2723,10 @@ Commands:
   failed only on the existing final-release blockers: production GPU
   diagnostics, hidden/non-final kUPS pages, missing final `_posts`, public
   indexing, and rendered snapshot recapture after final publication changes.
+- The first CI attempt for commit `523f8da` failed in pytest because the
+  default shallow GitHub Actions checkout did not contain the older notebook
+  ledger revision. The workflow now fetches full history before pytest and
+  release-surface audits run.
 
 Code and reproducibility review:
 

@@ -2008,6 +2008,52 @@ Review decision:
   recapturing rendered snapshots after that migration, and passing strict
   `verify-release-readiness`.
 
+## Update 2026-07-15: Blog Prose and Summary Link Gate
+
+Scope:
+
+- Tightened the site-aware blog-style audit so each kUPS page must link
+  directly to both smoke and full compact `*_summary.json` outputs.
+- Added a prose-shape guard that rejects common copied-notebook transcript
+  markers: `In [n]:`, `Out [n]:`, `execution_count:`, and `cell_type:`.
+- Added regression coverage for missing compact summary links and notebook
+  transcript markers.
+- No configs, results, notebooks, figures, snapshots, website pages, website
+  assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 36 tests.
+
+Code and reproducibility review:
+
+- The previous source-link gate checked config, notebook, manifest,
+  figure-source, and review links, but accepted generic result-directory
+  fragments. The new check requires direct smoke and full compact-summary
+  links, matching the PLAN requirement to link compact summaries rather than
+  notebook-only output.
+- The transcript-marker guard protects the blog-native prose contract without
+  banning ordinary fenced code snippets.
+- The current hidden website pages already satisfy these checks.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or CSS-sensitive
+  markup changed, so no rendered desktop/mobile page snapshots were required.
+  Existing rendered-page evidence remains in `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone after focused lint and
+  release-readiness regression tests.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

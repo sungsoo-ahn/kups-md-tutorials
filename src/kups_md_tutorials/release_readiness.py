@@ -1231,6 +1231,7 @@ def _check_site_blog_style(
     _check_site_references(page_path, body, violations)
     _check_site_figures(page_path, body, violations)
     _check_site_footnotes(page_path, body, violations)
+    _check_site_notebook_transcript_markers(page_path, body, violations)
     word_count = _body_word_count(body)
     if not MIN_POST_WORDS <= word_count <= MAX_POST_WORDS:
         violations.append(
@@ -1249,8 +1250,6 @@ def _check_site_source_links(
         f"configs/post-{post}/smoke.json": "smoke configuration link",
         f"configs/post-{post}/full.json": "full configuration link",
         f"notebooks/post-{post}": "notebook link",
-        f"results/post-{post}/smoke/": "smoke result link",
-        f"results/post-{post}/full/": "full result link",
         f"results/post-{post}/full/manifest.json": "full provenance manifest link",
         f"scripts/generate_post{post}_figures.py": "figure-generation source link",
         f"reviews/post-{post}.md": "self-review note link",
@@ -1258,6 +1257,32 @@ def _check_site_source_links(
     for fragment, description in required_fragments.items():
         if fragment not in body:
             violations.append(f"{page_path}: missing {description}: {fragment}")
+
+    summary_link_patterns = {
+        "smoke compact summary link": rf"results/post-{post}/smoke/[^)\s]+_summary\.json",
+        "full compact summary link": rf"results/post-{post}/full/[^)\s]+_summary\.json",
+    }
+    for description, pattern in summary_link_patterns.items():
+        if re.search(pattern, body) is None:
+            violations.append(f"{page_path}: missing {description}")
+
+
+def _check_site_notebook_transcript_markers(
+    page_path: Path,
+    body: str,
+    violations: list[str],
+) -> None:
+    transcript_patterns = {
+        r"(?m)^\s*In\s*\[\d*\]:": "Jupyter input prompt",
+        r"(?m)^\s*Out\s*\[\d+\]:": "Jupyter output prompt",
+        r"(?m)^\s*execution_count\s*:": "notebook execution_count field",
+        r"(?m)^\s*cell_type\s*:": "notebook cell_type field",
+    }
+    for pattern, description in transcript_patterns.items():
+        if re.search(pattern, body):
+            violations.append(
+                f"{page_path}: contains notebook transcript marker: {description}"
+            )
 
 
 def _check_site_references(

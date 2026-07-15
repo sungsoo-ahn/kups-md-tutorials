@@ -928,6 +928,14 @@ def test_release_readiness_reports_missing_site_source_links(tmp_path: Path) -> 
     text = page.read_text(encoding="utf-8")
     text = text.replace("configs/post-02/smoke.json", "configs/post-99/smoke.json")
     text = text.replace("notebooks/post-02-example.ipynb", "notebooks/example.ipynb")
+    text = text.replace(
+        "results/post-02/smoke/example_summary.json",
+        "results/post-02/smoke/example.csv",
+    )
+    text = text.replace(
+        "results/post-02/full/example_summary.json",
+        "results/post-02/full/example.csv",
+    )
     text = text.replace("results/post-02/full/manifest.json", "results/post-99/full/manifest.json")
     text = text.replace("scripts/generate_post02_figures.py", "scripts/generate_post99_figures.py")
     text = text.replace("reviews/post-02.md", "reviews/post-99.md")
@@ -945,9 +953,42 @@ def test_release_readiness_reports_missing_site_source_links(tmp_path: Path) -> 
 
     assert any("missing smoke configuration link" in violation for violation in result.violations)
     assert any("missing notebook link" in violation for violation in result.violations)
+    assert any("missing smoke compact summary link" in violation for violation in result.violations)
+    assert any("missing full compact summary link" in violation for violation in result.violations)
     assert any("missing full provenance manifest link" in violation for violation in result.violations)
     assert any("missing figure-generation source link" in violation for violation in result.violations)
     assert any("missing self-review note link" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_notebook_transcript_markers(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = _site_post_page_path(tmp_path / "site", "03")
+    text = page.read_text(encoding="utf-8")
+    text = text.replace(
+        "sample0",
+        "sample0\n\nIn [12]:\nprint('not blog prose')\n\nOut [12]:\nok\n\nexecution_count: 12\ncell_type: code",
+        1,
+    )
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("Jupyter input prompt" in violation for violation in result.violations)
+    assert any("Jupyter output prompt" in violation for violation in result.violations)
+    assert any("execution_count field" in violation for violation in result.violations)
+    assert any("cell_type field" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_series_index_violations(tmp_path: Path) -> None:

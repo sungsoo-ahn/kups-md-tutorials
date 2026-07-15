@@ -771,6 +771,16 @@ def _verify_post08(post: str, profile: str, output_root: Path) -> None:
         if summary.argon_rdf_pmf.support_threshold_range_span <= 0.0:
             msg = "argon RDF-derived PMF support sensitivity should be positive"
             raise ValueError(msg)
+        if not summary.argon_rdf_pmf.runtime_device:
+            msg = "argon RDF-derived PMF summary is missing runtime-device provenance"
+            raise ValueError(msg)
+        if (
+            summary.argon_rdf_pmf.target_requests_gpu
+            and not summary.argon_rdf_pmf.production_gpu_ready
+            and not summary.argon_rdf_pmf.gpu_blocking_reason
+        ):
+            msg = "argon RDF-derived PMF GPU-targeted fallback must record a blocking reason"
+            raise ValueError(msg)
 
 
 def _verify_post09(post: str, profile: str, output_root: Path) -> None:

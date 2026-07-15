@@ -1789,7 +1789,8 @@ def _draw_post08_figure(
             f"frames = {argon['frame_count']}\n"
             f"rmin = {argon['pmf_minimum_radius']:.3f}\n"
             f"rep std max = {argon['max_replica_pmf_std']:.2f}\n"
-            f"support span = {argon['support_threshold_range_span']:.2f}",
+            f"support span = {argon['support_threshold_range_span']:.2f}\n"
+            f"runtime: {'GPU' if argon.get('production_gpu_ready') else 'CPU fallback'}",
             transform=axes[3].transAxes,
             va="top",
             ha="left",

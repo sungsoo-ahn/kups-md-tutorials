@@ -37,6 +37,11 @@ class ArgonRdfPmfSummary:
 
     atom_count: int
     frame_count: int
+    target_device: str
+    runtime_device: str
+    target_requests_gpu: bool
+    production_gpu_ready: bool
+    gpu_blocking_reason: str | None
     number_density: float
     temperature: float
     rdf_first_peak_radius: float
@@ -314,6 +319,11 @@ def _argon_rdf_pmf(
     summary = ArgonRdfPmfSummary(
         atom_count=trajectory_summary.atom_count,
         frame_count=trajectory_summary.frame_count,
+        target_device=trajectory_summary.target_device,
+        runtime_device=trajectory_summary.runtime_device,
+        target_requests_gpu=trajectory_summary.target_requests_gpu,
+        production_gpu_ready=trajectory_summary.production_gpu_ready,
+        gpu_blocking_reason=trajectory_summary.gpu_blocking_reason,
         number_density=trajectory_summary.number_density,
         temperature=trajectory_summary.temperature,
         rdf_first_peak_radius=trajectory_summary.rdf_first_peak_radius,

@@ -2312,6 +2312,83 @@ Revision decisions:
 - Re-run rendered snapshots after final production NPT diagnostics, final
   citations, or any public-indexing change.
 
+## Post 06 Runtime Provenance Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29394256612`.
+- Website commit reviewed:
+  `8b63483`.
+- Website deploy run: `29394117926`.
+- Tutorial commit reviewed:
+  `a382fdf8dbbd3c105f67d2063fbfd66750832cbb`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post06-runtime-provenance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post06-runtime-provenance-snapshots/manifest.json`.
+- Capture scope: hidden Post 06 page after adding machine-readable
+  target-device, runtime-device, GPU-readiness, and blocking-reason provenance
+  to the compact argon physical-observable trajectory-length diagnostic,
+  figure annotation, notebook, and page text.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `When Is a Trajectory Long Enough to Trust? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post06-runtime-provenance-snapshots/post-06-desktop.png`
+  (`1440 x 12607`)
+- `/tmp/kups-post06-runtime-provenance-snapshots/post-06-mobile.png`
+  (`629 x 19090`)
+- `/tmp/kups-post06-runtime-provenance-snapshots/desktop-runtime-table.png`
+- `/tmp/kups-post06-runtime-provenance-snapshots/desktop-figure-2.png`
+- `/tmp/kups-post06-runtime-provenance-snapshots/desktop-status.png`
+- `/tmp/kups-post06-runtime-provenance-snapshots/mobile-runtime-table-2.png`
+- `/tmp/kups-post06-runtime-provenance-snapshots/mobile-figure-2.png`
+- `/tmp/kups-post06-runtime-provenance-snapshots/mobile-status.png`
+
+Feedback:
+
+- Desktop capture renders the hidden Post 06 draft end to end with sidebar TOC,
+  runtime limitation table, refreshed four-panel trajectory-length figure,
+  caption, reproduction block, Practical Checklist, Current Status,
+  references, and footer present.
+- The desktop runtime table is contained; `cuda_or_cpu_fallback`,
+  `jax:cpu;devices:cpu`, `production GPU ready = false`, and the CPU fallback
+  blocking reason are readable without horizontal overflow.
+- The desktop figure crop shows the updated runtime annotation in the argon
+  panel. The annotation remains inside the white text box and does not hide
+  the checkpoint means, error bars, coordination axis, or replica traces.
+- Mobile capture keeps the runtime table, figure, caption, Current Status, and
+  references contained. The table and figure are dense at mobile width, but
+  the runtime label and caption are readable and no text/image overlap was
+  found in the inspected crops.
+- Live check with cache-buster `?v=8b63483` returned HTTP 200 and confirmed
+  the deployed HTML contains `production GPU ready`, `runtime device`,
+  `jax:cpu;devices:cpu`, `cuda_or_cpu_fallback`, `CPU-fallback`, and
+  `machine-readable`.
+- Public homepage and public blog checks did not expose `kups-md-tutorials` or
+  `post-06-trajectory-length`, preserving the hidden direct-link-only status.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 06 runtime-provenance hidden
+  draft.
+- The CPU-fallback provenance table and figure annotation are accepted for the
+  hidden draft state.
+- Keep mobile figure/table density as a final typography-polish item.
+- Run larger GPU kUPS trajectory-length diagnostics for physical observables
+  before public indexing.
+- Re-run rendered snapshots after final production physical-observable
+  diagnostics, final citations, or any public-indexing change.
+
 ## Post 08 RDF-PMF Support-Sensitivity Snapshot Refresh
 
 - Capture date: 2026-07-15.

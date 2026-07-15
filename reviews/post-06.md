@@ -321,3 +321,141 @@ Final-release blockers:
   analysis, equilibration diagnostics, and physical-observable convergence.
 - Re-run rendered desktop and mobile page snapshots after the production
   physical-observable figures and citations are added.
+
+## Runtime Provenance Gate
+
+- Date: 2026-07-15.
+- Scope: add the same target-device, runtime-device, GPU-readiness, and
+  blocking-reason provenance gate used in Posts 03-05 to the Post 06 compact
+  argon physical-observable trajectory-length diagnostic.
+- Implementation commit reviewed:
+  `a382fdf8dbbd3c105f67d2063fbfd66750832cbb`.
+- Website commit reviewed:
+  `8b63483`.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/trajectory_length.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py tests/test_config.py`
+- `uv run pytest tests/test_config.py::test_load_trajectory_length_spec -q`
+- `uv run kups-tutorial run 06 --profile smoke`
+- `uv run kups-tutorial verify 06 --profile smoke`
+- `uv run kups-tutorial run 06 --profile full`
+- `uv run kups-tutorial verify 06 --profile full`
+- `uv run python scripts/generate_post06_figures.py`
+- `uv run jupyter execute notebooks/post-06-trajectory-length.ipynb --inplace`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `git diff --check` in both repositories
+
+Code and reproducibility review:
+
+- `ArgonTrajectoryLengthSpec` now has an explicit `target_device`; smoke records
+  `cpu`, and full records `cuda_or_cpu_fallback`.
+- `ArgonObservableSummary` now records `target_device`, `runtime_device`,
+  `target_requests_gpu`, `production_gpu_ready`, and `gpu_blocking_reason`.
+- Post 06 verification now requires runtime-device provenance and requires a
+  blocking reason whenever a GPU-targeted argon physical-observable diagnostic
+  falls back from GPU execution.
+- The full profile records `target_device = cuda_or_cpu_fallback`,
+  `runtime_device = jax:cpu;devices:cpu`, `production_gpu_ready = false`, and
+  the blocking reason `target device requests CUDA/GPU, but generated artifact
+  runtime was jax:cpu;devices:cpu`.
+- The notebook now prints the target device, runtime device, production GPU
+  readiness, and blocking reason next to the full-profile argon summary.
+- Local execution again reported that an NVIDIA GPU may be present, but a
+  CUDA-enabled `jaxlib` is not installed, so JAX/kUPS fell back to CPU.
+
+Scientific review:
+
+- The numerical trajectory-length metrics are unchanged by the provenance
+  schema change. The full profile still reports 108 atoms, five argon replicas,
+  potential-energy effective samples increasing from about `34.9` to `114.8`,
+  coordination effective samples increasing from about `55.2` to `368.1`, and
+  final coordination mean near `12.29`.
+- The new fields prevent the compact argon physical-observable diagnostic from
+  being mistaken for a completed GPU kUPS production trajectory-length study.
+  The current artifact is a CPU-fallback reduced-unit diagnostic with explicit
+  evidence for why the final GPU blocker remains.
+
+Figure feedback:
+
+- Full-profile figure snapshot inspected:
+  `snapshots/post-06/trajectory_length_diagnostics_full_snapshot.png`
+  (`1728 x 1152`).
+- Smoke-profile figure snapshot inspected:
+  `snapshots/post-06/trajectory_length_diagnostics_snapshot.png`
+  (`1728 x 1152`).
+- Intended visual claim: the fourth panel should show compact argon
+  potential-energy and coordination uncertainty while making clear that the
+  artifact is CPU fallback, not a completed GPU production trajectory-length
+  run.
+- Full-profile feedback: the argon-panel annotation now includes `runtime: CPU
+  fallback`. The label is contained in the existing white annotation box, and
+  it does not cover the checkpoint means, error bars, coordination axis, or
+  replica traces.
+- Smoke-profile feedback: the same runtime label is visible for the 32-atom,
+  3-replica smoke panel. The annotation remains contained and does not obscure
+  the shorter checkpoint series.
+- Revision decision: accepted for the hidden draft. No additional figure edit
+  was needed after adding the runtime label and inspecting both snapshots.
+
+Website review:
+
+- Hidden page URL:
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`.
+- Website deploy run `29394117926` succeeded for commit `8b63483`.
+- Snapshot workflow run `29394256612` captured the deployed runtime-provenance
+  refresh.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post06-runtime-provenance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post06-runtime-provenance-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`;
+  both returned HTTP 200 with page title
+  `When Is a Trajectory Long Enough to Trust? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post06-runtime-provenance-snapshots/post-06-desktop.png`
+  (`1440 x 12607`) and
+  `/tmp/kups-post06-runtime-provenance-snapshots/post-06-mobile.png`
+  (`629 x 19090`).
+- Focused crops inspected:
+  `desktop-runtime-table.png`, `desktop-figure-2.png`,
+  `desktop-status.png`, `mobile-runtime-table-2.png`,
+  `mobile-figure-2.png`, and `mobile-status.png`.
+- Desktop feedback: the runtime limitation table is contained; the long
+  blocking reason wraps cleanly; the figure caption names the compact
+  CPU-fallback argon panel; the runtime label remains visible inside the
+  figure; and Current Status lists the machine-readable provenance item.
+- Mobile feedback: the runtime table wraps without horizontal clipping, the
+  full figure is dense but readable enough for the hidden draft, and Current
+  Status remains contained with the final production GPU diagnostic still in
+  the missing list.
+- Live hidden-page check with cache-buster `?v=8b63483` confirmed the deployed
+  HTML contains `production GPU ready`, `runtime device`,
+  `jax:cpu;devices:cpu`, `cuda_or_cpu_fallback`, `CPU-fallback`, and
+  `machine-readable`.
+- Public home and `/blog/` checks returned no `kups-md-tutorials` or
+  `post-06-trajectory-length` hits, preserving the direct-link-only status.
+
+Blocking items for current hidden draft:
+
+- None. The hidden draft states the CPU-fallback/non-production status and has
+  rendered desktop/mobile snapshot evidence.
+
+Non-blocking items accepted until final article pass:
+
+- Mobile table and figure density remain accepted for the hidden draft.
+- The compact reduced-unit argon protocol remains a teaching diagnostic rather
+  than a final GPU kUPS production trajectory-length study.
+
+Final-release blockers:
+
+- Run larger GPU kUPS trajectory-length diagnostics for physical observables
+  before public indexing.
+- Add final citations for autocorrelation, effective sample size, blocking
+  analysis, equilibration diagnostics, and physical-observable convergence.
+- Re-run rendered desktop and mobile page snapshots after the production
+  physical-observable figures and citations are added.

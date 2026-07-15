@@ -208,12 +208,84 @@ def _check_site_publication_state(site_root: Path, violations: list[str]) -> Non
             continue
         page_path = matches[0]
         text = page_path.read_text(encoding="utf-8")
+        _check_site_blog_style(page_path, post, text, violations)
         if re.search(r"(?m)^nav:\s*false\s*$", text):
             violations.append(f"{page_path}: page remains hidden with nav: false")
         if "This page is not the final article" in text:
             violations.append(f"{page_path}: page still declares itself non-final")
         if "intentionally hidden from site navigation" in text:
             violations.append(f"{page_path}: page still has hidden-draft note")
+
+
+def _check_site_blog_style(
+    page_path: Path,
+    post: str,
+    text: str,
+    violations: list[str],
+) -> None:
+    front_matter = _front_matter(text)
+    if front_matter is None:
+        violations.append(f"{page_path}: missing YAML front matter")
+        return
+
+    required_pairs = {
+        "layout": "post",
+        "post_type": "tutorial",
+        "authors": '["Sungsoo Ahn"]',
+        "series": "kups-md-tutorials",
+        "series_title": '"kUPS Molecular Dynamics Tutorials"',
+        "series_description": (
+            '"Executable molecular-dynamics practice for MLIP-aware '
+            'machine-learning researchers."'
+        ),
+        "series_order": str(int(post)),
+        "related_posts": "false",
+    }
+    for key, expected in required_pairs.items():
+        actual = _front_matter_value(front_matter, key)
+        if actual != expected:
+            violations.append(
+                f"{page_path}: expected front matter {key}: {expected}, "
+                f"found {actual or 'missing'}"
+            )
+
+    for key in ("title", "date", "last_updated", "description", "categories", "tags"):
+        if _front_matter_value(front_matter, key) is None:
+            violations.append(f"{page_path}: missing front matter {key}")
+
+    if _front_matter_value(front_matter, "order") != str(int(post)):
+        violations.append(
+            f"{page_path}: expected front matter order: {int(post)}, "
+            f"found {_front_matter_value(front_matter, 'order') or 'missing'}"
+        )
+    if f"post-{post}" not in (_front_matter_value(front_matter, "permalink") or ""):
+        violations.append(f"{page_path}: permalink does not include post-{post}")
+    if not re.search(r"(?m)^toc:\s*\n\s+sidebar:\s*left\s*$", front_matter):
+        violations.append(f"{page_path}: missing toc sidebar: left front matter")
+
+    body = text.split("---", 2)[2] if text.startswith("---") else text
+    if '<p style="color: #666; font-size: 0.9em; margin-bottom: 1.5em;">' not in body:
+        violations.append(f"{page_path}: missing muted author-note paragraph")
+    if "<em>Note:" not in body:
+        violations.append(f"{page_path}: missing author-note Note text")
+    if "sungsoo-ahn/kups-md-tutorials" not in body:
+        violations.append(f"{page_path}: missing source repository link text")
+
+
+def _front_matter(text: str) -> str | None:
+    if not text.startswith("---\n"):
+        return None
+    end = text.find("\n---", 4)
+    if end == -1:
+        return None
+    return text[4:end]
+
+
+def _front_matter_value(front_matter: str, key: str) -> str | None:
+    match = re.search(rf"(?m)^{re.escape(key)}:\s*(.+?)\s*$", front_matter)
+    if match is None:
+        return None
+    return match.group(1).strip()
 
 
 def _check_json_file(

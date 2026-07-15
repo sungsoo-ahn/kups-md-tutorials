@@ -111,15 +111,40 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
     pages = site_root / "_pages"
     pages.mkdir(parents=True)
     for post in range(1, 13):
-        frontmatter = "nav: false\n" if hidden else "nav: true\n"
-        note = (
+        post_id = f"{post:02d}"
+        nav = "false" if hidden else "true"
+        note_context = (
             "This page is not the final article. "
-            "It is intentionally hidden from site navigation.\n"
+            "It is intentionally hidden from site navigation. "
             if hidden
-            else "Final article.\n"
+            else "Final article. "
         )
         (pages / f"kups-md-post-{post:02d}-example.md").write_text(
-            f"---\n{frontmatter}---\n\n{note}",
+            "---\n"
+            "layout: post\n"
+            f"permalink: /kups-md-tutorials/post-{post_id}-example/\n"
+            f'title: "Post {post_id}"\n'
+            "date: 2026-07-14\n"
+            "last_updated: 2026-07-15\n"
+            f'description: "Post {post_id} description."\n'
+            "post_type: tutorial\n"
+            'authors: ["Sungsoo Ahn"]\n'
+            f"order: {post}\n"
+            "series: kups-md-tutorials\n"
+            'series_title: "kUPS Molecular Dynamics Tutorials"\n'
+            'series_description: "Executable molecular-dynamics practice for MLIP-aware machine-learning researchers."\n'
+            f"series_order: {post}\n"
+            "categories: [science]\n"
+            "tags: [molecular-dynamics, kups]\n"
+            "toc:\n"
+            "  sidebar: left\n"
+            "related_posts: false\n"
+            f"nav: {nav}\n"
+            "---\n\n"
+            '<p style="color: #666; font-size: 0.9em; margin-bottom: 1.5em;">\n'
+            f"<em>Note: {note_context}Corrections and replication issues should be tracked in "
+            '<a href="https://github.com/sungsoo-ahn/kups-md-tutorials">sungsoo-ahn/kups-md-tutorials</a>.</em>\n'
+            "</p>\n",
             encoding="utf-8",
         )
 
@@ -189,6 +214,32 @@ def test_release_readiness_reports_hidden_site_pages(tmp_path: Path) -> None:
             snapshot_root=tmp_path / "snapshots",
             site_root=tmp_path / "site",
         )
+
+
+def test_release_readiness_reports_blog_style_violations(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = tmp_path / "site" / "_pages" / "kups-md-post-03-example.md"
+    text = page.read_text(encoding="utf-8")
+    text = text.replace("post_type: tutorial\n", "")
+    text = text.replace("  sidebar: left\n", "")
+    text = text.replace("<em>Note:", "<em>")
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("post_type: tutorial" in violation for violation in result.violations)
+    assert any("toc sidebar: left" in violation for violation in result.violations)
+    assert any("author-note Note text" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_placeholder_model_metadata(tmp_path: Path) -> None:

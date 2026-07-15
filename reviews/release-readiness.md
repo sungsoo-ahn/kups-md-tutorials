@@ -164,6 +164,59 @@ Review decision:
 - Final release remains blocked on the production GPU/public-indexing items
   reported by `uv run kups-tutorial verify-release-readiness`.
 
+## Update 2026-07-15: Website Blog-Style Gate
+
+Scope:
+
+- Expanded the site-aware `verify-release-readiness` checks so final release
+  now audits the kUPS page blog-style contract from `PLAN.md`.
+- Added checks for `layout: post`, tutorial `post_type`, author metadata,
+  shared series metadata, `series_order`, `order`, title/date/last-updated
+  fields, description, categories, tags, `toc.sidebar: left`,
+  `related_posts: false`, post-number permalink, muted author-note paragraph,
+  `Note:` marker, and source repository link text.
+- Updated the clean final-state site fixture in `tests/test_release_readiness.py`
+  to represent blog-style kUPS pages instead of minimal stubs.
+- Added a regression test that removes `post_type: tutorial`, the TOC sidebar,
+  and the author-note marker and confirms the release gate reports each style
+  violation.
+- No website pages or website assets changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+- `uv run pytest tests/test_release_readiness.py -q`
+- `uv run kups-tutorial verify-release-readiness --skip-site 2>&1 | tail -n 140`
+- `uv run kups-tutorial verify-release-readiness 2>&1 | tail -n 100`
+
+Code and reproducibility review:
+
+- The style gate is scoped to site-aware readiness checks; `--skip-site`
+  remains focused on repository-side blockers and artifact surface.
+- The current hidden website pages satisfy the new blog-style checks. The
+  site-aware audit reports hidden/non-final page state and hidden-draft notes,
+  but no missing front matter, series metadata, TOC, author-note, or source-link
+  violations.
+- The checks intentionally keep hidden pages under `_pages` for the current
+  direct-link workflow while enforcing the al-folio post layout and metadata
+  contract on those hidden pages.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no new figure snapshot
+  capture was required.
+- No website prose, front matter, linked figure, CSS-sensitive markup, or page
+  asset changed, so no rendered page snapshot capture was required.
+- Existing deployed rendered-page snapshot evidence remains in
+  `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone.
+- The final-publication gate now verifies both sides of the website contract:
+  pages must stop being hidden/non-final before public release, and they must
+  retain the blog-style metadata/author-note shape required by `PLAN.md`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

@@ -3118,6 +3118,72 @@ Review decision:
   recapturing rendered snapshots after final publication changes, and passing
   strict `verify-release-readiness`.
 
+## Update 2026-07-15: Review-Derived GPU Status Coverage
+
+Scope:
+
+- Extended `kups-tutorial gpu-status` so the production GPU checklist includes
+  both compact-summary runtime readiness records and review-declared final GPU
+  blockers.
+- The collector now adds one `source = "review"` record per post only when
+  that post has no pending compact-summary GPU fallback record. This prevents
+  duplicate entries for Posts 03, 04, 05, 06, 07, 08, 10, and 11 while making
+  the Post 12 MACE/fcc-Al capstone visible in the same operational report.
+- Added `--review-dir` to the CLI for fixture and alternate-ledger use.
+- Added JSON `source` metadata and the `review-gpu-blocker` status label.
+- Added tests for review-only GPU blockers, JSON source metadata, and the
+  current nine-item GPU production checklist.
+- Updated README documentation to explain that review-declared GPU blockers are
+  included when no runtime readiness record exists yet.
+
+Current command output reviewed:
+
+- `uv run kups-tutorial gpu-status --format json` returned `records = 9`,
+  `production_ready = 0`, and `pending_gpu_reruns = 9`.
+- The first eight records still come from compact summaries for Posts 03, 04,
+  05, 06, 07, 08, 10, and 11 with `source = "summary"` and status
+  `gpu-target-cpu-fallback`.
+- The ninth record is Post 12 with `source = "review"`, summary path
+  `reviews/post-12.md`, record path `final_release_blockers`, status
+  `review-gpu-blocker`, and the rerun command `uv run kups-tutorial run 12
+  --profile full && uv run kups-tutorial verify 12 --profile full`.
+- The Post 12 blocking reason records the real MACE/fcc-Al GPU capstone and
+  production-diagnostic figure regeneration requirements from
+  `reviews/post-12.md`.
+
+Commands and evidence:
+
+- `uv run ruff check src/kups_md_tutorials/production_status.py
+  src/kups_md_tutorials/cli.py tests/test_production_status.py` passed.
+- `uv run pytest tests/test_production_status.py -q` passed with 4 tests.
+- `uv run kups-tutorial gpu-status --format json` passed and produced the
+  nine-item report described above.
+- `uv run ruff check .` passed.
+- `uv run pytest tests/test_production_status.py tests/test_cli.py
+  tests/test_release_readiness.py -q` passed with 62 tests and 31 ASE
+  deprecation warnings.
+- `uv run kups-tutorial verify-reviews && uv run kups-tutorial
+  verify-artifacts && uv run kups-tutorial verify-release-readiness --site-root
+  ../sungsoo-ahn.github.io --allow-current-blockers` passed; the artifact
+  audit counted 283 tracked files and the release-surface audit passed for 12
+  posts.
+- `git diff --check` passed.
+- `uv run pytest` passed with 122 tests and 68 ASE deprecation warnings.
+
+Review decision:
+
+- Accepted for the GPU-status coverage milestone. The operational GPU checklist
+  now covers all current production GPU work, including the review-only Post 12
+  capstone blocker.
+- No figure or rendered-page snapshot was required because this change only
+  touches CLI/status tooling, tests, README documentation, and review prose; no
+  figures, notebooks, configs, result files, website pages, CSS-sensitive
+  markup, or publication assets changed.
+- Final release remains blocked on executing and reviewing the real production
+  GPU diagnostics, public indexing, migrating hidden drafts to final `_posts`,
+  recapturing rendered snapshots after final publication changes, and passing
+  strict `verify-release-readiness`.
+
 ## Update 2026-07-15: Machine-Readable GPU Status
 
 Scope:

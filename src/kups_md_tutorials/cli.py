@@ -83,6 +83,7 @@ def _build_parser() -> argparse.ArgumentParser:
         help="summarize full-profile production GPU readiness records",
     )
     gpu_status.add_argument("--results-root", type=Path, default=Path("results"))
+    gpu_status.add_argument("--review-dir", type=Path, default=Path("reviews"))
     gpu_status.add_argument("--profile", choices=("smoke", "full"), default="full")
     gpu_status.add_argument(
         "--format",
@@ -175,6 +176,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "gpu-status":
             records = collect_gpu_status(
                 results_root=args.results_root,
+                review_dir=args.review_dir,
                 profile=args.profile,
             )
             if args.format == "json":

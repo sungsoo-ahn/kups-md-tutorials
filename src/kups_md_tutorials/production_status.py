@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 import json
+import re
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,7 @@ class GpuStatusRecord:
     target_requests_gpu: bool
     production_gpu_ready: bool
     gpu_blocking_reason: str | None
+    source: str = "summary"
 
     @property
     def rerun_command(self) -> str:
@@ -30,6 +32,8 @@ class GpuStatusRecord:
     def status_label(self) -> str:
         if self.production_gpu_ready:
             return "production-gpu-ready"
+        if self.source == "review":
+            return "review-gpu-blocker"
         if self.target_requests_gpu:
             return "gpu-target-cpu-fallback"
         return "not-gpu-targeted"
@@ -40,6 +44,7 @@ class GpuStatusRecord:
             "profile": self.profile,
             "summary_path": self.summary_path.as_posix(),
             "record_path": self.record_path,
+            "source": self.source,
             "target_requests_gpu": self.target_requests_gpu,
             "production_gpu_ready": self.production_gpu_ready,
             "gpu_blocking_reason": self.gpu_blocking_reason,
@@ -55,6 +60,7 @@ class GpuStatusRecord:
 def collect_gpu_status(
     *,
     results_root: Path = Path("results"),
+    review_dir: Path = Path("reviews"),
     profile: str = "full",
 ) -> tuple[GpuStatusRecord, ...]:
     """Collect GPU readiness records from compact tutorial summaries."""
@@ -75,6 +81,11 @@ def collect_gpu_status(
                 record_path="",
                 records=records,
             )
+    _collect_review_gpu_blockers(
+        review_dir=review_dir,
+        profile=profile,
+        records=records,
+    )
     return tuple(records)
 
 
@@ -184,3 +195,83 @@ def _collect_gpu_records(
                 record_path=child_path,
                 records=records,
             )
+
+
+def _collect_review_gpu_blockers(
+    *,
+    review_dir: Path,
+    profile: str,
+    records: list[GpuStatusRecord],
+) -> None:
+    if not review_dir.exists():
+        return
+
+    pending_runtime_posts = {
+        record.post
+        for record in records
+        if record.source == "summary"
+        and record.target_requests_gpu
+        and not record.production_gpu_ready
+    }
+    for review_path in sorted(review_dir.glob("post-*.md")):
+        post = review_path.stem.removeprefix("post-")
+        if post in pending_runtime_posts:
+            continue
+        text = review_path.read_text(encoding="utf-8")
+        blockers = [
+            blocker
+            for blocker in _final_release_blockers(text)
+            if _is_gpu_production_blocker(blocker)
+        ]
+        if not blockers:
+            continue
+        records.append(
+            GpuStatusRecord(
+                post=post,
+                profile=profile,
+                summary_path=review_path,
+                record_path="final_release_blockers",
+                target_requests_gpu=True,
+                production_gpu_ready=False,
+                gpu_blocking_reason="; ".join(blockers),
+                source="review",
+            )
+        )
+
+
+def _final_release_blockers(text: str) -> tuple[str, ...]:
+    match = re.search(
+        r"^Final-release blockers(?: after this refresh)?:\s*\n\s*\n?"
+        r"(.*?)(?=^##\s+|\Z)",
+        text,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    if match is None:
+        return ()
+    section = match.group(1)
+    blockers: list[str] = []
+    current: list[str] = []
+    for line in section.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("-"):
+            if current:
+                blockers.append(" ".join(current))
+            current = [stripped.removeprefix("-").strip()]
+        elif current and line.startswith((" ", "\t")):
+            current.append(stripped)
+    if current:
+        blockers.append(" ".join(current))
+    return tuple(blockers)
+
+
+def _is_gpu_production_blocker(blocker: str) -> bool:
+    lowered = blocker.lower()
+    if lowered.startswith("re-run rendered") or "snapshot" in lowered:
+        return False
+    gpu_terms = ("gpu", "cuda", "mace/fcc-al")
+    production_terms = ("production", "capstone", "diagnostic", "run")
+    return any(term in lowered for term in gpu_terms) and any(
+        term in lowered for term in production_terms
+    )

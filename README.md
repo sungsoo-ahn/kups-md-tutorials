@@ -27,9 +27,11 @@ provenance manifests, and publication figures.
 
 Use `uv run kups-tutorial gpu-status` to list full-profile artifacts that still
 target CUDA/GPU but currently record CPU fallback, including the exact
-`run`/`verify` commands to rerun before public release. Use
-`uv run kups-tutorial gpu-status --format json` when a GPU runner or release
-script needs a machine-readable pending-rerun list.
+`run`/`verify` commands to rerun before public release. The report also includes
+review-declared GPU blockers, such as the Post 12 MACE/fcc-Al capstone, when a
+post does not yet have a compact runtime GPU readiness record. Use `uv run
+kups-tutorial gpu-status --format json` when a GPU runner or release script
+needs a machine-readable pending-rerun list.
 
 The manual GitHub Actions workflow `Production GPU reruns` runs the same
 full-profile production pass on a CUDA-capable self-hosted runner. Dispatch it

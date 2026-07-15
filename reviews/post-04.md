@@ -186,11 +186,17 @@ Open items:
 - GitHub Pages deploy `29369669516` built and deployed updated website commit
   `5761fc19fb122c4d381bbdc89da2ec36b8830004` successfully after adding the
   compact argon thermostat figure/prose refresh.
+- GitHub Pages deploy `29384989661` built and deployed website commit
+  `1635add74771cfbe02fc42e0d93ce59b1da8f716` successfully after adding the
+  256-atom, three-replica thermostat-to-NVE handoff refresh.
 - The deployed page snapshot manifest from workflow `29359320951` contains
   desktop and mobile captures for the hidden URL, both HTTP 200, with title
   `How Do Thermostats Change Sampling and Dynamics? | Sungsoo Ahn`.
 - The deployed page snapshot manifest from workflow `29369851547` contains
   desktop and mobile captures for the updated hidden URL, both HTTP 200, with
+  title `How Do Thermostats Change Sampling and Dynamics? | Sungsoo Ahn`.
+- The deployed page snapshot manifest from workflow `29385110755` contains
+  desktop and mobile captures for the handoff hidden URL, both HTTP 200, with
   title `How Do Thermostats Change Sampling and Dynamics? | Sungsoo Ahn`.
 
 Rendered snapshots reviewed:
@@ -199,6 +205,8 @@ Rendered snapshots reviewed:
 - `/tmp/kups-post04-expanded-snapshots/post-04-mobile.png`
 - `/tmp/kups-post04-argon-thermostat-snapshots/post-04-desktop.png`
 - `/tmp/kups-post04-argon-thermostat-snapshots/post-04-mobile.png`
+- `/tmp/kups-post04-handoff-snapshots/post-04-desktop.png`
+- `/tmp/kups-post04-handoff-snapshots/post-04-mobile.png`
 
 Rendered feedback:
 
@@ -221,6 +229,19 @@ Rendered feedback:
   current-status list, references, and footer within the viewport. The
   four-panel figure is small at mobile width but contained; tables and code are
   narrow but not clipped.
+- Handoff desktop capture at `1440 x 11724` renders the hidden draft end to end
+  with sidebar TOC, equations, coupling and canonical-target tables, refreshed
+  four-panel handoff figure, revised caption, reproduction block, Current
+  Status section, references, and footer present. No missing figure, clipped
+  table, blank page region, or broken page chrome was found.
+- Handoff mobile capture at `410 x 18512` renders the long title, hidden-draft
+  note, equations, tables, refreshed figure, caption, code block, Current
+  Status section, references, and footer. Tables are dense but contained, and
+  the figure is small at mobile width but not clipped.
+- Live checks with cache-buster `?v=1635add` confirmed the direct hidden post
+  contains `thermostat-to-NVE`/`NVE handoff` and `256-atom`; the hidden kUPS
+  index links to Post 04; `/` and `/blog/` do not expose `kups-md-tutorials` or
+  `post-04-thermostats`.
 
 Open items:
 

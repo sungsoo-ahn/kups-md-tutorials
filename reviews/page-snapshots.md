@@ -1796,3 +1796,66 @@ Revision decisions:
 - Add real CUDA/GPU kUPS production NVE diagnostics before public indexing.
 - Re-run rendered snapshots after final production NVE diagnostics or any
   public-indexing change.
+
+## Post 04 Thermostat Handoff Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29385110755`.
+- Website commit reviewed:
+  `1635add74771cfbe02fc42e0d93ce59b1da8f716`.
+- Website deploy run: `29384989661`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post04-handoff-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post04-handoff-snapshots/manifest.json`.
+- Capture scope: post 04 after adding the 256-atom, three-replica reduced-unit
+  argon Langevin thermostat-to-NVE handoff protocol, exporting the refreshed
+  full-profile figure and JSON/CSV assets, and updating hidden-page
+  prose/status.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-04-thermostats/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Thermostats Change Sampling and Dynamics? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post04-handoff-snapshots/post-04-desktop.png`
+  (`1440 x 11724`)
+- `/tmp/kups-post04-handoff-snapshots/post-04-mobile.png`
+  (`410 x 18512`)
+
+Feedback:
+
+- Desktop capture renders the hidden Post 04 draft end to end with sidebar TOC,
+  equations, coupling and canonical-target tables, refreshed four-panel handoff
+  figure, revised caption, reproduction block, Current Status section,
+  references, and footer present.
+- The refreshed figure is visible in the article body and the handoff
+  panel/caption match the 256-atom, three-replica CPU-fallback protocol claim.
+- Mobile capture keeps the long title, hidden-draft note, equations, tables,
+  refreshed figure, caption, code block, Current Status section, references,
+  and footer contained. Tables are dense but contained, and the figure is small
+  at mobile width but not clipped.
+- Live checks with cache-buster `?v=1635add` confirmed the direct hidden post
+  contains `thermostat-to-NVE`/`NVE handoff` and `256-atom`; the hidden kUPS
+  index links to Post 04; `/` and `/blog/` do not expose `kups-md-tutorials` or
+  `post-04-thermostats`.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 04 thermostat handoff hidden
+  draft.
+- The 256-atom, three-replica reduced-unit argon Langevin plus NVE-handoff
+  diagnostic is accepted for the hidden draft state.
+- Keep mobile table/figure density as final typography-polish items.
+- Add real CUDA/GPU kUPS production thermostat and NVE-handoff diagnostics
+  before public indexing.
+- Re-run rendered snapshots after final production thermostat diagnostics or
+  any public-indexing change.

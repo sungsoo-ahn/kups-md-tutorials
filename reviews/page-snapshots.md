@@ -2389,6 +2389,84 @@ Revision decisions:
 - Re-run rendered snapshots after final production physical-observable
   diagnostics, final citations, or any public-indexing change.
 
+## Post 07 Runtime Provenance Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29395226951`.
+- Website commit reviewed:
+  `7dbb74d`.
+- Website deploy run: `29395058835`.
+- Tutorial commit reviewed:
+  `c1e3058be3b2ce658de5cf995ad56f010cca31a3`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post07-runtime-provenance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post07-runtime-provenance-snapshots/manifest.json`.
+- Capture scope: hidden Post 07 page after adding machine-readable
+  target-device, runtime-device, GPU-readiness, and blocking-reason provenance
+  to the compact argon trajectory observable diagnostic, figure annotation,
+  notebook, and page text.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post07-runtime-provenance-snapshots/post-07-desktop.png`
+  (`1440 x 12646`)
+- `/tmp/kups-post07-runtime-provenance-snapshots/post-07-mobile.png`
+  (`541 x 19404`)
+- `/tmp/kups-post07-runtime-provenance-snapshots/desktop-runtime-table.png`
+- `/tmp/kups-post07-runtime-provenance-snapshots/desktop-figure.png`
+- `/tmp/kups-post07-runtime-provenance-snapshots/desktop-status.png`
+- `/tmp/kups-post07-runtime-provenance-snapshots/mobile-runtime-table.png`
+- `/tmp/kups-post07-runtime-provenance-snapshots/mobile-figure-2.png`
+- `/tmp/kups-post07-runtime-provenance-snapshots/mobile-status.png`
+
+Feedback:
+
+- Desktop capture renders the hidden Post 07 draft end to end with sidebar TOC,
+  runtime limitation table, refreshed four-panel observable diagnostic figure,
+  caption, reproduction block, Practical Checklist, Current Status,
+  references, and footer present.
+- The desktop runtime table is contained; `cuda_or_cpu_fallback`,
+  `jax:cpu;devices:cpu`, `production GPU ready = false`, and the CPU fallback
+  blocking reason are readable without horizontal overflow.
+- The desktop figure crop shows the updated runtime annotation in the compact
+  trajectory RDF panel. The annotation remains inside the white text box and
+  does not hide the RDF curve, replica standard-deviation band, legend, or
+  cutoff marker.
+- Mobile capture keeps the runtime table, figure, caption, Current Status, and
+  references contained. The figure is dense at mobile width, but the runtime
+  label and caption are readable and no text/image overlap was found in the
+  inspected crops.
+- Live check with cache-buster `?v=7dbb74d` returned HTTP 200 and confirmed
+  the deployed HTML contains `production GPU ready`, `runtime device`,
+  `jax:cpu;devices:cpu`, `cuda_or_cpu_fallback`, `CPU-fallback`, and
+  `machine-readable`.
+- Public homepage and public blog checks did not expose `kups-md-tutorials` or
+  `post-07-observables`, preserving the hidden direct-link-only status.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 07 runtime-provenance hidden
+  draft.
+- The CPU-fallback provenance table and figure annotation are accepted for the
+  hidden draft state.
+- Keep mobile figure/table density as a final typography-polish item.
+- Add larger GPU kUPS trajectory diagnostics for physical observables before
+  treating this post as final.
+- Re-run rendered snapshots after final production-observable figures, final
+  citations, or any public-indexing change.
+
 ## Post 08 RDF-PMF Support-Sensitivity Snapshot Refresh
 
 - Capture date: 2026-07-15.

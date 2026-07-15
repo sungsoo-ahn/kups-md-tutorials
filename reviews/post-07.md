@@ -423,3 +423,144 @@ Final-release blockers:
   finite-size effects, and time-correlation functions.
 - Re-run rendered desktop/mobile snapshots after final production-observable
   figures, final citations, or any public-indexing change.
+
+## Update 2026-07-15: Runtime Provenance Gate
+
+Scope:
+
+- Added target-device, runtime-device, GPU-readiness, and blocking-reason
+  provenance to the Post 07 compact argon trajectory observable diagnostic.
+- Implementation commit reviewed:
+  `c1e3058be3b2ce658de5cf995ad56f010cca31a3`.
+- Website commit reviewed:
+  `7dbb74d`.
+
+Commands run:
+
+- `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/observables.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py tests/test_config.py`
+- `uv run pytest tests/test_config.py::test_load_observable_spec tests/test_config.py::test_load_free_energy_spec -q`
+- `uv run kups-tutorial run 07 --profile smoke`
+- `uv run kups-tutorial verify 07 --profile smoke`
+- `uv run kups-tutorial run 07 --profile full`
+- `uv run kups-tutorial verify 07 --profile full`
+- `uv run python scripts/generate_post07_figures.py`
+- `uv run jupyter execute notebooks/post-07-observables.ipynb --inplace`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `python3 scripts/validate_kups_pages.py` in `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `git diff --check` in both repositories
+
+Code and reproducibility review:
+
+- `ArgonObservableTrajectorySpec` now has an explicit `target_device`. Post 07
+  smoke records `cpu`, and Post 07 full records `cuda_or_cpu_fallback`.
+- The shared config loader now reads `uncertainty_block_count`,
+  `uncertainty_replica_count`, and `target_device` from `argon_trajectory`
+  instead of relying on defaults for Post 07.
+- `ArgonTrajectoryObservableSummary` now records `target_device`,
+  `runtime_device`, `target_requests_gpu`, `production_gpu_ready`, and
+  `gpu_blocking_reason`.
+- Post 07 verification now requires runtime-device provenance and requires a
+  blocking reason whenever a GPU-targeted compact argon trajectory diagnostic
+  falls back from GPU execution.
+- The full profile records `target_device = cuda_or_cpu_fallback`,
+  `runtime_device = jax:cpu;devices:cpu`, `production_gpu_ready = false`, and
+  the blocking reason `target device requests CUDA/GPU, but generated artifact
+  runtime was jax:cpu;devices:cpu`.
+- The notebook now prints target device, runtime device, production GPU
+  readiness, and blocking reason next to the full-profile compact argon
+  trajectory summary.
+- Local execution again reported that an NVIDIA GPU may be present, but a
+  CUDA-enabled `jaxlib` is not installed, so JAX/kUPS fell back to CPU.
+
+Scientific review:
+
+- The numerical observable metrics are unchanged by the provenance schema
+  change. The full compact argon trajectory still reports 108 atoms, 551
+  sampled frames, coordination `11.655481602089955`, coordination replica SE
+  `0.02829313477003499`, VACF normalized integral `0.018046003263717525`, and
+  VACF integral replica SE `0.01205097253796811`.
+- The new fields prevent the compact reduced-unit observable diagnostic from
+  being mistaken for a completed GPU kUPS production trajectory-observable
+  study. The current artifact is a CPU-fallback reduced-unit diagnostic with
+  explicit evidence for why the final GPU blocker remains.
+
+Figure feedback:
+
+- Full-profile figure snapshot inspected:
+  `snapshots/post-07/observable_diagnostics_full_snapshot.png`
+  (`1728 x 1152`).
+- Smoke-profile figure snapshot inspected:
+  `snapshots/post-07/observable_diagnostics_snapshot.png` (`1728 x 1152`).
+- Intended visual claim: the fourth panel should show compact argon RDF,
+  coordination-replica uncertainty, and the first-shell cutoff while making
+  clear that the artifact is CPU fallback, not a completed GPU production
+  observable run.
+- Full-profile feedback: the trajectory RDF annotation now includes `runtime:
+  CPU fallback`. It stays inside the white annotation box and does not cover
+  the RDF curve, replica standard-deviation band, legend, or cutoff marker.
+- Smoke-profile feedback: the runtime label is visible for the 32-atom compact
+  smoke trajectory. The label remains contained and the RDF peak, cutoff line,
+  and replica band remain readable.
+- Revision decision: accepted for the hidden draft. No additional figure edit
+  was needed after adding the runtime label and inspecting both snapshots.
+
+Website page review:
+
+- Hidden page URL:
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`.
+- Website deploy run `29395058835` succeeded for commit `7dbb74d`.
+- Snapshot workflow run `29395226951` captured the deployed runtime-provenance
+  refresh.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post07-runtime-provenance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post07-runtime-provenance-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`;
+  both returned HTTP 200 with page title
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post07-runtime-provenance-snapshots/post-07-desktop.png`
+  (`1440 x 12646`) and
+  `/tmp/kups-post07-runtime-provenance-snapshots/post-07-mobile.png`
+  (`541 x 19404`).
+- Focused crops inspected:
+  `desktop-runtime-table.png`, `desktop-figure.png`, `desktop-status.png`,
+  `mobile-runtime-table.png`, `mobile-figure-2.png`, and
+  `mobile-status.png`.
+- Desktop feedback: the runtime limitation table is contained; the blocking
+  reason wraps; the figure caption names the compact CPU-fallback argon
+  trajectory panel; the runtime label is visible in the rendered figure; and
+  Current Status lists the machine-readable provenance item.
+- Mobile feedback: the runtime table wraps without horizontal clipping, the
+  figure is dense but readable enough for the hidden draft, and Current Status
+  remains contained with the larger GPU kUPS production observable diagnostic
+  still in the missing list.
+- Live hidden-page check with cache-buster `?v=7dbb74d` confirmed the deployed
+  HTML contains `production GPU ready`, `runtime device`,
+  `jax:cpu;devices:cpu`, `cuda_or_cpu_fallback`, `CPU-fallback`, and
+  `machine-readable`.
+- Public home and `/blog/` checks returned no `kups-md-tutorials` or
+  `post-07-observables` hits, preserving the direct-link-only status.
+
+Blocking items for the current hidden draft:
+
+- None. The hidden draft states the CPU-fallback/non-production status and has
+  rendered desktop/mobile snapshot evidence.
+
+Non-blocking items accepted until the final article pass:
+
+- Mobile table and figure density remain accepted for the hidden draft.
+- The compact reduced-unit argon trajectory remains a teaching diagnostic
+  rather than a final GPU kUPS production observable study.
+
+Final-release blockers:
+
+- Add larger GPU kUPS trajectory diagnostics for physical observables before
+  treating this post as final.
+- Add final citations for RDF normalization, coordination integrals,
+  finite-size effects, and time-correlation functions.
+- Re-run rendered desktop/mobile snapshots after final production-observable
+  figures, final citations, or any public-indexing change.

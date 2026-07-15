@@ -168,15 +168,21 @@ def _write_notebook_execution_ledger(root: Path) -> None:
             {
                 "post": post_id,
                 "source": f"notebooks/post-{post_id}-example.ipynb",
+                "executed_copy": f"/tmp/kups-notebook-runs/post-{post_id}-example.ipynb",
                 "source_sha256": _sha256(notebook_path),
+                "source_sha256_after": _sha256(notebook_path),
+                "source_unchanged": True,
                 "code_cells": 1,
                 "executed_code_cells": 1,
                 "output_count": 1,
+                "elapsed_seconds": 1.0,
             }
         )
     (review_dir / "notebook-execution.json").write_text(
         json.dumps(
             {
+                "source_git_revision": "c" * 40,
+                "execution_mode": "fresh_kernel_per_notebook",
                 "kernel_name": "python3",
                 "timeout_seconds": 120,
                 "notebooks": entries,
@@ -1448,8 +1454,12 @@ def test_release_readiness_reports_stale_notebook_execution_ledger(
     ledger["notebooks"] = [
         entry for entry in ledger["notebooks"] if entry["post"] != "08"
     ]
+    ledger.pop("execution_mode")
     ledger["notebooks"][0]["source_sha256"] = "0" * 64
+    ledger["notebooks"][0]["source_sha256_after"] = "1" * 64
+    ledger["notebooks"][0]["source_unchanged"] = False
     ledger["notebooks"][1]["executed_code_cells"] = 0
+    ledger["notebooks"][1].pop("elapsed_seconds")
     ledger_path.write_text(json.dumps(ledger) + "\n", encoding="utf-8")
 
     result = audit_release_readiness(
@@ -1463,7 +1473,11 @@ def test_release_readiness_reports_stale_notebook_execution_ledger(
     )
 
     assert any("source_sha256 mismatch" in violation for violation in result.violations)
+    assert any("source_sha256_after mismatch" in violation for violation in result.violations)
+    assert any("source_unchanged must be true" in violation for violation in result.violations)
+    assert any("expected execution_mode fresh_kernel_per_notebook" in violation for violation in result.violations)
     assert any("does not match code_cells" in violation for violation in result.violations)
+    assert any("missing positive elapsed_seconds" in violation for violation in result.violations)
     assert any(
         "missing notebook execution entries for posts 08" in violation
         for violation in result.violations

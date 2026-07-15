@@ -2358,6 +2358,63 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Fresh-Kernel Notebook Ledger Gate
+
+Scope:
+
+- Tightened the notebook execution manifest and `verify-release-readiness`
+  checks so clean-kernel evidence now records explicit execution mode,
+  executed-copy path, source SHA-256 before and after execution,
+  source-unchanged status, and elapsed time for every notebook.
+- Added regression coverage so release-surface validation fails when the
+  notebook ledger omits `execution_mode: fresh_kernel_per_notebook`, omits
+  elapsed-time evidence, records changed source hashes, or lacks a
+  source-immutability flag.
+- Re-executed all twelve committed notebooks from clean kernels and refreshed
+  `reviews/notebook-execution.json`.
+- No configs, result summaries, notebook sources, figure assets, snapshots,
+  website pages, website assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run kups-tutorial verify-notebooks --output-dir /tmp/kups-notebook-mode-ledger`
+  passed and wrote `/tmp/kups-notebook-mode-ledger/manifest.json`.
+- `uv run ruff check src/kups_md_tutorials/notebook_execution.py src/kups_md_tutorials/release_readiness.py tests/test_notebook_execution.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_notebook_execution.py tests/test_release_readiness.py`
+  passed with 40 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed.
+
+Code and reproducibility review:
+
+- The previous ledger proved code-cell counts, executed-cell counts, output
+  counts, kernel, timeout, and source hashes, but did not explicitly state the
+  fresh-kernel execution mode or prove that executing copied notebooks left
+  source notebooks unchanged.
+- The refreshed ledger records `source_sha256` and `source_sha256_after` for
+  every source notebook, and every entry has `source_unchanged: true`.
+- The release-surface audit now treats missing or stale clean-kernel execution
+  evidence as a structural violation, not as a final-release-only blocker.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or
+  CSS-sensitive markup changed, so no rendered desktop/mobile page snapshots
+  were required. Existing rendered-page evidence remains in
+  `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the notebook-execution evidence milestone after clean-kernel
+  execution, focused lint, release-readiness regression tests, and a
+  site-aware current-blocker audit.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

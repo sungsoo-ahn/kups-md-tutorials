@@ -547,6 +547,17 @@ def _check_notebook_execution_ledger(
         violations.append(f"{path}: notebook execution ledger must be a JSON object")
         return
 
+    source_revision = ledger.get("source_git_revision")
+    if not isinstance(source_revision, str) or len(source_revision) < 7:
+        violations.append(f"{path}: missing source_git_revision")
+    elif source_revision == "unknown":
+        violations.append(f"{path}: source_git_revision is unknown")
+
+    if ledger.get("execution_mode") != "fresh_kernel_per_notebook":
+        violations.append(
+            f"{path}: expected execution_mode fresh_kernel_per_notebook, "
+            f"found {ledger.get('execution_mode')!r}"
+        )
     if ledger.get("kernel_name") != "python3":
         violations.append(
             f"{path}: expected kernel_name python3, found {ledger.get('kernel_name')!r}"
@@ -575,6 +586,9 @@ def _check_notebook_execution_ledger(
         if not isinstance(source, str) or not source:
             violations.append(f"{label} missing source")
             continue
+        executed_copy = entry.get("executed_copy")
+        if not isinstance(executed_copy, str) or not executed_copy:
+            violations.append(f"{label} missing executed_copy")
         expected_source = _single_notebook_for_post(notebook_root, post)
         if expected_source is None:
             violations.append(f"{label} cannot find current notebook for post {post}")
@@ -597,10 +611,19 @@ def _check_notebook_execution_ledger(
                 f"{label} source_sha256 mismatch for {source}: "
                 f"expected {expected_sha!r}, found {actual_sha}"
             )
+        after_sha = entry.get("source_sha256_after")
+        if after_sha != actual_sha:
+            violations.append(
+                f"{label} source_sha256_after mismatch for {source}: "
+                f"expected {after_sha!r}, found {actual_sha}"
+            )
+        if entry.get("source_unchanged") is not True:
+            violations.append(f"{label} source_unchanged must be true")
 
         code_cells = entry.get("code_cells")
         executed_code_cells = entry.get("executed_code_cells")
         output_count = entry.get("output_count")
+        elapsed_seconds = entry.get("elapsed_seconds")
         actual_code_cells = _notebook_code_cell_count(source_file, violations)
         if not isinstance(code_cells, int) or code_cells <= 0:
             violations.append(f"{label} missing positive code_cells")
@@ -615,6 +638,8 @@ def _check_notebook_execution_ledger(
             )
         if not isinstance(output_count, int) or output_count <= 0:
             violations.append(f"{label} missing positive output_count")
+        if not isinstance(elapsed_seconds, int | float) or elapsed_seconds <= 0:
+            violations.append(f"{label} missing positive elapsed_seconds")
 
     missing_posts = sorted(set(SUPPORTED_POSTS) - seen_posts)
     if missing_posts:

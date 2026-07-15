@@ -35,6 +35,8 @@ class NotebookExecution:
     source: str
     executed_copy: str
     source_sha256: str
+    source_sha256_after: str
+    source_unchanged: bool
     code_cells: int
     executed_code_cells: int
     output_count: int
@@ -46,6 +48,7 @@ class NotebookExecutionManifest:
     """Manifest for one clean-kernel notebook verification run."""
 
     source_git_revision: str
+    execution_mode: str
     kernel_name: str
     timeout_seconds: int
     notebooks: tuple[NotebookExecution, ...]
@@ -72,6 +75,7 @@ def execute_notebooks(
             msg = f"missing notebook for post {post}: {source}"
             raise FileNotFoundError(msg)
 
+        source_sha256_before = file_sha256(source)
         executed_copy = output_dir / filename
         shutil.copyfile(source, executed_copy)
         notebook = nbformat.read(executed_copy, as_version=4)
@@ -84,6 +88,7 @@ def execute_notebooks(
         client.execute(cwd=cwd)
         elapsed = time.monotonic() - start
         nbformat.write(notebook, executed_copy)
+        source_sha256_after = file_sha256(source)
         code_cells = [
             cell for cell in notebook.cells if cell.get("cell_type") == "code"
         ]
@@ -92,7 +97,9 @@ def execute_notebooks(
                 post=post,
                 source=str(source),
                 executed_copy=str(executed_copy),
-                source_sha256=file_sha256(source),
+                source_sha256=source_sha256_before,
+                source_sha256_after=source_sha256_after,
+                source_unchanged=source_sha256_before == source_sha256_after,
                 code_cells=len(code_cells),
                 executed_code_cells=sum(
                     1 for cell in code_cells if cell.get("execution_count") is not None
@@ -108,6 +115,7 @@ def execute_notebooks(
 
     manifest = NotebookExecutionManifest(
         source_git_revision=git_revision(cwd),
+        execution_mode="fresh_kernel_per_notebook",
         kernel_name=kernel_name,
         timeout_seconds=timeout_seconds,
         notebooks=tuple(records),

@@ -102,3 +102,65 @@ Review decision:
 - Final public release still requires rerunning the same clean-kernel ledger
   after final GPU summaries, final figures, and public article edits are
   frozen.
+
+## Update 2026-07-15: Fresh-Kernel Mode And Source-Immutability Evidence
+
+Scope:
+
+- Hardened the notebook execution manifest and release-readiness checker so
+  the clean-kernel evidence explicitly records `execution_mode:
+  fresh_kernel_per_notebook`, each executed notebook copy path, each source
+  notebook SHA-256 before and after execution, `source_unchanged: true`, and
+  positive elapsed time for every notebook.
+- Re-executed all twelve committed notebooks from clean kernels and replaced
+  the committed compact ledger at `reviews/notebook-execution.json`.
+
+Command:
+
+```bash
+uv run kups-tutorial verify-notebooks --output-dir /tmp/kups-notebook-mode-ledger
+```
+
+Result:
+
+- Passed.
+- Temporary manifest path: `/tmp/kups-notebook-mode-ledger/manifest.json`.
+- Committed ledger path: `reviews/notebook-execution.json`.
+- Source revision recorded by the temporary manifest:
+  `24d7bdffa19a74dc34ab2fb1739441882f4f6aed`.
+- Execution mode: `fresh_kernel_per_notebook`.
+- Kernel: `python3`.
+- Timeout: 120 seconds per cell.
+- Jupyter emitted the same local TCP transport warnings as earlier clean-kernel
+  runs. No notebook failed; the warnings do not indicate execution errors.
+
+Execution summary:
+
+| Post | Notebook | Code cells | Executed cells | Outputs | Source unchanged |
+|---|---|---:|---:|---:|---|
+| 01 | `post-01-initialization.ipynb` | 6 | 6 | 7 | yes |
+| 02 | `post-02-integrators.ipynb` | 6 | 6 | 6 | yes |
+| 03 | `post-03-errors.ipynb` | 7 | 7 | 7 | yes |
+| 04 | `post-04-thermostats.ipynb` | 6 | 6 | 6 | yes |
+| 05 | `post-05-barostats.ipynb` | 6 | 6 | 7 | yes |
+| 06 | `post-06-trajectory-length.ipynb` | 5 | 5 | 4 | yes |
+| 07 | `post-07-observables.ipynb` | 5 | 5 | 4 | yes |
+| 08 | `post-08-free-energies.ipynb` | 5 | 5 | 4 | yes |
+| 09 | `post-09-estimators.ipynb` | 5 | 5 | 4 | yes |
+| 10 | `post-10-umbrella-sampling.ipynb` | 5 | 5 | 4 | yes |
+| 11 | `post-11-enhanced-sampling.ipynb` | 5 | 5 | 4 | yes |
+| 12 | `post-12-mlip-capstone.ipynb` | 5 | 5 | 4 | yes |
+
+Review decision:
+
+- Accepted for the notebook-execution evidence milestone. The release-surface
+  audit now fails if the notebook ledger omits fresh-kernel execution mode,
+  source-immutability hashes, source-unchanged flags, executed-copy paths, or
+  elapsed-time evidence.
+- No figure snapshot or rendered-page snapshot capture was required because
+  this pass changed only verifier code, tests, and notebook execution ledgers;
+  notebook sources, result summaries, figures, website pages, CSS-sensitive
+  markup, and linked publication assets were unchanged.
+- Final public release still requires rerunning the same strengthened
+  clean-kernel ledger after final GPU summaries, final figures, and public
+  article edits are frozen.

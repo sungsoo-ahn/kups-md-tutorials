@@ -27,9 +27,15 @@ def test_execute_notebooks_writes_manifest(tmp_path: Path) -> None:
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["notebooks"][0]["post"] == "01"
+    assert manifest["execution_mode"] == "fresh_kernel_per_notebook"
     assert manifest["notebooks"][0]["code_cells"] == 1
     assert manifest["notebooks"][0]["executed_code_cells"] == 1
     assert manifest["notebooks"][0]["output_count"] == 1
+    assert manifest["notebooks"][0]["source_unchanged"] is True
+    assert (
+        manifest["notebooks"][0]["source_sha256"]
+        == manifest["notebooks"][0]["source_sha256_after"]
+    )
     assert (tmp_path / "runs/post-01-initialization.ipynb").exists()
 
 

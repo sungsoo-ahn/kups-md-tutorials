@@ -63,6 +63,8 @@ def test_export_site_assets_copies_figures_and_compact_results(tmp_path: Path) -
         "compact-result",
         "figure",
     }
+    assert all(not Path(item["source"]).is_absolute() for item in manifest["files"])
+    assert all(not Path(item["destination"]).is_absolute() for item in manifest["files"])
 
 
 def test_cli_export_site(tmp_path: Path) -> None:

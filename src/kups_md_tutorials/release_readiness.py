@@ -5,6 +5,8 @@ from pathlib import Path
 import json
 import re
 
+from kups_md_tutorials.provenance import file_sha256
+
 SUPPORTED_POSTS = tuple(f"{post:02d}" for post in range(1, 13))
 MIN_POST_WORDS = 3500
 MAX_POST_WORDS = 10000
@@ -283,6 +285,7 @@ def _check_post12_model_artifact(
 
 
 def _check_site_publication_state(site_root: Path, violations: list[str]) -> None:
+    _check_site_export_manifest(site_root, violations)
     pages_dir = site_root / "_pages"
     for post in SUPPORTED_POSTS:
         matches = sorted(pages_dir.glob(f"kups-md-post-{post}-*.md"))
@@ -298,6 +301,94 @@ def _check_site_publication_state(site_root: Path, violations: list[str]) -> Non
             violations.append(f"{page_path}: page still declares itself non-final")
         if "intentionally hidden from site navigation" in text:
             violations.append(f"{page_path}: page still has hidden-draft note")
+
+
+def _check_site_export_manifest(site_root: Path, violations: list[str]) -> None:
+    manifest_path = site_root / "assets" / "json" / "kups-md-tutorials" / "manifest.json"
+    if not manifest_path.exists():
+        violations.append(f"{manifest_path}: missing website export manifest")
+        return
+    text = manifest_path.read_text(encoding="utf-8")
+    try:
+        manifest = json.loads(text)
+    except json.JSONDecodeError as exc:
+        violations.append(f"{manifest_path}: invalid JSON: {exc}")
+        return
+    if not isinstance(manifest, dict):
+        violations.append(f"{manifest_path}: website export manifest must be a JSON object")
+        return
+
+    if manifest.get("profile") != "full":
+        violations.append(
+            f"{manifest_path}: expected profile full, found {manifest.get('profile')!r}"
+        )
+    source_revision = manifest.get("source_git_revision")
+    if not isinstance(source_revision, str) or len(source_revision) < 7:
+        violations.append(f"{manifest_path}: missing source_git_revision")
+    elif source_revision == "unknown":
+        violations.append(f"{manifest_path}: source_git_revision is unknown")
+
+    files = manifest.get("files")
+    if not isinstance(files, list) or not files:
+        violations.append(f"{manifest_path}: missing exported files")
+        return
+
+    posts_with_figures: set[str] = set()
+    posts_with_results: set[str] = set()
+    for index, item in enumerate(files, start=1):
+        label = f"{manifest_path}: file {index}"
+        if not isinstance(item, dict):
+            violations.append(f"{label} must be a JSON object")
+            continue
+        post = item.get("post")
+        kind = item.get("kind")
+        destination_text = item.get("destination")
+        sha256 = item.get("sha256")
+        source = item.get("source")
+        if post not in SUPPORTED_POSTS:
+            violations.append(f"{label} has unsupported post {post!r}")
+        if kind not in {"figure", "compact-result"}:
+            violations.append(f"{label} has unsupported kind {kind!r}")
+        if not isinstance(source, str) or not source:
+            violations.append(f"{label} missing source")
+        if not isinstance(destination_text, str) or not destination_text:
+            violations.append(f"{label} missing destination")
+            continue
+        if not isinstance(sha256, str) or re.fullmatch(r"[0-9a-f]{64}", sha256) is None:
+            violations.append(f"{label} missing sha256")
+            continue
+
+        destination = _site_manifest_destination(site_root, destination_text)
+        if not _path_is_within(destination, site_root):
+            violations.append(f"{label} destination escapes site root: {destination_text}")
+            continue
+        if not destination.exists():
+            violations.append(f"{label} destination does not exist: {destination_text}")
+            continue
+        actual_sha256 = file_sha256(destination)
+        if actual_sha256 != sha256:
+            violations.append(
+                f"{label} sha256 mismatch for {destination_text}: "
+                f"expected {sha256}, found {actual_sha256}"
+            )
+        if post in SUPPORTED_POSTS:
+            if kind == "figure":
+                posts_with_figures.add(post)
+            elif kind == "compact-result":
+                posts_with_results.add(post)
+
+    missing_figure_posts = sorted(set(SUPPORTED_POSTS) - posts_with_figures)
+    if missing_figure_posts:
+        violations.append(
+            f"{manifest_path}: missing exported figure entries for posts "
+            + ", ".join(missing_figure_posts)
+        )
+    missing_result_posts = sorted(set(SUPPORTED_POSTS) - posts_with_results)
+    if missing_result_posts:
+        violations.append(
+            f"{manifest_path}: missing exported compact-result entries for posts "
+            + ", ".join(missing_result_posts)
+        )
 
 
 def _check_site_blog_style(
@@ -676,6 +767,21 @@ def _ledger_path_exists(repo_root: Path, path_text: str) -> bool:
     if path.is_absolute():
         return path.exists()
     return path.exists() or (repo_root / path).exists()
+
+
+def _site_manifest_destination(site_root: Path, destination_text: str) -> Path:
+    destination = Path(destination_text)
+    if destination.is_absolute():
+        return destination
+    return site_root / destination
+
+
+def _path_is_within(path: Path, root: Path) -> bool:
+    try:
+        path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True
 
 
 def _section_after_heading(text: str, heading: str) -> str | None:

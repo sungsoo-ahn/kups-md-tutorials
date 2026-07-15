@@ -590,6 +590,75 @@ Review decision:
   citation backlink integrity, figure include integrity, footnote hygiene,
   hidden/non-final state, and unresolved final-release blockers.
 
+## Update 2026-07-15: Website Export Manifest Gate
+
+Scope:
+
+- Added a site-aware final-publication check that the website repo contains a
+  full-profile `assets/json/kups-md-tutorials/manifest.json` export manifest.
+- The gate now verifies that every exported manifest file entry is a JSON
+  object with a supported post, supported kind, source, destination,
+  64-character SHA-256 digest, an existing destination under the website repo,
+  and a digest that matches the current website file contents.
+- The gate requires both figure and compact-result entries for all twelve
+  posts so a stale single-post export cannot pass final readiness.
+- Updated `export-site` to write portable paths relative to the tutorial
+  artifact root and website root instead of embedding local absolute paths.
+- Added tests for portable export paths and stale website manifests with a
+  hash mismatch and missing Post 08 figure coverage.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/site_export.py src/kups_md_tutorials/release_readiness.py tests/test_site_export.py tests/test_release_readiness.py`
+- `uv run pytest tests/test_site_export.py tests/test_release_readiness.py -q`
+- `uv run pytest tests/test_site_export.py tests/test_release_readiness.py tests/test_cli.py -q`
+- `uv run kups-tutorial verify-reviews`
+- `uv run kups-tutorial verify-release-readiness --skip-site 2>&1 | tail -n 160`
+- `uv run kups-tutorial verify-release-readiness 2>&1 | tail -n 220`
+- `uv run kups-tutorial export-site --profile full`
+- Website validation after export:
+  `python3 scripts/validate_kups_pages.py`,
+  `python3 scripts/validate_blog.py`, and `git diff --check` in
+  `../sungsoo-ahn.github.io`.
+- Pending final validation for this commit: push and CI for both repositories.
+
+Code and reproducibility review:
+
+- The current pre-export website manifest was stale and covered only Post 09.
+  The new gate caught that state, reporting missing exported figure and
+  compact-result entries for Posts 01-08 and 10-12.
+- After `uv run kups-tutorial export-site --profile full`, the website
+  manifest records source revision `8e902dd`, profile `full`, 71 exported
+  files, all twelve posts, and no absolute source or destination paths.
+- Site-aware release readiness after export no longer reports export-manifest
+  coverage or SHA-256 problems; it reports only the intended hidden/non-final
+  page state and production GPU/publication blockers.
+- Destination paths are resolved against the website root and rejected if they
+  escape it, which prevents a manifest from passing with unrelated local files.
+- Source paths are required as manifest metadata but are not resolved by the
+  site-aware gate because the published website only needs to prove that its
+  committed/exported destination files match their recorded hashes.
+
+Figure and rendered-page review:
+
+- No figure-generation code or website page markup changed in this tutorial
+  commit.
+- The follow-up website export changed only
+  `assets/json/kups-md-tutorials/manifest.json`; all copied figure and compact
+  result payloads were already byte-identical in the website repo.
+- No rendered page snapshot capture was required because no website page
+  markup, rendered figure bytes, CSS-sensitive content, or linked figure asset
+  changed. The hidden pages do not render the JSON export manifest.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone after focused tests.
+- The final-publication gate now enforces artifact surface, figure source
+  provenance, website export-manifest synchronization, manifest provenance,
+  blog-style metadata, article length, citation backlink integrity, figure
+  include integrity, footnote hygiene, hidden/non-final state, and unresolved
+  final-release blockers.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

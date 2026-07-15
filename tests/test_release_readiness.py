@@ -171,13 +171,38 @@ def _write_post12_model_metadata(root: Path, *, placeholder: bool) -> None:
 def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
     pages = site_root / "_pages"
     figure_dir = site_root / "assets" / "img" / "blog"
+    export_dir = site_root / "assets" / "json" / "kups-md-tutorials"
     pages.mkdir(parents=True)
     figure_dir.mkdir(parents=True)
     body_words = " ".join(f"sample{idx}" for idx in range(3600))
+    exported_files = []
     for post in range(1, 13):
         post_id = f"{post:02d}"
         figure_path = f"assets/img/blog/kups_md_post{post_id}_diagnostics.svg"
-        (site_root / figure_path).write_text("<svg></svg>\n", encoding="utf-8")
+        figure_file = site_root / figure_path
+        figure_file.write_text("<svg></svg>\n", encoding="utf-8")
+        exported_files.append(
+            {
+                "post": post_id,
+                "kind": "figure",
+                "source": f"figures/post-{post_id}/example_diagnostics_full.svg",
+                "destination": figure_path,
+                "sha256": _sha256(figure_file),
+            }
+        )
+        result_path = f"assets/json/kups-md-tutorials/post-{post_id}/full/manifest.json"
+        result_file = site_root / result_path
+        result_file.parent.mkdir(parents=True, exist_ok=True)
+        result_file.write_text(json.dumps(_manifest_fixture(post_id, "full")) + "\n")
+        exported_files.append(
+            {
+                "post": post_id,
+                "kind": "compact-result",
+                "source": f"results/post-{post_id}/full/manifest.json",
+                "destination": result_path,
+                "sha256": _sha256(result_file),
+            }
+        )
         nav = "false" if hidden else "true"
         note_context = (
             "This page is not the final article. "
@@ -219,6 +244,27 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
             f'<a href="#cite-example{post_id}" class="reversefootnote" role="doc-backlink">↩</a>\n',
             encoding="utf-8",
         )
+    export_dir.mkdir(parents=True, exist_ok=True)
+    (export_dir / "manifest.json").write_text(
+        json.dumps(
+            {
+                "profile": "full",
+                "source_git_revision": "c" * 40,
+                "files": exported_files,
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def _sha256(path: Path) -> str:
+    import hashlib
+
+    digest = hashlib.sha256()
+    digest.update(path.read_bytes())
+    return digest.hexdigest()
 
 
 def test_release_readiness_passes_clean_final_state(tmp_path: Path) -> None:
@@ -286,6 +332,39 @@ def test_release_readiness_reports_hidden_site_pages(tmp_path: Path) -> None:
             snapshot_root=tmp_path / "snapshots",
             site_root=tmp_path / "site",
         )
+
+
+def test_release_readiness_reports_stale_site_export_manifest(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    manifest_path = (
+        tmp_path / "site" / "assets" / "json" / "kups-md-tutorials" / "manifest.json"
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["files"] = [
+        item
+        for item in manifest["files"]
+        if not (item["post"] == "08" and item["kind"] == "figure")
+    ]
+    manifest["files"][0]["sha256"] = "0" * 64
+    manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("sha256 mismatch" in violation for violation in result.violations)
+    assert any(
+        "missing exported figure entries for posts 08" in violation
+        for violation in result.violations
+    )
 
 
 def test_release_readiness_reports_blog_style_violations(tmp_path: Path) -> None:

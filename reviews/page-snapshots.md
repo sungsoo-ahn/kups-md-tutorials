@@ -3254,3 +3254,67 @@ Revision decisions:
   final-release blockers are production atomistic umbrella context, model
   checks, production uncertainty intervals if public claims are added, and new
   rendered snapshots after those final changes or any public-indexing change.
+
+## Post 11 Steered Protocol Citation Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29409382893`.
+- Website commit reviewed:
+  `9346926`.
+- Website deploy run:
+  `29409231154`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post11-steered-protocol-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post11-steered-protocol-snapshots/manifest.json`.
+- Capture scope: hidden Post 11 page after adding the Hummer/Szabo
+  nonequilibrium-pulling citation, correcting the well-tempered-bias failure
+  sentence, strengthening production steered-protocol guidance, and updating
+  Current Status so the current citation pass is no longer listed as missing.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post11-steered-protocol-snapshots/post-11-desktop.png`
+  (`1440 x 12528`)
+- `/tmp/kups-post11-steered-protocol-snapshots/post-11-mobile.png`
+  (`390 x 19691`)
+
+Feedback:
+
+- Desktop capture renders the title, hidden-draft note, source links,
+  corrected well-tempered-bias paragraph, new Hummer/Szabo citation,
+  production steered-protocol paragraph, diagnostic tables, six-panel figure,
+  practical checklist, reproduction block, updated Current Status, expanded
+  references, and footer without visible clipping or missing assets.
+- Mobile capture keeps the long title, new citation/protocol paragraphs, dense
+  tables, six-panel figure and caption, reproduction code block, Current Status
+  section, Hummer/Szabo reference, and footer contained within the article
+  width. The figure remains dense but accepted for the hidden draft, and no
+  text overlap was found.
+- Live check with cache-buster `?v=9346926` confirmed the deployed page
+  contains the new Hummer/Szabo citation, the steered-protocol wording, the
+  corrected bias-factor paragraph, and the updated citation-status language.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-11-enhanced-sampling` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after the steered-protocol citation refresh.
+- No figure revision was required because figures, figure captions, notebooks,
+  configs, and result files were unchanged.
+- The current hidden-draft Post 11 citation gap is resolved; remaining
+  final-release blockers are production atomistic steered trajectories, model
+  checks, production uncertainty intervals if public claims depend on them, and
+  new rendered snapshots after those final changes or any public-indexing
+  change.

@@ -620,5 +620,108 @@ Open items:
   six-panel figure is dense, and the page remains explicitly non-final.
 - Final-release blockers: add real production atomistic steered trajectories,
   model checks, final production uncertainty intervals if public claims depend
-  on them, final citation pass, and refreshed desktop/mobile snapshots after
-  final production additions.
+  on them, additional citations if final production claims introduce new
+  scientific scope beyond the current controlled enhanced-sampling and protocol
+  discussion, and refreshed desktop/mobile snapshots after final production
+  additions.
+
+## Update 2026-07-15: Steered-Protocol Citation Pass
+
+- Website commit reviewed:
+  `9346926`.
+- Website deploy run:
+  `29409231154`, passed.
+- Snapshot workflow:
+  `Capture kUPS snapshots`, run `29409382893`, passed.
+- Snapshot artifact: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post11-steered-protocol-snapshots/`.
+- Citation sources checked:
+  Jarzynski nonequilibrium equality DOI `10.1103/PhysRevLett.78.2690`,
+  Crooks fluctuation theorem DOI `10.1103/PhysRevE.60.2721`, Laio and
+  Parrinello metadynamics DOI `10.1073/pnas.202427399`, Barducci et al.
+  well-tempered metadynamics DOI `10.1103/PhysRevLett.100.020603`, and Hummer
+  and Szabo nonequilibrium pulling reconstruction DOI `10.1073/pnas.071034098`.
+
+Scope:
+
+- No tutorial code, configuration, notebook, generated data, or figure asset
+  changed in this pass.
+- The hidden website page now cites Hummer and Szabo for the claim that
+  repeated nonequilibrium pulling paths can reconstruct equilibrium
+  free-energy profiles only when path-repeat design, work definition, and
+  reweighting assumptions are reported with the result.
+- The production-extension section now states the written protocol required
+  before a real atomistic or MLIP-driven steered calculation: pulled coordinate
+  and endpoints, equilibrated endpoint starts, time-dependent restraint
+  schedule and force constant, work accumulation convention, repeated
+  forward/reverse paths, and a predeclared revision rule for work-overlap or
+  direction-disagreement failures.
+- A truncated well-tempered-bias sentence in the hidden page was corrected.
+- Current Status now treats the current controlled enhanced-sampling/protocol
+  citation pass as complete for the hidden draft, while preserving the
+  requirement for extra citations if final production claims are later added.
+
+Validation:
+
+- `python3 scripts/validate_kups_pages.py` passed in
+  `../sungsoo-ahn.github.io`.
+- `python3 scripts/validate_blog.py` passed in `../sungsoo-ahn.github.io` with
+  pre-existing unused-image warnings.
+- `git diff --check` passed in `../sungsoo-ahn.github.io`.
+- GitHub Pages deploy `29409231154` passed for website commit `9346926`.
+- Live check with cache-buster `?v=9346926` confirmed the deployed Post 11 page
+  contains `Hummer`, `Free energy reconstruction`, the written steered-protocol
+  wording, the corrected bias-factor paragraph, and the updated Current Status
+  wording about additional citations only if new final production claims are
+  added.
+- Live homepage and `/blog/` checks with cache-buster `?v=9346926` found no
+  `kups-md-tutorials` or `post-11-enhanced-sampling` links, so the page remains
+  direct-link only.
+
+Rendered-page review:
+
+- Snapshot manifest reviewed:
+  `/tmp/kups-post11-steered-protocol-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-11-enhanced-sampling/`;
+  both returned HTTP 200 with title
+  `How Do Adaptive and Nonequilibrium Enhanced-Sampling Methods Work? | Sungsoo Ahn`.
+- Desktop snapshot inspected:
+  `/tmp/kups-post11-steered-protocol-snapshots/post-11-desktop.png` at
+  `1440 x 12528`.
+- Mobile snapshot inspected:
+  `/tmp/kups-post11-steered-protocol-snapshots/post-11-mobile.png` at
+  `390 x 19691`.
+- Desktop feedback: the corrected bias-factor paragraph, Hummer/Szabo citation,
+  production steered-protocol paragraph, diagnostic tables, six-panel figure,
+  reproduction block, updated Current Status section, expanded references, and
+  footer render end to end. No missing figure, clipped text, table overflow, or
+  broken page chrome was found.
+- Mobile feedback: the long title wraps heavily but remains readable. The new
+  citation/protocol paragraphs, Hummer/Szabo reference, dense diagnostic
+  tables, figure and caption, reproduction code block, Current Status section,
+  references, and footer stay within the article width. No text overlap was
+  found.
+
+Prose and style review:
+
+- The new citation is attached to the production steered-pulling protocol
+  discussion, not added as a detached bibliography item.
+- The page remains blog-native: hidden post layout, author-note pattern, shared
+  series metadata, source links, compact reproduction commands, final website
+  figure asset under `assets/img/blog/`, and `cite-*`/`ref-*` references with
+  reverse backlinks.
+- The page continues to separate the compact pair-distance diagnostic from a
+  final production atomistic steered-MD claim.
+
+Open items:
+
+- Blocking items for the current hidden draft: none from this citation/protocol
+  pass.
+- Non-blocking items accepted until the final article pass: final long-form
+  prose and any citations needed only for new claims introduced later.
+- Final-release blockers: add real production atomistic steered trajectories,
+  model checks, and final production uncertainty intervals if public claims
+  depend on them; re-run rendered desktop/mobile snapshots after any final
+  production MD, figure, or public-indexing change.

@@ -1977,3 +1977,66 @@ Revision decisions:
   checks before public indexing.
 - Re-run rendered snapshots after final production NPT diagnostics, final
   citations, or any public-indexing change.
+
+## Post 06 Coordination-Observable Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29387756210`.
+- Website commit reviewed:
+  `ff83d44c4ca14c562017557bcb00003e32a6fbfa`.
+- Website deploy run: `29387640167`.
+- Tutorial commit reviewed:
+  `f5f5fd99157d4eb1eb4ecafb5bb677b6d374a328`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post06-coordination-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post06-coordination-snapshots/manifest.json`.
+- Capture scope: post 06 after adding compact reduced-unit argon coordination
+  number alongside potential energy per atom, refreshing the figure assets,
+  exporting JSON/CSV assets, and updating hidden-page prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `When Is a Trajectory Long Enough to Trust? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post06-coordination-snapshots/post-06-desktop.png`
+  (`1440 x 12217`)
+- `/tmp/kups-post06-coordination-snapshots/post-06-mobile.png`
+  (`629 x 18508`)
+
+Feedback:
+
+- Desktop capture renders the hidden Post 06 draft end to end with sidebar
+  TOC, updated coordination-observable prose, source links, diagnostic tables,
+  display equation, refreshed four-panel figure, reproduction block, Practical
+  Checklist, Current Status, references, and footer present.
+- The refreshed figure is visible in the article body; the fourth panel shows
+  the coordination axis and no blocking clipping or missing asset was found.
+- Mobile capture keeps the long title, hidden-draft note, tables, figure,
+  caption, reproduction block, Current Status, references, and footer
+  contained. Tables and the figure are dense at mobile width but not broken in
+  the inspected snapshot.
+- Live check with cache-buster `?cachebust=post06-coordination-ff83d44`
+  returned HTTP 200 and confirmed the deployed HTML contains `coordination
+  number`, `coordination-number`, and `rc = 1.5`.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 06 coordination-observable
+  hidden draft.
+- The compact reduced-unit argon coordination diagnostic is accepted for the
+  hidden draft state.
+- Keep mobile table/figure density as a final typography-polish item.
+- Add larger GPU kUPS trajectory-length diagnostics for production physical
+  observables before public indexing.
+- Re-run rendered snapshots after final production physical-observable
+  diagnostics, final citations, or any public-indexing change.

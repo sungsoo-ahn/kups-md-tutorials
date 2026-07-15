@@ -277,8 +277,39 @@ Website review status:
   `../sungsoo-ahn.github.io/_pages/kups-md-post-06-trajectory-length.md`.
 - `nav: false` remains set, so the page stays hidden from normal navigation
   and direct-link reachable only.
-- Rendered desktop and mobile page snapshots still need to be rerun after this
-  coordination refresh is deployed.
+- Website commit `ff83d44c4ca14c562017557bcb00003e32a6fbfa` deployed in
+  GitHub Actions run `29387640167`.
+- Snapshot workflow run `29387756210` captured the deployed coordination
+  refresh.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post06-coordination-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post06-coordination-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-06-trajectory-length/`;
+  both returned HTTP 200 with page title
+  `When Is a Trajectory Long Enough to Trust? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post06-coordination-snapshots/post-06-desktop.png`
+  (`1440 x 12217`) and
+  `/tmp/kups-post06-coordination-snapshots/post-06-mobile.png`
+  (`629 x 18508`).
+- Live cache-busted HTML check returned HTTP 200 and contained
+  `coordination number`, `coordination-number`, and `rc = 1.5`.
+
+Rendered page feedback:
+
+- Desktop capture renders the hidden Post 06 draft end to end with sidebar
+  TOC, hidden-draft note, source links, controlled and argon diagnostic tables,
+  display equation, refreshed four-panel figure, reproduction block, Practical
+  Checklist, Current Status, references, and footer present.
+- The refreshed figure is visible in the article body; the fourth panel shows
+  the coordination axis and is not clipped.
+- Mobile capture renders the long page through the mobile layout with title,
+  hidden-draft note, tables, figure, caption, reproduction block, Current
+  Status, references, and footer present. Tables and the figure are dense at
+  mobile width but contained, with no blocking clipping or missing asset found
+  in the inspected snapshot.
 
 Final-release blockers:
 

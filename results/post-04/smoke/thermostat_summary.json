@@ -2,6 +2,7 @@
   "argon_langevin_protocol": {
     "atom_count": 32,
     "case_count": 2,
+    "gpu_blocking_reason": null,
     "max_abs_nve_handoff_drift": 0.00022518180815135605,
     "max_abs_temperature_relative_error": 0.0893589824825648,
     "max_nve_handoff_energy_error": 0.00026933005823165433,
@@ -9,9 +10,12 @@
     "mean_abs_temperature_relative_error": 0.036547183313569875,
     "num_steps": 1200,
     "nve_handoff_steps": 300,
+    "production_gpu_ready": false,
     "protocol_label": "smoke_langevin_nve_handoff",
     "replica_count": 2,
+    "runtime_device": "jax:cpu;devices:cpu",
     "target_device": "cpu",
+    "target_requests_gpu": false,
     "target_temperature": 0.7,
     "unstable_handoff_count": 0
   },

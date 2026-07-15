@@ -248,3 +248,97 @@ Open items:
 - The page remains intentionally hidden from public navigation.
 - Add a larger GPU kUPS production thermostat and NVE-handoff diagnostic before
   treating this post as final.
+
+## Update 2026-07-15: Thermostat Runtime Provenance Gate
+
+Commands added in this pass:
+
+- `uv run ruff check src/kups_md_tutorials/provenance.py src/kups_md_tutorials/error_diagnostics.py src/kups_md_tutorials/thermostats.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py tests/test_provenance.py`
+- `uv run python -m py_compile src/kups_md_tutorials/provenance.py src/kups_md_tutorials/error_diagnostics.py src/kups_md_tutorials/thermostats.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run kups-tutorial run 04 --profile smoke`
+- `uv run kups-tutorial verify 04 --profile smoke`
+- `uv run kups-tutorial run 04 --profile full`
+- `uv run kups-tutorial verify 04 --profile full`
+- `uv run python scripts/generate_post04_figures.py`
+- `uv run jupyter execute notebooks/post-04-thermostats.ipynb --inplace`
+- `uv run pytest tests/test_provenance.py tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q`
+- `python3 scripts/validate_kups_pages.py` in
+  `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `git diff --check` in `../sungsoo-ahn.github.io`
+
+Code and reproducibility review:
+
+- Shared provenance helpers now identify GPU-targeted configurations,
+  GPU/non-GPU runtime strings, and the exact fallback blocking reason.
+- `ArgonThermostatProtocolSummary` now records `runtime_device`,
+  `target_requests_gpu`, `production_gpu_ready`, and `gpu_blocking_reason`.
+- Post 04 verification now requires runtime-device provenance and requires a
+  blocking reason whenever a GPU-targeted argon thermostat protocol falls back
+  from GPU execution.
+- The full profile still targets `cuda_or_cpu_fallback`, but the generated
+  artifact records `runtime_device = jax:cpu;devices:cpu`,
+  `production_gpu_ready = false`, and the blocking reason `target device
+  requests CUDA/GPU, but generated artifact runtime was
+  jax:cpu;devices:cpu`.
+- The notebook now prints target device, runtime device, production GPU
+  readiness, and GPU blocking reason next to the loaded full-profile summary.
+
+Scientific review:
+
+- The numerical thermostat and handoff metrics are unchanged by the provenance
+  schema change. The full profile still reports 256 atoms, 3 replicas, maximum
+  absolute kinetic-temperature relative error `5.86e-2`, maximum absolute NVE
+  handoff normalized drift `1.14e-5`, maximum NVE handoff relative energy
+  error `5.29e-5`, and zero unstable handoff runs.
+- The new fields prevent the argon handoff panel from being mistaken for a
+  completed GPU production thermostat benchmark. The current artifact is a
+  CPU-fallback production-path diagnostic with explicit evidence for why the
+  final GPU blocker remains.
+- Local execution again reported that an NVIDIA GPU may be present, but a
+  CUDA-enabled `jaxlib` is not installed, so JAX/kUPS fell back to CPU.
+
+Figure feedback:
+
+- Full-profile figure snapshot inspected:
+  `snapshots/post-04/thermostat_diagnostics_full_snapshot.png`
+  (`1728 x 1120`).
+- Smoke-profile figure snapshot inspected:
+  `snapshots/post-04/thermostat_diagnostics_snapshot.png`
+  (`1728 x 1120`).
+- Intended visual claim: the fourth panel should show a many-body
+  thermostat-to-NVE handoff drift diagnostic while making clear that the
+  artifact is CPU fallback, not a completed GPU production run.
+- Full-profile feedback: the handoff annotation now includes `runtime: CPU
+  fallback` below the 256-atom/3-replica/NVE-step text. The annotation remains
+  in the upper-left, does not cover the drift bars or uncertainty bars, and
+  the log-scale tick labels remain readable.
+- Smoke-profile feedback: the same runtime label appears for the 32-atom,
+  2-replica handoff panel. The annotation is contained, and the two smoke bars
+  and uncertainty bars remain visible.
+- Revision decision: no additional figure edit was needed after adding the
+  runtime label and inspecting both snapshots.
+
+Website review status:
+
+- Pending in this pass: commit the tutorial provenance update, re-export the
+  hidden website assets so the manifest points at that commit, deploy the
+  hidden page, capture rendered desktop/mobile snapshots, and record page
+  feedback.
+
+Blocking items for current hidden draft:
+
+- None. The hidden draft explicitly states the CPU-fallback status.
+
+Non-blocking items accepted until final article pass:
+
+- Mobile figure/table density remains accepted for the hidden draft.
+- The reduced-unit LJ thermostat handoff protocol remains a teaching
+  diagnostic rather than a final GPU production study.
+
+Final-release blockers:
+
+- Run and review the real CUDA/GPU kUPS production thermostat and NVE-handoff
+  diagnostic before public indexing.
+- Re-run rendered desktop/mobile snapshots after the production GPU thermostat
+  diagnostic or any public-indexing change.

@@ -11,7 +11,13 @@ import numpy as np
 
 from kups_md_tutorials.config import ThermostatCase, ThermostatTutorialSpec
 from kups_md_tutorials.error_diagnostics import _lennard_jones_forces
-from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.provenance import (
+    gpu_blocking_reason,
+    provenance,
+    runtime_device,
+    runtime_is_gpu,
+    target_requests_gpu,
+)
 from kups_md_tutorials.systems import argon_fcc
 
 @dataclass(frozen=True)
@@ -72,6 +78,10 @@ class ArgonThermostatProtocolSummary:
 
     protocol_label: str
     target_device: str
+    runtime_device: str
+    target_requests_gpu: bool
+    production_gpu_ready: bool
+    gpu_blocking_reason: str | None
     replica_count: int
     case_count: int
     atom_count: int
@@ -303,9 +313,19 @@ def summarize_argon_langevin_protocol(
     if spec.argon_langevin is None or not runs:
         return None
     argon = spec.argon_langevin
+    runtime = runtime_device()
+    requests_gpu = target_requests_gpu(argon.target_device)
+    production_gpu_ready = requests_gpu and runtime_is_gpu(runtime)
+    blocking_reason = None
+    if requests_gpu and not production_gpu_ready:
+        blocking_reason = gpu_blocking_reason(argon.target_device, runtime)
     return ArgonThermostatProtocolSummary(
         protocol_label=argon.protocol_label,
         target_device=argon.target_device,
+        runtime_device=runtime,
+        target_requests_gpu=requests_gpu,
+        production_gpu_ready=production_gpu_ready,
+        gpu_blocking_reason=blocking_reason,
         replica_count=argon.replica_count,
         case_count=len(argon.cases),
         atom_count=runs[0].atom_count,

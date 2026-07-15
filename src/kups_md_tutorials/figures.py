@@ -1102,12 +1102,14 @@ def _draw_post04_figure(
         flat_axes[3].set_xticklabels([f"gamma={gamma:g}" for gamma in gammas], fontsize=8)
         protocol = summary.get("argon_langevin_protocol") or {}
         if protocol:
+            runtime_label = "GPU" if protocol.get("production_gpu_ready") else "CPU fallback"
             flat_axes[3].text(
                 0.03,
                 0.95,
                 f"{protocol['atom_count']} Ar atoms\n"
                 f"{protocol['replica_count']} replicas\n"
-                f"NVE steps {protocol['nve_handoff_steps']}",
+                f"NVE steps {protocol['nve_handoff_steps']}\n"
+                f"runtime: {runtime_label}",
                 transform=flat_axes[3].transAxes,
                 va="top",
                 ha="left",

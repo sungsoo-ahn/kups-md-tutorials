@@ -378,6 +378,16 @@ def _verify_post04(post: str, profile: str, output_root: Path) -> None:
         if summary.argon_langevin_protocol.replica_count != spec.argon_langevin.replica_count:
             msg = "argon thermostat protocol replica count does not match config"
             raise ValueError(msg)
+        if not summary.argon_langevin_protocol.runtime_device:
+            msg = "argon thermostat protocol is missing runtime-device provenance"
+            raise ValueError(msg)
+        if (
+            summary.argon_langevin_protocol.target_requests_gpu
+            and not summary.argon_langevin_protocol.production_gpu_ready
+            and not summary.argon_langevin_protocol.gpu_blocking_reason
+        ):
+            msg = "argon thermostat GPU-targeted fallback must record a blocking reason"
+            raise ValueError(msg)
         if min(run.samples for run in summary.argon_langevin_runs) <= 0:
             msg = "argon thermostat summary contains no samples"
             raise ValueError(msg)

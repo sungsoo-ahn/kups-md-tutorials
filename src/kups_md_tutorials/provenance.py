@@ -64,6 +64,31 @@ def runtime_device() -> str:
     return f"jax:{backend};devices:{devices}"
 
 
+def target_requests_gpu(target_device: str) -> bool:
+    """Return whether a configured target device requests GPU execution."""
+
+    target = target_device.lower()
+    return "cuda" in target or "gpu" in target
+
+
+def runtime_is_gpu(runtime: str) -> bool:
+    """Return whether a compact runtime-device string indicates GPU execution."""
+
+    lowered = runtime.lower()
+    return "jax:gpu" in lowered or "devices:gpu" in lowered or "cuda" in lowered
+
+
+def gpu_blocking_reason(target_device: str, runtime: str) -> str | None:
+    """Return a blocking reason when a GPU-targeted artifact ran on non-GPU."""
+
+    if target_requests_gpu(target_device) and not runtime_is_gpu(runtime):
+        return (
+            "target device requests CUDA/GPU, but generated artifact runtime "
+            f"was {runtime}"
+        )
+    return None
+
+
 def precision_policy() -> str:
     """Return the active global precision policy relevant to JAX/kUPS runs."""
 

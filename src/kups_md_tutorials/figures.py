@@ -238,14 +238,24 @@ def generate_post07_figures(
     rdf_samples = _read_post07_samples(result_dir / "rdf_samples.csv")
     vacf_samples = _read_post07_samples(result_dir / "vacf_samples.csv")
     argon_rdf_path = result_dir / "argon_trajectory_rdf_samples.csv"
+    argon_vacf_path = result_dir / "argon_trajectory_vacf_samples.csv"
     argon_rdf_samples = (
         _read_post07_samples(argon_rdf_path) if argon_rdf_path.exists() else None
+    )
+    argon_vacf_samples = (
+        _read_post07_samples(argon_vacf_path) if argon_vacf_path.exists() else None
     )
 
     with rc_context({"svg.hashsalt": "kups-md-tutorials-post-07"}):
         fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.2), constrained_layout=True)
         _draw_post07_figure(
-            fig, axes.ravel(), summary, rdf_samples, vacf_samples, argon_rdf_samples
+            fig,
+            axes.ravel(),
+            summary,
+            rdf_samples,
+            vacf_samples,
+            argon_rdf_samples,
+            argon_vacf_samples,
         )
 
         svg_path = figure_dir / f"{name}.svg"
@@ -1465,6 +1475,7 @@ def _draw_post07_figure(
     rdf_samples: dict[str, np.ndarray],
     vacf_samples: dict[str, np.ndarray],
     argon_rdf_samples: dict[str, np.ndarray] | None,
+    argon_vacf_samples: dict[str, np.ndarray] | None,
 ) -> None:
     fig.patch.set_facecolor("white")
     systems = sorted(summary["systems"], key=lambda system: system["atom_count"])
@@ -1510,10 +1521,33 @@ def _draw_post07_figure(
         vacf_samples["normalized_vacf"],
         color="#2f6f9f",
         linewidth=1.5,
+        label="controlled VACF",
     )
+    if argon_vacf_samples is not None:
+        argon_lag = argon_vacf_samples["lag"]
+        argon_vacf = argon_vacf_samples["normalized_vacf"]
+        argon_vacf_std = argon_vacf_samples.get("vacf_replica_std")
+        if argon_vacf_std is not None:
+            axes[2].fill_between(
+                argon_lag,
+                argon_vacf - argon_vacf_std,
+                argon_vacf + argon_vacf_std,
+                color="#c75c3d",
+                alpha=0.16,
+                linewidth=0,
+                label="argon rep std",
+            )
+        axes[2].plot(
+            argon_lag,
+            argon_vacf,
+            color="#c75c3d",
+            linewidth=1.2,
+            label="argon VACF",
+        )
     axes[2].set_title("Time correlation is an observable")
     axes[2].set_xlabel("lag")
     axes[2].set_ylabel("normalized VACF")
+    axes[2].legend(frameon=False, fontsize=8)
     axes[2].text(
         0.03,
         0.95,

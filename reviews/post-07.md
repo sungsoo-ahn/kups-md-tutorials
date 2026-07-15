@@ -298,3 +298,96 @@ Open items:
   treating this post as final.
 - Re-run the page snapshot workflow again after the final
   production-observable figures and citations are added.
+
+## Update 2026-07-15: Compact VACF Replica Diagnostic
+
+Commands run for this update:
+
+- `uv run ruff check src/kups_md_tutorials/observables.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run python -m py_compile src/kups_md_tutorials/observables.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run kups-tutorial run 07 --profile smoke`
+- `uv run kups-tutorial verify 07 --profile smoke`
+- `uv run kups-tutorial run 07 --profile full`
+- `uv run kups-tutorial verify 07 --profile full`
+- `uv run python scripts/generate_post07_figures.py`
+- `uv run jupyter execute notebooks/post-07-observables.ipynb --inplace`
+- First `uv run pytest tests/test_config.py tests/test_figures.py -q` failed
+  because Post 08 still unpacked the shared Post 07 argon trajectory
+  summarizer as a four-return-value helper.
+- After updating the Post 08 caller, `uv run ruff check src/kups_md_tutorials/observables.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py src/kups_md_tutorials/free_energies.py tests/test_config.py` passed.
+- After updating the Post 08 caller, `uv run pytest tests/test_config.py tests/test_figures.py -q` passed.
+- `uv run kups-tutorial verify-artifacts`
+- `uv run kups-tutorial verify-reviews`
+- `git diff --check`
+
+Code and reproducibility changes:
+
+- Added compact argon VACF replica statistics to
+  `ArgonTrajectoryObservableSummary`.
+- Added `vacf_replica_std` to
+  `argon_trajectory_vacf_samples.csv`, preserving the existing `lag` and
+  `normalized_vacf` columns.
+- Updated the Post 07 verifier to reject missing or zero-valued compact
+  trajectory VACF replica diagnostics.
+- Preserved Post 08 compatibility by updating its shared argon trajectory
+  summarizer call to ignore the new VACF-replica curve.
+- Updated the Post 07 figure so the time-correlation panel overlays the
+  controlled VACF, compact argon VACF, and the compact argon replica standard
+  deviation band.
+- Refreshed the hidden website draft to state the VACF replica uncertainty
+  evidence and to keep production GPU observable diagnostics as the remaining
+  final-release blocker.
+
+Full-profile compact trajectory metrics:
+
+- `vacf_normalized_integral = 0.018046003263717525`
+- `vacf_integral_replica_standard_error = 0.01205097253796811`
+- `vacf_integral_replica_min = -0.016547857491124418`
+- `vacf_integral_replica_max = 0.020984735725791293`
+- `mean_vacf_replica_std = 0.00501188264309433`
+- `max_vacf_replica_std = 0.019083293100295495`
+- `vacf_first_zero_lag = 4`
+- `vacf_lag1_autocorrelation = 0.7997626737115738`
+
+Figure feedback:
+
+- Reviewed
+  `snapshots/post-07/observable_diagnostics_full_snapshot.png`
+  (`1728 x 1152`).
+- Reviewed
+  `snapshots/post-07/observable_diagnostics_snapshot.png`
+  (`1728 x 1152`).
+- Visual claim checked: the time-correlation panel should show that VACF is a
+  lagged observable and that the compact trajectory tail has replica
+  uncertainty rather than a precise transport interpretation.
+- Full-profile snapshot: the new compact argon VACF line and pale replica
+  standard-deviation band are visible, the controlled VACF remains legible, the
+  legend fits in the panel, and the existing RDF/coordination panels are not
+  clipped.
+- Smoke-profile snapshot: the shorter compact trajectory has a wider VACF
+  replica band, but the zero line, lag axis, legend, and RDF panel remain
+  readable. No revision was needed after inspection.
+
+Review decisions:
+
+- The compact VACF replica diagnostic is accepted for the hidden draft state.
+- The diagnostic strengthens the physical-observable wiring check, but it does
+  not replace a larger GPU kUPS production trajectory with physical units,
+  finite-size checks, tail treatment, and production uncertainty intervals.
+
+Blocking items for the current hidden draft:
+
+- None from this update.
+
+Non-blocking items accepted until the final article pass:
+
+- Mobile title/table/figure density remains a typography-polish item.
+
+Final-release blockers:
+
+- Add larger GPU kUPS trajectory diagnostics for physical observables before
+  treating this post as final.
+- Add final citations for RDF normalization, coordination integrals,
+  finite-size effects, and time-correlation functions.
+- Re-run rendered desktop/mobile snapshots after final production-observable
+  figures, final citations, or any public-indexing change.

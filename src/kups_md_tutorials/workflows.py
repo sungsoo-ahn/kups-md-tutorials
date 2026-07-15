@@ -631,6 +631,12 @@ def _verify_post07(post: str, profile: str, output_root: Path) -> None:
         if summary.argon_trajectory.max_rdf_replica_std <= 0.0:
             msg = "argon trajectory RDF replica uncertainty should be positive"
             raise ValueError(msg)
+        if summary.argon_trajectory.vacf_integral_replica_standard_error <= 0.0:
+            msg = "argon trajectory VACF integral replica uncertainty should be positive"
+            raise ValueError(msg)
+        if summary.argon_trajectory.max_vacf_replica_std <= 0.0:
+            msg = "argon trajectory VACF replica uncertainty should be positive"
+            raise ValueError(msg)
         if summary.argon_trajectory.vacf_lag1_autocorrelation <= 0.0:
             msg = "argon trajectory VACF lag-1 autocorrelation should be positive"
             raise ValueError(msg)

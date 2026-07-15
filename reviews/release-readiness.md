@@ -3068,3 +3068,52 @@ Review decision:
   indexing, migrating hidden drafts to final `_posts`, recapturing rendered
   snapshots after final publication changes, and passing strict
   `verify-release-readiness`.
+
+## Update 2026-07-15: GPU Production Status Command
+
+Scope:
+
+- Added `kups-tutorial gpu-status` as a routine operational command for the
+  final production pass.
+- The command scans compact full-profile summaries for nested GPU readiness
+  records and reports the number of records, production-ready records, pending
+  GPU reruns, summary file, blocking reason, and concrete `run`/`verify`
+  command for each pending record.
+- Added `src/kups_md_tutorials/production_status.py` for the reusable
+  collector/formatter and wired it through the CLI.
+- Added README setup documentation so the command is visible next to the
+  release-readiness and review commands.
+
+Current command output reviewed:
+
+- `uv run kups-tutorial gpu-status` reported eight records, zero production
+  ready records, and eight pending GPU reruns.
+- Pending reruns were reported for Post 03 `argon_nve_protocol`, Post 04
+  `argon_langevin_protocol`, Post 05 `argon_npt_dynamics`, Post 06
+  `argon_observable`, Post 07 `argon_trajectory`, Post 08 `argon_rdf_pmf`,
+  Post 10 `pair_distance_umbrella`, and Post 11 `pair_distance_steered`.
+- Each pending record reported the CPU-fallback blocking reason and a concrete
+  command of the form `uv run kups-tutorial run XX --profile full && uv run
+  kups-tutorial verify XX --profile full`.
+
+Commands and evidence:
+
+- `uv run ruff check src/kups_md_tutorials/production_status.py src/kups_md_tutorials/cli.py tests/test_production_status.py`
+  passed.
+- `uv run pytest tests/test_production_status.py -q` passed with 2 tests.
+- `uv run kups-tutorial gpu-status` passed and produced the eight-record
+  pending GPU rerun report described above.
+
+Review decision:
+
+- Accepted for the tooling milestone. The project now has a discoverable
+  command that converts the remaining production GPU blockers into executable
+  rerun commands.
+- No figure or rendered-page snapshot was required because this change only
+  touches CLI tooling, tests, README documentation, and review prose; no
+  figures, notebooks, configs, result files, website pages, CSS-sensitive
+  markup, or publication assets changed.
+- Final release remains blocked on executing and reviewing the real production
+  GPU diagnostics, public indexing, migrating hidden drafts to final `_posts`,
+  recapturing rendered snapshots after final publication changes, and passing
+  strict `verify-release-readiness`.

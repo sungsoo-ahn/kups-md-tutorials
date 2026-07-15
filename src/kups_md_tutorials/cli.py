@@ -5,6 +5,10 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from kups_md_tutorials.artifact_audit import verify_tracked_artifacts
+from kups_md_tutorials.production_status import (
+    collect_gpu_status,
+    format_gpu_status,
+)
 from kups_md_tutorials.release_readiness import (
     verify_release_readiness,
     verify_release_surface,
@@ -71,6 +75,13 @@ def _build_parser() -> argparse.ArgumentParser:
             "failing structural release-readiness regressions"
         ),
     )
+
+    gpu_status = subparsers.add_parser(
+        "gpu-status",
+        help="summarize full-profile production GPU readiness records",
+    )
+    gpu_status.add_argument("--results-root", type=Path, default=Path("results"))
+    gpu_status.add_argument("--profile", choices=("smoke", "full"), default="full")
 
     export_site = subparsers.add_parser(
         "export-site", help="export compact assets for the site"
@@ -152,6 +163,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                 else "Release readiness audit"
             )
             print(f"{label} passed for {result.checked_posts} posts")
+            return 0
+        if args.command == "gpu-status":
+            records = collect_gpu_status(
+                results_root=args.results_root,
+                profile=args.profile,
+            )
+            print(format_gpu_status(records))
             return 0
         if args.command == "export-site":
             posts = None

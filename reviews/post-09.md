@@ -233,13 +233,44 @@ Rendered page feedback:
 - Refreshed mobile capture keeps the four-panel figure inside the article
   column. Long title and tables remain tight but contained, and the bridge
   panel remains legible enough for the hidden draft state.
+- Index-refresh desktop capture from `2026-07-15` renders the current deployed
+  hidden draft end to end after the blog-style hidden index and later post
+  updates. The sidebar table of contents, author note, executable-artifact
+  links, estimator tables, four-panel diagnostic figure, reproduction block,
+  current-status section, references, and footer are present. No blank page,
+  missing figure, clipped table, or broken page chrome was found.
+- Index-refresh mobile capture keeps the title, author note, estimator tables,
+  four-panel figure, reproduction block, current-status section, references,
+  and footer inside the page column. Tables remain dense at mobile width, but
+  text does not overlap and the figure remains legible enough for the hidden
+  draft.
 
 Open items:
 
 - Keep mobile table wrapping as a final typography-polish item after the rest
   of the articles are expanded.
-- Repeat rendered snapshots if publication indexing changes or if a later
-  public article adds a chemistry-specific estimator figure.
+- Repeat rendered snapshots if a later public article adds a
+  chemistry-specific estimator figure or if the page is made public.
+
+Index-refresh snapshot evidence:
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29379023705`.
+- Website commit reviewed:
+  `a755ec8f3a2f2d3cf48081e9bd48f4b9c178c588`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post09-index-refresh-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post09-index-refresh-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`; both
+  returned HTTP 200 with page title
+  `What Do Free-Energy Estimators Assume? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post09-index-refresh-snapshots/post-09-desktop.png` and
+  `/tmp/kups-post09-index-refresh-snapshots/post-09-mobile.png`.
 
 ## Prose And Style Review
 
@@ -260,8 +291,10 @@ Blocking items for the current hidden draft:
 Non-blocking items accepted until the final article pass:
 
 - The page remains hidden and explicitly non-final.
+- If the page is made public or a later chemistry-specific estimator figure is
+  added, rerun desktop/mobile snapshots and update this review before final
+  indexing.
 
 Final-release blockers:
 
-- Re-run rendered desktop/mobile snapshots after publication indexing changes
-  or any later chemistry-specific estimator figure additions.
+- None.

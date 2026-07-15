@@ -1372,3 +1372,57 @@ Revision decisions:
   production run before public indexing.
 - Re-run rendered snapshots after final production diagnostics or any
   public-indexing change.
+
+## Post 09 Index-Refresh Snapshot Review
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29379023705`.
+- Website commit reviewed:
+  `a755ec8f3a2f2d3cf48081e9bd48f4b9c178c588`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post09-index-refresh-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post09-index-refresh-snapshots/manifest.json`.
+- Capture scope: post 09 after the hidden series index was reshaped to match
+  the blog listing style and after later hidden-page updates changed deployed
+  site state.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Do Free-Energy Estimators Assume? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post09-index-refresh-snapshots/post-09-desktop.png`
+- `/tmp/kups-post09-index-refresh-snapshots/post-09-mobile.png`
+
+Feedback:
+
+- Desktop capture renders the hidden post 09 draft end to end with sidebar
+  table of contents, author note, executable-artifact links, estimator tables,
+  four-panel diagnostic figure, reproduction block, Current Status,
+  references, and footer present.
+- The diagnostic figure remains inside the article column and its four panels
+  are still readable. No missing figure, blank page, clipped table, or broken
+  page chrome was found.
+- Mobile capture keeps the title, author note, estimator tables, four-panel
+  figure, code block, Current Status, references, and footer contained. Tables
+  are dense but do not overlap neighboring content.
+- The page remains hidden from public navigation and direct-link reachable.
+
+Revision decisions:
+
+- No blocking layout issue was found for the post 09 hidden draft after the
+  indexing/page-state refresh.
+- The previous final-release item asking for rendered snapshots after
+  publication-index changes is resolved for this deployed hidden state.
+- Keep mobile table density as a final typography-polish item.
+- Re-run rendered snapshots if a chemistry-specific estimator figure is added
+  or if the page is made public.

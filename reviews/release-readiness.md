@@ -2840,6 +2840,85 @@ Review decision:
   after final publication changes, and passing strict
   `verify-release-readiness`.
 
+## Update 2026-07-15: Repeated Citation Anchor Gate
+
+Scope:
+
+- Tightened the site-aware release-readiness citation audit so every in-text
+  link to `#ref-*` must have a nearby `cite-*` anchor, not only at the first
+  occurrence of a citation key.
+- Added regression coverage with a synthetic page that repeats a reference link
+  without a local `cite-*` anchor and confirms the audit reports it.
+- The new gate found real hidden-page defects in Post 10 and Post 12:
+  repeated Kästner, Morrow, and Batatia citations linked to reference entries
+  without local repeated-citation anchors.
+- Fixed the website hidden pages at commit
+  `42407745bd3180a8e1f11b5db86898fe40bb1f54` by adding
+  `cite-kaestner2011b`, `cite-morrow2023b`, and `cite-batatia2025b` anchors
+  plus matching reverse backlinks in the relevant reference entries.
+- Updated `reviews/website-build.json` to the successful website deploy run
+  `29442619682` for commit `4240774`.
+
+Commands and workflow evidence:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 42 tests.
+- Before the website fixes,
+  `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  failed on the three repeated-citation anchor defects listed above.
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_blog.py` passed
+  with the existing unused-image warnings, `python3 scripts/validate_kups_pages.py`
+  passed, and `git diff --check` passed.
+- Website deploy run `29442619682` passed `Validate blog posts`, `Validate
+  hidden kUPS pages`, `Build site`, and `Deploy to GitHub Pages`.
+- Local snapshot capture failed because Playwright could not launch Chromium
+  without missing Linux browser libraries; the required
+  `sudo npx playwright install-deps` command remains unavailable on this host.
+- Snapshot workflow run `29442820659` passed and uploaded artifact
+  `kups-md-page-snapshots`.
+- Downloaded snapshot review copy:
+  `/tmp/kups-citation-anchor-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-citation-anchor-snapshots/manifest.json`.
+- Live cache-busted checks with `?v=4240774` confirmed the new citation
+  anchors are deployed and `/` plus `/blog/` still do not expose the kUPS
+  pages.
+
+Rendered-page review:
+
+- `/tmp/kups-citation-anchor-snapshots/post-10-desktop.png`
+  (`1440 x 14204`) inspected.
+- `/tmp/kups-citation-anchor-snapshots/post-10-mobile.png`
+  (`498 x 22141`) inspected.
+- `/tmp/kups-citation-anchor-snapshots/post-12-desktop.png`
+  (`1440 x 12703`) inspected.
+- `/tmp/kups-citation-anchor-snapshots/post-12-mobile.png`
+  (`555 x 19864`) inspected.
+- Post 10 desktop/mobile feedback: the repeated Kästner citation anchor and
+  second reference backlink render without visible clipping, overlap, reference
+  list overflow, or broken page chrome. The tables remain dense but contained.
+- Post 12 desktop/mobile feedback: the repeated Morrow/Batatia anchors and
+  second backlinks render without visible clipping or reference-list overflow.
+  The long title, tables, figure/caption, code block, Current Status, and
+  footer remain contained.
+
+Figure review:
+
+- No figure assets, figure captions, figure-generation code, notebooks,
+  configs, or result files changed, so no figure snapshot was required.
+
+Review decision:
+
+- Accepted for the repeated citation-anchor milestone after focused lint,
+  release-readiness tests, website validators, successful deploy, rendered
+  desktop/mobile snapshot inspection for the changed pages, and live hidden/
+  public exposure checks.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after final publication changes, and passing strict
+  `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

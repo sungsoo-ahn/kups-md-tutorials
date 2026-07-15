@@ -1158,6 +1158,38 @@ def test_release_readiness_reports_missing_reference_backlink(tmp_path: Path) ->
     )
 
 
+def test_release_readiness_reports_ref_link_without_cite_anchor(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = _site_post_page_path(tmp_path / "site", "05")
+    text = page.read_text(encoding="utf-8")
+    text = text.replace(
+        "sample0",
+        "sample0 and a repeated [Example 05](#ref-example05) citation without a cite anchor",
+        1,
+    )
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "text citation link to #ref-example05 is missing a nearby cite-* anchor"
+        in violation
+        for violation in result.violations
+    )
+
+
 def test_release_readiness_reports_site_figure_violations(tmp_path: Path) -> None:
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)

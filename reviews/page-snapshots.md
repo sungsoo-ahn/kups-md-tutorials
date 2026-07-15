@@ -3726,3 +3726,75 @@ Revision decisions:
 - Accepted for hidden drafts after the blog-style post-layout refresh.
 - No figure revision or figure snapshot was required because figure assets,
   figure captions, notebooks, configs, and result files were unchanged.
+
+## Post 10/12 Citation-Anchor Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website deploy workflow: `Deploy site`.
+- Successful deploy run: `29442619682`.
+- Website commit reviewed: `42407745bd3180a8e1f11b5db86898fe40bb1f54`.
+- Snapshot workflow: `Capture kUPS snapshots`.
+- Successful snapshot run: `29442820659`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-citation-anchor-snapshots/`.
+- Manifest reviewed: `/tmp/kups-citation-anchor-snapshots/manifest.json`.
+- Capture scope: hidden Posts 10 and 12 after adding repeated-citation
+  `cite-*` anchors and matching reference backlinks.
+
+Commands and checks:
+
+- Local snapshot attempt:
+  `node scripts/capture_kups_snapshots.js --posts 10,12 --output-dir /tmp/kups-citation-snapshots --base-url https://sungsoo-ahn.github.io`
+  failed because Playwright could not launch Chromium without missing Linux
+  browser libraries; the suggested `sudo npx playwright install-deps` remains
+  unavailable on this host.
+- GitHub deploy run `29442619682` passed `Validate blog posts`, `Validate
+  hidden kUPS pages`, `Build site`, and `Deploy to GitHub Pages`.
+- Snapshot workflow run `29442820659` captured desktop and mobile screenshots
+  for Posts 10 and 12.
+- Manifest coverage confirms HTTP 200 for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/`
+  and
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/`.
+- Live cache-busted checks with `?v=4240774` confirmed the new
+  `cite-kaestner2011b`, `cite-morrow2023b`, and `cite-batatia2025b` anchors
+  are deployed.
+- Live homepage and `/blog/` checks with `?v=4240774` found no
+  `kups-md-tutorials`, `post-10-umbrella`, or `post-12-mlip` links.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-citation-anchor-snapshots/post-10-desktop.png`
+  (`1440 x 14204`)
+- `/tmp/kups-citation-anchor-snapshots/post-10-mobile.png`
+  (`498 x 22141`)
+- `/tmp/kups-citation-anchor-snapshots/post-12-desktop.png`
+  (`1440 x 12703`)
+- `/tmp/kups-citation-anchor-snapshots/post-12-mobile.png`
+  (`555 x 19864`)
+
+Feedback:
+
+- Post 10 desktop: the page renders end to end with blog-style title block,
+  source links, diagnostic tables, six-panel figure, reproduction block,
+  Current Status, references, and footer present. The added repeated Kästner
+  citation anchor and second reference backlink do not create visible clipping,
+  overlap, or broken page chrome.
+- Post 10 mobile: the long page remains contained. Dense tables are tight but
+  readable, the figure and caption stay within the viewport, the code block is
+  contained, and the reference list/backlink row does not overflow.
+- Post 12 desktop: the page renders end to end with source links, MLIP
+  diagnostic tables, figure, production-readiness table, reproduction block,
+  Current Status, references, and footer present. The repeated Morrow and
+  Batatia citation anchors and second backlinks do not create visible clipping
+  or layout regression.
+- Post 12 mobile: the long title wraps but remains contained. Tables and code
+  block fit within the article width, the figure/caption render normally, and
+  the repeated-reference backlinks stay within the reference list.
+
+Revision decisions:
+
+- Accepted for hidden drafts after the citation-anchor refresh.
+- No figure revision or figure snapshot was required because figure assets,
+  figure captions, notebooks, configs, and result files were unchanged.
+- The pages remain hidden from public navigation and direct-link reachable.

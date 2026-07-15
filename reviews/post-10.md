@@ -620,3 +620,46 @@ Open items:
   umbrella windows, model checks, and final production uncertainty intervals if
   public claims are added; re-run rendered desktop/mobile snapshots after any
   final production MD, figure, or public-indexing change.
+
+## Update 2026-07-15: Repeated Citation Anchor Refresh
+
+Scope:
+
+- Updated the hidden website page at website commit `4240774` so the repeated
+  Kästner umbrella-sampling citation has its own `cite-kaestner2011b` text
+  anchor and a matching second reverse backlink in the reference entry.
+- No tutorial code, configs, notebooks, result files, figures, or local figure
+  snapshots changed in this pass.
+
+Validation and rendered-page review:
+
+- Website deploy run `29442619682` passed `Validate blog posts`, `Validate
+  hidden kUPS pages`, `Build site`, and `Deploy to GitHub Pages`.
+- Snapshot workflow run `29442820659` captured the changed hidden page.
+- Manifest reviewed:
+  `/tmp/kups-citation-anchor-snapshots/manifest.json`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-citation-anchor-snapshots/post-10-desktop.png`
+  (`1440 x 14204`) and
+  `/tmp/kups-citation-anchor-snapshots/post-10-mobile.png`
+  (`498 x 22141`).
+- Desktop feedback: the page renders end to end with blog-style title block,
+  source links, diagnostic tables, six-panel figure, reproduction block,
+  Current Status, references, and footer present. The added repeated citation
+  anchor and second backlink do not cause visible clipping, overlap, or broken
+  page chrome.
+- Mobile feedback: tables are dense but contained, the figure/caption and code
+  block remain within the viewport, and the reference list/backlink row does
+  not overflow.
+- Live cache-busted checks with `?v=4240774` confirmed `cite-kaestner2011b`
+  is deployed, while `/` and `/blog/` still do not expose kUPS links.
+
+Review decision:
+
+- Accepted for the hidden draft after citation-anchor validation and rendered
+  desktop/mobile snapshot review.
+- No figure snapshot was required because no figure asset, caption, notebook,
+  config, or result file changed.
+- Final-release blockers remain unchanged: production atomistic umbrella
+  context if public claims are added, and rendered snapshot recapture after any
+  final production or public-indexing change.

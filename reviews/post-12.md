@@ -497,3 +497,48 @@ Open items:
   production diagnostics, regenerated production figure if the numerical
   evidence changes, and refreshed rendered snapshots after final production
   diagnostics or any public-indexing change.
+
+## Update 2026-07-15: Repeated Citation Anchor Refresh
+
+Scope:
+
+- Updated the hidden website page at website commit `4240774` so repeated
+  Morrow and Batatia citations in the artifact-provenance section have local
+  `cite-morrow2023b` and `cite-batatia2025b` anchors plus matching second
+  reverse backlinks in the reference entries.
+- No tutorial code, configs, notebooks, result files, figures, or local figure
+  snapshots changed in this pass.
+
+Validation and rendered-page review:
+
+- Website deploy run `29442619682` passed `Validate blog posts`, `Validate
+  hidden kUPS pages`, `Build site`, and `Deploy to GitHub Pages`.
+- Snapshot workflow run `29442820659` captured the changed hidden page.
+- Manifest reviewed:
+  `/tmp/kups-citation-anchor-snapshots/manifest.json`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-citation-anchor-snapshots/post-12-desktop.png`
+  (`1440 x 12703`) and
+  `/tmp/kups-citation-anchor-snapshots/post-12-mobile.png`
+  (`555 x 19864`).
+- Desktop feedback: the source links, MLIP diagnostic tables, figure,
+  production-readiness table, reproduction block, Current Status, references,
+  and footer render without visible clipping or broken layout. The repeated
+  citation anchors and second backlinks do not disturb the reference list.
+- Mobile feedback: the long title wraps but remains contained. Tables and code
+  block fit within the article width, the figure/caption render normally, and
+  the repeated-reference backlinks stay within the reference list.
+- Live cache-busted checks with `?v=4240774` confirmed `cite-morrow2023b` and
+  `cite-batatia2025b` are deployed, while `/` and `/blog/` still do not expose
+  kUPS links.
+
+Review decision:
+
+- Accepted for the hidden draft after citation-anchor validation and rendered
+  desktop/mobile snapshot review.
+- No figure snapshot was required because no figure asset, caption, notebook,
+  config, or result file changed.
+- Final-release blockers remain unchanged: the real MACE/fcc-Al GPU
+  production run, regenerated production diagnostics/figure if the evidence
+  changes, and rendered snapshot recapture after final production or
+  public-indexing changes.

@@ -1564,7 +1564,10 @@ def _check_site_references(
         violations.append(f"{page_path}: missing ref-* reference anchors")
 
     ref_keys = {ref_id.removeprefix("ref-") for ref_id in ref_ids}
-    ref_targets = set(re.findall(r'(?:href=["\']#ref-|]\(#ref-)([A-Za-z0-9_-]+)', body))
+    ref_target_matches = list(
+        re.finditer(r'(?:href=["\']#ref-|]\(#ref-)([A-Za-z0-9_-]+)', body)
+    )
+    ref_targets = {match.group(1) for match in ref_target_matches}
     cite_backlinks = set(re.findall(r'href=["\']#(cite-[A-Za-z0-9_-]+)', body))
 
     cite_to_ref: dict[str, str | None] = {}
@@ -1593,6 +1596,26 @@ def _check_site_references(
             violations.append(
                 f"{page_path}: {ref_id} missing reverse backlink(s) to "
                 + ", ".join(missing_backlinks)
+            )
+
+    citation_anchor_positions = {
+        match.group(1): match.start()
+        for match in re.finditer(r'id=["\'](cite-[A-Za-z0-9_-]+)["\']', body)
+    }
+    for match in ref_target_matches:
+        ref_key = match.group(1)
+        nearby_cite_ids = {
+            cite_id
+            for cite_id, position in citation_anchor_positions.items()
+            if abs(position - match.start()) <= 240
+        }
+        if not any(
+            _matching_ref_key(cite_id.removeprefix("cite-"), {ref_key}) == ref_key
+            for cite_id in nearby_cite_ids
+        ):
+            violations.append(
+                f"{page_path}: text citation link to #ref-{ref_key} "
+                "is missing a nearby cite-* anchor"
             )
 
 

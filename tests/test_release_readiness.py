@@ -94,6 +94,7 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
     _write_page_snapshot_ledger(root)
     _write_website_build_ledger(root)
     _write_ci_workflow(root)
+    _write_gitignore_policy(root)
 
 
 def _write_figure_source_ledger(root: Path) -> None:
@@ -275,6 +276,38 @@ def _write_ci_workflow(root: Path) -> None:
         "        run: uv run kups-tutorial verify-notebooks --output-dir /tmp/kups-md-notebooks\n"
         "      - name: Whitespace check\n"
         "        run: git diff --check\n",
+        encoding="utf-8",
+    )
+
+
+def _write_gitignore_policy(root: Path) -> None:
+    (root / ".gitignore").write_text(
+        "# Python-generated files\n"
+        "__pycache__/\n"
+        ".pytest_cache/\n"
+        ".ruff_cache/\n"
+        "\n"
+        "# Virtual environments\n"
+        ".venv\n"
+        "\n"
+        "# Generated simulation and notebook artifacts\n"
+        "runs/\n"
+        "notebook-runs/\n"
+        ".ipynb_checkpoints/\n"
+        "*.h5\n"
+        "*.hdf5\n"
+        "*.traj\n"
+        "*.npy\n"
+        "*.npz\n"
+        "*.pkl\n"
+        "*.pickle\n"
+        "\n"
+        "# Downloaded model caches\n"
+        "models/\n"
+        "*.ckpt\n"
+        "*.model\n"
+        "*.pt\n"
+        "*.pth\n",
         encoding="utf-8",
     )
 
@@ -1109,6 +1142,34 @@ def test_release_readiness_reports_stale_ci_workflow(
     assert any("missing CI smoke reproduction" in violation for violation in result.violations)
     assert any("missing CI release-surface audit" in violation for violation in result.violations)
     assert any("missing CI clean notebook execution" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_stale_gitignore_policy(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    gitignore_path = tmp_path / ".gitignore"
+    text = gitignore_path.read_text(encoding="utf-8")
+    text = text.replace("*.h5\n", "")
+    text = text.replace("*.model\n", "")
+    text = text.replace(".ruff_cache/\n", "")
+    gitignore_path.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("missing artifact ignore pattern *.h5" in violation for violation in result.violations)
+    assert any("missing artifact ignore pattern *.model" in violation for violation in result.violations)
+    assert any("missing artifact ignore pattern .ruff_cache/" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_manifest_provenance_violations(tmp_path: Path) -> None:

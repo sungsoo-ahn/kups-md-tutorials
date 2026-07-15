@@ -1193,6 +1193,65 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Gitignore Artifact Policy Gate
+
+Scope:
+
+- Expanded `.gitignore` so the repository ignores the raw trajectories, model
+  archives, cache directories, and bulky generated arrays that the artifact
+  audit forbids from being tracked.
+- Added a repository-side release-readiness check for `.gitignore` so final
+  publication now requires ignore coverage for Python caches, virtual
+  environments, raw simulation directories, notebook execution outputs,
+  downloaded model caches, HDF5 trajectories, trajectory files, NumPy arrays,
+  pickle files, checkpoint files, model files, and PyTorch model archives.
+- Updated the synthetic release-readiness fixture with the ignore policy and
+  added a regression test that removes representative cache, HDF5, and model
+  archive patterns.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed: 26 tests.
+- `uv run pytest tests/test_release_readiness.py tests/test_artifact_audit.py tests/test_cli.py -q`
+  passed: 45 tests, with the existing ASE/NumPy deprecation warnings from CLI
+  tests.
+- `uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers`
+  passed for 12 posts.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `git diff --check` passed.
+- `uv run kups-tutorial verify-artifacts` passed for 280 tracked files.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers for hidden pages,
+  hidden-draft notes, production GPU diagnostics, and public indexing.
+
+Code and reproducibility review:
+
+- The existing `verify-artifacts` command still audits tracked files directly;
+  this milestone adds the complementary preventative policy so raw outputs and
+  model archives are ignored before they are accidentally added.
+- The release-readiness check derives `.gitignore` from the review-root fixture,
+  so isolated tests audit their own synthetic repository hygiene policy.
+- The actual checkout now ignores the suffixes and directories already treated
+  as forbidden by the tracked-artifact audit.
+
+Figure and rendered-page review:
+
+- No simulation code, configs, numerical outputs, notebooks, figures, website
+  pages, website assets, or CSS-sensitive markup changed in this milestone.
+- Because this pass only changes repository hygiene policy and verifier tests,
+  no new figure snapshot or rendered desktop/mobile page capture was required.
+
+Review decision:
+
+- Accepted for the gitignore artifact-policy release-surface milestone after
+  focused, site-aware, artifact, review, and strict-readiness validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

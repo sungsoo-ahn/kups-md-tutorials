@@ -84,6 +84,7 @@ def audit_release_readiness(
         review_dir.parent / ".github" / "workflows" / "verify.yml",
         violations,
     )
+    _check_gitignore_policy(review_dir.parent / ".gitignore", violations)
     _check_required_artifact_surface(
         config_root=config_root,
         results_root=results_root,
@@ -624,6 +625,41 @@ def _check_ci_workflow(path: Path, violations: list[str]) -> None:
     for fragment, description in required_fragments.items():
         if fragment not in text:
             violations.append(f"{path}: missing CI {description}: {fragment}")
+
+
+def _check_gitignore_policy(path: Path, violations: list[str]) -> None:
+    if not path.exists():
+        violations.append(f"{path}: missing repository artifact ignore policy")
+        return
+
+    patterns = {
+        line.strip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+    required_patterns = {
+        "__pycache__/",
+        ".pytest_cache/",
+        ".ruff_cache/",
+        ".venv",
+        "runs/",
+        "notebook-runs/",
+        ".ipynb_checkpoints/",
+        "models/",
+        "*.ckpt",
+        "*.h5",
+        "*.hdf5",
+        "*.model",
+        "*.npy",
+        "*.npz",
+        "*.pkl",
+        "*.pickle",
+        "*.pt",
+        "*.pth",
+        "*.traj",
+    }
+    for pattern in sorted(required_patterns - patterns):
+        violations.append(f"{path}: missing artifact ignore pattern {pattern}")
 
 
 def _check_post12_model_artifact(

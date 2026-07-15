@@ -5,6 +5,8 @@ build/
 dist/
 wheels/
 *.egg-info
+.pytest_cache/
+.ruff_cache/
 
 # Virtual environments
 .venv
@@ -13,6 +15,17 @@ wheels/
 runs/
 notebook-runs/
 .ipynb_checkpoints/
+*.h5
+*.hdf5
+*.traj
+*.npy
+*.npz
+*.pkl
+*.pickle
 
 # Downloaded model caches
 models/
+*.ckpt
+*.model
+*.pt
+*.pth

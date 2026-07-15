@@ -3194,3 +3194,63 @@ Revision decisions:
 - The Post 08 citation blocker is resolved; remaining final-release blockers
   are larger GPU kUPS RDF-derived PMF diagnostics and new rendered snapshots
   after that production update or any public-indexing change.
+
+## Post 10 Umbrella Protocol Citation Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29408741698`.
+- Website commit reviewed:
+  `2af49ca`.
+- Website deploy run:
+  `29408581997`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post10-protocol-final-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post10-protocol-final-snapshots/manifest.json`.
+- Capture scope: hidden Post 10 page after adding the umbrella-sampling review
+  citation, production-protocol guidance, and Current Status wording that no
+  longer lists the current citation pass as missing.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Does Umbrella Sampling Actually Sample? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post10-protocol-final-snapshots/post-10-desktop.png`
+  (`1440 x 12668`)
+- `/tmp/kups-post10-protocol-final-snapshots/post-10-mobile.png`
+  (`498 x 19670`)
+
+Feedback:
+
+- Desktop capture renders the title, hidden-draft note, source links,
+  diagnostic tables, six-panel umbrella figure, new production-protocol
+  paragraph, practical checklist, reproduction block, updated Current Status,
+  expanded references, and footer without visible clipping or missing assets.
+- Mobile capture keeps the long title, new citation/protocol paragraphs, dense
+  tables, figure and caption, code block, Current Status section, references,
+  and footer contained within the article width. Tables are dense but readable,
+  and no text overlap was found.
+- Live check with cache-buster `?v=2af49ca` confirmed the deployed page
+  contains the new `Kästner` citation, the atomistic umbrella protocol wording,
+  and the updated citation-status language.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-10-umbrella-sampling` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after the citation/protocol refresh.
+- No figure revision was required because figures, figure captions, notebooks,
+  configs, and result files were unchanged.
+- The current hidden-draft Post 10 citation gap is resolved; remaining
+  final-release blockers are production atomistic umbrella context, model
+  checks, production uncertainty intervals if public claims are added, and new
+  rendered snapshots after those final changes or any public-indexing change.

@@ -514,4 +514,109 @@ Open items:
 - Write the final 3,500-10,000-word article prose.
 - Add larger production MD context with real atomistic umbrella windows, model
   checks, and final production uncertainty intervals if public claims are added.
-- Complete the final citation pass before public indexing.
+- Add further citations if the final production article introduces new
+  scientific claims beyond the current controlled umbrella and protocol
+  discussion.
+
+## Update 2026-07-15: Umbrella Protocol Citation Pass
+
+- Website commit reviewed:
+  `2af49ca`.
+- Superseded website commit:
+  `9aea642` was amended before the final snapshot review to correct the
+  Current Status text.
+- Website deploy run:
+  `29408581997`, passed.
+- Superseded deploy run:
+  `29408215551`, passed before the amendment.
+- Final snapshot workflow:
+  `Capture kUPS snapshots`, run `29408741698`, passed.
+- Superseded snapshot workflow:
+  `29408400883`, passed before the amendment.
+- Snapshot artifact: `kups-md-page-snapshots`.
+- Downloaded final review copy:
+  `/tmp/kups-post10-protocol-final-snapshots/`.
+- Citation sources checked:
+  Torrie and Valleau umbrella sampling DOI `10.1016/0021-9991(77)90121-8`,
+  Kumar et al. WHAM DOI `10.1002/jcc.540130812`, Shirts and Chodera MBAR DOI
+  `10.1063/1.2978177`, and Kästner umbrella-sampling review DOI
+  `10.1002/wcms.66`.
+
+Scope:
+
+- No tutorial code, configuration, notebook, generated data, or figure asset
+  changed in this pass.
+- The hidden website page now cites the umbrella-sampling review for the claim
+  that production umbrella calculations must report coordinate choice, window
+  protocol, reconstruction method, and convergence evidence.
+- The production-extension section now states the written sampling-protocol
+  requirements before a real atomistic or MLIP-driven umbrella campaign:
+  coordinate and units, admissible range, pilot-informed windows, starting
+  structures, equilibration/production split, WHAM/MBAR inputs, and revision
+  rules for low-overlap or high-disagreement windows.
+- Current Status now treats the current controlled umbrella/protocol citation
+  pass as complete for the hidden draft, while preserving the requirement for
+  extra citations if final production claims are later added.
+
+Validation:
+
+- `python3 scripts/validate_kups_pages.py` passed in
+  `../sungsoo-ahn.github.io`.
+- `python3 scripts/validate_blog.py` passed in `../sungsoo-ahn.github.io` with
+  pre-existing unused-image warnings.
+- `git diff --check` passed in `../sungsoo-ahn.github.io`.
+- GitHub Pages deploy `29408581997` passed for website commit `2af49ca`.
+- Live check with cache-buster `?v=2af49ca` confirmed the deployed Post 10 page
+  contains `Kästner`, the production protocol paragraph, and the updated
+  Current Status wording about additional citations only if new final
+  production claims are added.
+- Live homepage and `/blog/` checks with cache-buster `?v=2af49ca` found no
+  `kups-md-tutorials` or `post-10-umbrella-sampling` links, so the page remains
+  direct-link only.
+
+Rendered-page review:
+
+- Final snapshot manifest reviewed:
+  `/tmp/kups-post10-protocol-final-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/`;
+  both returned HTTP 200 with title
+  `What Does Umbrella Sampling Actually Sample? | Sungsoo Ahn`.
+- Desktop snapshot inspected:
+  `/tmp/kups-post10-protocol-final-snapshots/post-10-desktop.png` at
+  `1440 x 12668`.
+- Mobile snapshot inspected:
+  `/tmp/kups-post10-protocol-final-snapshots/post-10-mobile.png` at
+  `498 x 19670`.
+- Desktop feedback: the page renders end to end with source links, diagnostic
+  tables, six-panel figure, new production-protocol paragraph, reproduction
+  block, updated Current Status section, expanded references, and footer
+  present. No blank page, broken figure, clipped text, table overflow, or
+  broken page chrome was found in the inspected snapshot.
+- Mobile feedback: the title wraps heavily but stays contained. The new
+  citation/protocol paragraphs, dense tables, figure and caption, code block,
+  Current Status section, references, and footer stay within the article width.
+  Tables remain dense but readable, and no text overlap was found.
+
+Prose and style review:
+
+- The added citation is tied to a concrete production-protocol claim rather
+  than a generic bibliography expansion.
+- The page still uses the blog-native hidden post layout, author-note pattern,
+  shared series metadata, source links, compact code block, and references with
+  `cite-*`/`ref-*` anchors and reverse backlinks.
+- The wording preserves the current draft boundary: the compact pair-distance
+  diagnostic exercises the bookkeeping habits, but it does not replace a real
+  atomistic umbrella campaign with equilibrated windows, model-domain checks,
+  and production uncertainty intervals.
+
+Open items:
+
+- Blocking items for the current hidden draft: none from this citation/protocol
+  pass.
+- Non-blocking items accepted until the final article pass: final long-form
+  prose and any citations needed only for new claims introduced later.
+- Final-release blockers: add larger production MD context with real atomistic
+  umbrella windows, model checks, and final production uncertainty intervals if
+  public claims are added; re-run rendered desktop/mobile snapshots after any
+  final production MD, figure, or public-indexing change.

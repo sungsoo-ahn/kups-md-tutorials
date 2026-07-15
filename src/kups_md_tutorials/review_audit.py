@@ -38,6 +38,7 @@ def audit_reviews(review_dir: Path = Path("reviews")) -> ReviewAuditResult:
         text = review_path.read_text(encoding="utf-8")
         _check_sections(review_path, text, violations)
         _check_required_references(post, review_path, text, violations)
+        _check_rendered_page_snapshot_references(post, review_path, text, violations)
         _check_open_item_language(review_path, text, violations)
         _check_hidden_draft_open_item_split(review_path, text, violations)
     return ReviewAuditResult(
@@ -86,6 +87,21 @@ def _check_required_references(
     for snapshot in snapshot_refs:
         if not Path(snapshot).exists():
             violations.append(f"{path}: referenced snapshot does not exist: {snapshot}")
+
+
+def _check_rendered_page_snapshot_references(
+    post: str,
+    path: Path,
+    text: str,
+    violations: list[str],
+) -> None:
+    required_snapshots = {
+        f"post-{post}-desktop.png": "desktop rendered page snapshot",
+        f"post-{post}-mobile.png": "mobile rendered page snapshot",
+    }
+    for snapshot_name, description in required_snapshots.items():
+        if snapshot_name not in text:
+            violations.append(f"{path}: missing {description}: {snapshot_name}")
 
 
 def _check_open_item_language(path: Path, text: str, violations: list[str]) -> None:

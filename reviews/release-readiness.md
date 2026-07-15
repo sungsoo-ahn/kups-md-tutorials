@@ -2211,6 +2211,54 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Post Review Rendered Snapshot Evidence Gate
+
+Scope:
+
+- Tightened `verify-reviews` so every post-level self-review note must include
+  explicit rendered desktop and mobile snapshot references named
+  `post-XX-desktop.png` and `post-XX-mobile.png`.
+- Added regression coverage for otherwise complete review notes that omit a
+  Post 04 desktop rendered-page snapshot reference and a Post 05 mobile
+  rendered-page snapshot reference.
+- No configs, results, notebooks, figure assets, snapshots, website pages,
+  website assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/review_audit.py tests/test_review_audit.py`
+  passed.
+- `uv run pytest tests/test_review_audit.py -q` passed with 5 tests.
+- `uv run kups-tutorial verify-reviews` passed for all twelve posts.
+
+Code and reproducibility review:
+
+- The previous review audit required broad rendered/snapshot language, but it
+  did not prove the post review note named both desktop and mobile page
+  captures for that specific post.
+- The new check makes rendered page evidence post-specific, matching the PLAN
+  requirement that hidden drafts still have direct-link desktop/mobile page
+  snapshot feedback.
+- Current `reviews/post-01.md` through `reviews/post-12.md` satisfy the new
+  rendered snapshot evidence check.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or
+  CSS-sensitive markup changed, so no new rendered desktop/mobile page
+  snapshots were required. Existing rendered-page evidence remains in
+  `reviews/page-snapshots.md` and the post-specific review notes.
+
+Review decision:
+
+- Accepted for the review-audit tooling milestone after focused lint, focused
+  review-audit tests, and `verify-reviews` against the real review files.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

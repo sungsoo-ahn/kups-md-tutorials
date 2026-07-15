@@ -682,6 +682,7 @@ class ArgonTrajectoryLengthSpec:
     epsilon: float = 1.0
     sigma: float = 1.0
     cutoff: float = 2.5
+    target_device: str = "cpu"
 
     def validate(self) -> None:
         if self.repetitions <= 0:
@@ -737,6 +738,9 @@ class ArgonTrajectoryLengthSpec:
             raise ValueError(msg)
         if self.coordination_cutoff >= self.cutoff:
             msg = "argon trajectory coordination_cutoff must be smaller than cutoff"
+            raise ValueError(msg)
+        if not self.target_device:
+            msg = "argon trajectory target_device must be non-empty"
             raise ValueError(msg)
 
 
@@ -1855,6 +1859,11 @@ def load_trajectory_length_spec(
                 cutoff=float(
                     _expect_mapping(root.get("argon_observable"), "argon_observable").get(
                         "cutoff", 2.5
+                    )
+                ),
+                target_device=str(
+                    _expect_mapping(root.get("argon_observable"), "argon_observable").get(
+                        "target_device", "cpu"
                     )
                 ),
             )

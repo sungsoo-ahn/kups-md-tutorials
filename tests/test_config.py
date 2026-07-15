@@ -96,6 +96,7 @@ def test_load_trajectory_length_spec() -> None:
     assert spec.argon_observable is not None
     assert spec.argon_observable.repetitions == 2
     assert spec.argon_observable.coordination_cutoff == 1.5
+    assert spec.argon_observable.target_device == "cpu"
     assert spec.experiment.replica_count == 4
     assert spec.experiment.checkpoints[-1] == spec.experiment.max_steps
 

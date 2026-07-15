@@ -583,6 +583,16 @@ def _verify_post06(post: str, profile: str, output_root: Path) -> None:
         if not np.isfinite(last.coordination_conservative_ci95_half_width):
             msg = "argon coordination conservative uncertainty is not finite"
             raise ValueError(msg)
+        if not summary.argon_observable.runtime_device:
+            msg = "argon observable summary is missing runtime-device provenance"
+            raise ValueError(msg)
+        if (
+            summary.argon_observable.target_requests_gpu
+            and not summary.argon_observable.production_gpu_ready
+            and not summary.argon_observable.gpu_blocking_reason
+        ):
+            msg = "argon observable GPU-targeted fallback must record a blocking reason"
+            raise ValueError(msg)
 
 
 def _verify_post07(post: str, profile: str, output_root: Path) -> None:

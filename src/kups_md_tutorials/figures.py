@@ -1443,12 +1443,16 @@ def _draw_post06_figure(
         )
         coordination_axis.set_ylabel("coordination", color="#b55339")
         coordination_axis.tick_params(axis="y", labelcolor="#b55339", labelsize=8)
+        runtime_label = (
+            "GPU" if argon_summary.get("production_gpu_ready") else "CPU fallback"
+        )
         axes[3].text(
             0.03,
             0.95,
             f"N = {argon_summary['atom_count']}\n"
             f"replicas = {argon_summary['replica_count']}\n"
-            f"rc = {argon_summary['coordination_cutoff']:.2f}",
+            f"rc = {argon_summary['coordination_cutoff']:.2f}\n"
+            f"runtime: {runtime_label}",
             transform=axes[3].transAxes,
             va="top",
             ha="left",

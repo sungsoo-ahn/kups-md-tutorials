@@ -13,7 +13,13 @@ from kups_md_tutorials.error_diagnostics import (
     _initialized_argon_velocities,
     _lennard_jones_forces,
 )
-from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.provenance import (
+    gpu_blocking_reason,
+    provenance,
+    runtime_device,
+    runtime_is_gpu,
+    target_requests_gpu,
+)
 from kups_md_tutorials.systems import argon_fcc
 
 
@@ -83,6 +89,11 @@ class ArgonObservableSummary:
     replica_count: int
     observable: str
     coordination_cutoff: float
+    target_device: str
+    runtime_device: str
+    target_requests_gpu: bool
+    production_gpu_ready: bool
+    gpu_blocking_reason: str | None
     checkpoints: list[ArgonObservableCheckpointSummary]
 
 
@@ -401,6 +412,9 @@ def run_argon_observable_experiment(
         for replica in range(argon.replica_count)
     ]
     atom_count = len(argon_fcc(argon.repetitions, argon.number_density))
+    runtime = runtime_device()
+    requests_gpu = target_requests_gpu(argon.target_device)
+    production_gpu_ready = requests_gpu and runtime_is_gpu(runtime)
     checkpoints = [
         _argon_observable_checkpoint_summary(
             checkpoint=checkpoint,
@@ -421,6 +435,11 @@ def run_argon_observable_experiment(
             replica_count=argon.replica_count,
             observable="potential_energy_per_atom",
             coordination_cutoff=argon.coordination_cutoff,
+            target_device=argon.target_device,
+            runtime_device=runtime,
+            target_requests_gpu=requests_gpu,
+            production_gpu_ready=production_gpu_ready,
+            gpu_blocking_reason=gpu_blocking_reason(argon.target_device, runtime),
             checkpoints=checkpoints,
         ),
         trajectories,

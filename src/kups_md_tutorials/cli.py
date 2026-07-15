@@ -2,12 +2,14 @@
 
 import argparse
 from collections.abc import Sequence
+import json
 from pathlib import Path
 
 from kups_md_tutorials.artifact_audit import verify_tracked_artifacts
 from kups_md_tutorials.production_status import (
     collect_gpu_status,
     format_gpu_status,
+    gpu_status_json,
 )
 from kups_md_tutorials.release_readiness import (
     verify_release_readiness,
@@ -82,6 +84,12 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     gpu_status.add_argument("--results-root", type=Path, default=Path("results"))
     gpu_status.add_argument("--profile", choices=("smoke", "full"), default="full")
+    gpu_status.add_argument(
+        "--format",
+        choices=("text", "json"),
+        default="text",
+        help="output format",
+    )
 
     export_site = subparsers.add_parser(
         "export-site", help="export compact assets for the site"
@@ -169,7 +177,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 results_root=args.results_root,
                 profile=args.profile,
             )
-            print(format_gpu_status(records))
+            if args.format == "json":
+                print(json.dumps(gpu_status_json(records), indent=2))
+            else:
+                print(format_gpu_status(records))
             return 0
         if args.command == "export-site":
             posts = None

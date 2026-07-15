@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 import json
 
 
@@ -32,6 +33,23 @@ class GpuStatusRecord:
         if self.target_requests_gpu:
             return "gpu-target-cpu-fallback"
         return "not-gpu-targeted"
+
+    def to_json_dict(self) -> dict[str, Any]:
+        return {
+            "post": self.post,
+            "profile": self.profile,
+            "summary_path": self.summary_path.as_posix(),
+            "record_path": self.record_path,
+            "target_requests_gpu": self.target_requests_gpu,
+            "production_gpu_ready": self.production_gpu_ready,
+            "gpu_blocking_reason": self.gpu_blocking_reason,
+            "status": self.status_label,
+            "rerun_command": (
+                self.rerun_command
+                if self.target_requests_gpu and not self.production_gpu_ready
+                else None
+            ),
+        }
 
 
 def collect_gpu_status(
@@ -89,6 +107,23 @@ def format_gpu_status(records: tuple[GpuStatusRecord, ...]) -> str:
         if record.target_requests_gpu and not record.production_gpu_ready:
             lines.append(f"  rerun: {record.rerun_command}")
     return "\n".join(lines)
+
+
+def gpu_status_json(records: tuple[GpuStatusRecord, ...]) -> dict[str, Any]:
+    """Return a machine-readable GPU readiness report."""
+
+    pending = [
+        record
+        for record in records
+        if record.target_requests_gpu and not record.production_gpu_ready
+    ]
+    ready = [record for record in records if record.production_gpu_ready]
+    return {
+        "records": len(records),
+        "production_ready": len(ready),
+        "pending_gpu_reruns": len(pending),
+        "items": [record.to_json_dict() for record in records],
+    }
 
 
 def _collect_gpu_records(

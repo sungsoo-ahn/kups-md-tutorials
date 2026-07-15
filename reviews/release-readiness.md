@@ -3117,3 +3117,53 @@ Review decision:
   GPU diagnostics, public indexing, migrating hidden drafts to final `_posts`,
   recapturing rendered snapshots after final publication changes, and passing
   strict `verify-release-readiness`.
+
+## Update 2026-07-15: Machine-Readable GPU Status
+
+Scope:
+
+- Extended `kups-tutorial gpu-status` with `--format json` so GPU runners and
+  release scripts can consume the pending production rerun list without
+  scraping text.
+- Added `GpuStatusRecord.to_json_dict()` and `gpu_status_json()` to expose
+  record counts, production-ready counts, pending rerun counts, summary paths,
+  record paths, readiness booleans, blocking reasons, status labels, and rerun
+  commands.
+- Updated README documentation to mention the JSON mode.
+
+Current command output reviewed:
+
+- `uv run kups-tutorial gpu-status --format json` returned a JSON object with
+  `records = 8`, `production_ready = 0`, `pending_gpu_reruns = 8`, and eight
+  `items`.
+- The first item records Post 03 `argon_nve_protocol` with summary path
+  `results/post-03/full/error_summary.json`, status
+  `gpu-target-cpu-fallback`, the CPU-fallback blocking reason, and rerun
+  command `uv run kups-tutorial run 03 --profile full && uv run kups-tutorial
+  verify 03 --profile full`.
+- The JSON payload also includes pending rerun entries for Posts 04, 05, 06,
+  07, 08, 10, and 11.
+- `uv run kups-tutorial gpu-status` still returned the human-readable report
+  with eight pending GPU reruns.
+
+Commands and evidence:
+
+- `uv run ruff check src/kups_md_tutorials/production_status.py src/kups_md_tutorials/cli.py tests/test_production_status.py`
+  passed.
+- `uv run pytest tests/test_production_status.py -q` passed with 3 tests.
+- `uv run kups-tutorial gpu-status --format json` passed and produced the
+  eight-item JSON report described above.
+- `uv run kups-tutorial gpu-status` passed and preserved the text report.
+
+Review decision:
+
+- Accepted for the automation milestone. The pending production GPU rerun
+  inventory is now both human-readable and machine-readable.
+- No figure or rendered-page snapshot was required because this change only
+  touches CLI/status tooling, tests, README documentation, and review prose; no
+  figures, notebooks, configs, result files, website pages, CSS-sensitive
+  markup, or publication assets changed.
+- Final release remains blocked on executing and reviewing the real production
+  GPU diagnostics, public indexing, migrating hidden drafts to final `_posts`,
+  recapturing rendered snapshots after final publication changes, and passing
+  strict `verify-release-readiness`.

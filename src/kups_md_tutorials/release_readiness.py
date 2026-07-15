@@ -365,6 +365,23 @@ def _check_figure_source_provenance(
                 if not isinstance(value, str) or not value.strip():
                     violations.append(f"{label} missing {field}")
 
+            generator = entry.get("generator")
+            if isinstance(generator, str) and generator.strip():
+                _check_ledger_relative_file(
+                    label,
+                    repo_root=repo_root,
+                    field="generator",
+                    path_text=generator,
+                    violations=violations,
+                )
+                source_url = entry.get("source_url")
+                expected_source_url = f"internal:{generator}"
+                if source_url != expected_source_url:
+                    violations.append(
+                        f"{label} expected source_url {expected_source_url}, "
+                        f"found {source_url!r}"
+                    )
+
             source_data = entry.get("source_data")
             if not isinstance(source_data, list) or not source_data:
                 violations.append(f"{label} missing source_data")
@@ -382,6 +399,26 @@ def _check_figure_source_provenance(
         rel_path = _relative_to_root_or_posix(figure_path, repo_root)
         if rel_path not in covered_files:
             violations.append(f"{path}: missing source provenance for {rel_path}")
+
+
+def _check_ledger_relative_file(
+    label: str,
+    *,
+    repo_root: Path,
+    field: str,
+    path_text: str,
+    violations: list[str],
+) -> None:
+    ledger_path = Path(path_text)
+    if ledger_path.is_absolute():
+        violations.append(f"{label} {field} should be repository-relative: {path_text}")
+        return
+    resolved_path = repo_root / ledger_path
+    if not _path_is_within(resolved_path, repo_root):
+        violations.append(f"{label} {field} escapes repository root: {path_text}")
+        return
+    if not resolved_path.exists():
+        violations.append(f"{label} {field} does not exist: {path_text}")
 
 
 def _check_notebook_execution_ledger(

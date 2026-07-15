@@ -100,6 +100,7 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
             )
 
     _write_post12_model_metadata(root, placeholder=placeholder)
+    _write_figure_generators(root)
     _write_figure_source_ledger(root)
     _write_notebook_execution_ledger(root)
     _write_page_snapshot_ledger(root)
@@ -141,6 +142,17 @@ def _write_figure_source_ledger(root: Path) -> None:
         json.dumps(ledger, indent=2) + "\n",
         encoding="utf-8",
     )
+
+
+def _write_figure_generators(root: Path) -> None:
+    scripts_dir = root / "scripts"
+    scripts_dir.mkdir(parents=True, exist_ok=True)
+    for post in range(1, 13):
+        post_id = f"{post:02d}"
+        (scripts_dir / f"generate_post{post_id}_figures.py").write_text(
+            f"# synthetic post {post_id} figure generator\n",
+            encoding="utf-8",
+        )
 
 
 def _write_notebook_execution_ledger(root: Path) -> None:
@@ -1038,6 +1050,8 @@ def test_release_readiness_reports_missing_figure_source_provenance(
         "figures/post-08/example_diagnostics_full.png"
     )
     ledger["post-08"][0]["license"] = ""
+    ledger["post-08"][0]["generator"] = "scripts/missing_post08_figures.py"
+    ledger["post-08"][0]["source_url"] = "internal:scripts/other.py"
     ledger_path.write_text(json.dumps(ledger) + "\n", encoding="utf-8")
 
     result = audit_release_readiness(
@@ -1056,6 +1070,8 @@ def test_release_readiness_reports_missing_figure_source_provenance(
         for violation in result.violations
     )
     assert any("post-08 entry 1 missing license" in violation for violation in result.violations)
+    assert any("post-08 entry 1 generator does not exist" in violation for violation in result.violations)
+    assert any("expected source_url internal:scripts/missing_post08_figures.py" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_stale_notebook_execution_ledger(

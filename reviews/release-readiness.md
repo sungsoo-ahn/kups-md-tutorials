@@ -1370,6 +1370,64 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Figure Generator Provenance Gate
+
+Scope:
+
+- Expanded the figure-source release-readiness check so each
+  `reviews/figure-sources.json` entry must point to an existing
+  repository-relative generator script.
+- The gate now rejects absolute or escaping generator paths, missing generator
+  files, and `source_url` values that do not match the expected
+  `internal:<generator>` form for repository-owned generated figures.
+- Updated the synthetic release-readiness fixture to create per-post synthetic
+  figure generator scripts and extended the stale figure-source regression to
+  break Post 08's generator path and internal source URL.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed: 28 tests.
+- `uv run pytest tests/test_release_readiness.py tests/test_cli.py -q` passed:
+  42 tests, with the existing ASE/NumPy deprecation warnings from CLI tests.
+- `uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers`
+  passed for 12 posts.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `git diff --check` passed.
+- `uv run kups-tutorial verify-artifacts` passed for 280 tracked files.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers for hidden pages,
+  hidden-draft notes, production GPU diagnostics, and public indexing.
+
+Code and reproducibility review:
+
+- The previous figure-source gate proved that image files and source data
+  existed, but it did not prove that the named script capable of regenerating
+  the figure was committed.
+- The current checkout already has `scripts/generate_post01_figures.py` through
+  `scripts/generate_post12_figures.py`, and the ledger points to those files.
+- This check directly supports the PLAN requirement to commit figure sources
+  and keep final figures reproducible from committed compact outputs.
+
+Figure and rendered-page review:
+
+- No figure-generation code, figure assets, numerical outputs, notebooks,
+  website pages, website assets, or CSS-sensitive markup changed in this
+  milestone.
+- Because this pass only changes provenance validation and synthetic test
+  fixtures, no new figure snapshot or rendered desktop/mobile page capture was
+  required.
+
+Review decision:
+
+- Accepted for the figure-generator provenance release-surface milestone after
+  focused, site-aware, artifact, review, and strict-readiness validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

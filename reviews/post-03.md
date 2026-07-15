@@ -237,3 +237,95 @@ Open items:
 - The page remains intentionally hidden from public navigation.
 - Add a larger GPU kUPS production NVE diagnostic before treating this post as
   final.
+
+## Update 2026-07-15: NVE Runtime Provenance Gate
+
+Commands added in this pass:
+
+- `uv run ruff check src/kups_md_tutorials/error_diagnostics.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run python -m py_compile src/kups_md_tutorials/error_diagnostics.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run kups-tutorial run 03 --profile smoke`
+- `uv run kups-tutorial verify 03 --profile smoke`
+- `uv run kups-tutorial run 03 --profile full`
+- `uv run kups-tutorial verify 03 --profile full`
+- `uv run python scripts/generate_post03_figures.py`
+- `uv run jupyter execute notebooks/post-03-errors.ipynb --inplace`
+- `uv run kups-tutorial verify-artifacts`
+- `uv run kups-tutorial verify-reviews`
+- `git diff --check`
+- `python3 scripts/validate_kups_pages.py` in
+  `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `git diff --check` in `../sungsoo-ahn.github.io`
+
+Code and reproducibility review:
+
+- `ArgonNveProtocolSummary` now records `runtime_device`,
+  `target_requests_gpu`, `production_gpu_ready`, and `gpu_blocking_reason`.
+- Post 03 verification now requires runtime-device provenance and requires a
+  blocking reason whenever a GPU-targeted protocol falls back from GPU.
+- The full profile still targets `cuda_or_cpu_fallback`, but the generated
+  artifact records `runtime_device = jax:cpu;devices:cpu` and
+  `production_gpu_ready = false`.
+- The recorded blocking reason is: `target device requests CUDA/GPU, but
+  generated artifact runtime was jax:cpu;devices:cpu`.
+- The notebook now prints target device, runtime device, production GPU
+  readiness, and the GPU blocking reason next to the NVE energy-drift metrics.
+
+Scientific review:
+
+- The numerical NVE drift metrics are unchanged by the provenance schema
+  change: the full profile still reports 256 atoms, 3 replicas, maximum
+  relative energy error `2.647e-04`, maximum absolute normalized drift
+  `3.118e-05`, and maximum drift standard error `2.794e-06`.
+- The new fields prevent the full profile from being mistaken for a completed
+  GPU production benchmark. The current artifact is a CPU-fallback
+  production-path diagnostic with explicit evidence for why the final GPU
+  blocker remains.
+- Local runtime inspection also reported that an NVIDIA GPU may be present,
+  but a CUDA-enabled `jaxlib` is not installed, so JAX/kUPS fell back to CPU.
+
+Figure feedback:
+
+- Full-profile figure snapshot inspected:
+  `snapshots/post-03/error_diagnostics_full_snapshot.png`
+  (`1728 x 1120`).
+- Smoke-profile figure snapshot inspected:
+  `snapshots/post-03/error_diagnostics_snapshot.png`
+  (`1728 x 1120`).
+- Intended visual claim: the fourth panel should show a bounded many-body NVE
+  energy-drift diagnostic while making clear that the artifact is CPU fallback,
+  not a completed GPU production run.
+- Full-profile feedback: the NVE legend now includes `runtime: CPU fallback`
+  under the 256-atom/3-replica title. The framed legend stays in the
+  upper-right, does not cover the main interpretation of the drift traces, and
+  the replica bands remain visible.
+- Smoke-profile feedback: the same runtime label appears for the smoke NVE
+  panel and remains contained. The smoke panel is noisier in relative terms,
+  but the legend does not clip or hide the two timestep traces.
+- Revision decision: no additional figure edit was needed after adding the
+  runtime label and inspecting both snapshots.
+
+Website review status:
+
+- Pending in this pass: commit the tutorial provenance update, re-export the
+  hidden website assets so the manifest points at that commit, deploy the
+  hidden page, capture rendered desktop/mobile snapshots, and record page
+  feedback.
+
+Blocking items for current hidden draft:
+
+- None. The hidden draft explicitly states the CPU-fallback status.
+
+Non-blocking items accepted until final article pass:
+
+- Mobile figure/table density remains accepted for the hidden draft.
+- The reduced-unit LJ protocol remains a teaching diagnostic rather than a
+  final GPU production study.
+
+Final-release blockers:
+
+- Run and review the real CUDA/GPU kUPS production NVE diagnostic before
+  public indexing.
+- Re-run rendered desktop/mobile snapshots after the production GPU NVE
+  diagnostic or any public-indexing change.

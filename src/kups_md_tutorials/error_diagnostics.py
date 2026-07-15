@@ -11,7 +11,7 @@ import numpy as np
 
 from kups_md_tutorials.config import ErrorTutorialSpec
 from kups_md_tutorials.integrators import exact_harmonic, harmonic_energy
-from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.provenance import provenance, runtime_device
 from kups_md_tutorials.systems import argon_fcc
 
 
@@ -61,6 +61,10 @@ class ArgonNveProtocolSummary:
 
     protocol_label: str
     target_device: str
+    runtime_device: str
+    target_requests_gpu: bool
+    production_gpu_ready: bool
+    gpu_blocking_reason: str | None
     replica_count: int
     time_step_count: int
     atom_count: int
@@ -242,6 +246,16 @@ def summarize_argon_nve_protocol(
 
     if spec.argon_nve is None or not runs:
         return None
+    runtime = runtime_device()
+    target_device = spec.argon_nve.target_device
+    target_requests_gpu = _target_requests_gpu(target_device)
+    production_gpu_ready = target_requests_gpu and _runtime_is_gpu(runtime)
+    gpu_blocking_reason = None
+    if target_requests_gpu and not production_gpu_ready:
+        gpu_blocking_reason = (
+            "target device requests CUDA/GPU, but generated artifact runtime "
+            f"was {runtime}"
+        )
     drift_se_by_timestep = []
     for time_step in spec.argon_nve.time_steps:
         drifts = np.asarray(
@@ -258,7 +272,11 @@ def summarize_argon_nve_protocol(
             drift_se_by_timestep.append(float(np.std(drifts, ddof=1) / np.sqrt(len(drifts))))
     return ArgonNveProtocolSummary(
         protocol_label=spec.argon_nve.protocol_label,
-        target_device=spec.argon_nve.target_device,
+        target_device=target_device,
+        runtime_device=runtime,
+        target_requests_gpu=target_requests_gpu,
+        production_gpu_ready=production_gpu_ready,
+        gpu_blocking_reason=gpu_blocking_reason,
         replica_count=spec.argon_nve.replica_count,
         time_step_count=len(spec.argon_nve.time_steps),
         atom_count=runs[0].atom_count,
@@ -276,6 +294,16 @@ def summarize_argon_nve_protocol(
         replica_drift_standard_error_max=float(max(drift_se_by_timestep)),
         unstable_run_count=sum(1 for run in runs if run.unstable),
     )
+
+
+def _target_requests_gpu(target_device: str) -> bool:
+    target = target_device.lower()
+    return "cuda" in target or "gpu" in target
+
+
+def _runtime_is_gpu(runtime: str) -> bool:
+    lowered = runtime.lower()
+    return "jax:gpu" in lowered or "devices:gpu" in lowered or "cuda" in lowered
 
 
 def summarize_argon_nve_run(

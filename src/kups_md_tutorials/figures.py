@@ -953,9 +953,11 @@ def _draw_post03_figure(
         if argon_runs:
             protocol = summary.get("argon_nve_protocol")
             if protocol is not None:
+                runtime_label = "GPU" if protocol.get("production_gpu_ready") else "CPU fallback"
                 title = (
                     f"{protocol['atom_count']} Ar atoms, "
-                    f"{protocol['replica_count']} replicas"
+                    f"{protocol['replica_count']} replicas\n"
+                    f"runtime: {runtime_label}"
                 )
             else:
                 title = f"{argon_runs[-1]['atom_count']} Ar atoms, LJ units"

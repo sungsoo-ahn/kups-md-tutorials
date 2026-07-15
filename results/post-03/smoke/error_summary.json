@@ -2,14 +2,18 @@
   "argon_nve_protocol": {
     "atom_count": 32,
     "final_time_max": 2.0,
+    "gpu_blocking_reason": null,
     "max_abs_normalized_energy_drift": 0.00038519008614071315,
     "max_abs_relative_energy_error": 0.0008393650600799143,
     "mean_abs_normalized_energy_drift": 0.00033801691611174653,
     "num_steps": 400,
+    "production_gpu_ready": false,
     "protocol_label": "smoke_lj_nve_replicas",
     "replica_count": 2,
     "replica_drift_standard_error_max": 5.33793689040615e-05,
+    "runtime_device": "jax:cpu;devices:cpu",
     "target_device": "cpu",
+    "target_requests_gpu": false,
     "time_step_count": 2,
     "unstable_run_count": 0
   },

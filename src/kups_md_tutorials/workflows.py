@@ -314,6 +314,16 @@ def _verify_post03(post: str, profile: str, output_root: Path) -> None:
         if summary.argon_nve_protocol.max_abs_normalized_energy_drift > 1.0e-3:
             msg = "argon NVE aggregate normalized drift exceeds review threshold"
             raise ValueError(msg)
+        if not summary.argon_nve_protocol.runtime_device:
+            msg = "argon NVE aggregate is missing runtime-device provenance"
+            raise ValueError(msg)
+        if (
+            summary.argon_nve_protocol.target_requests_gpu
+            and not summary.argon_nve_protocol.production_gpu_ready
+            and not summary.argon_nve_protocol.gpu_blocking_reason
+        ):
+            msg = "argon NVE GPU-targeted fallback must record a blocking reason"
+            raise ValueError(msg)
 
 
 def _verify_post04(post: str, profile: str, output_root: Path) -> None:

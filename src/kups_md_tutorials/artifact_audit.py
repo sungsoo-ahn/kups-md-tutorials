@@ -26,6 +26,7 @@ FORBIDDEN_SUFFIXES = {
     ".traj",
 }
 FORBIDDEN_FILENAMES = {"hello.py"}
+MAX_TRACKED_FILE_BYTES = 5 * 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -56,14 +57,17 @@ def audit_tracked_artifacts(
     """Check tracked files against the repository artifact policy."""
 
     files = tracked_files(repo_root) if paths is None else paths
-    violations = tuple(
-        str(path)
-        for path in files
-        if _is_forbidden(path)
-    )
+    violations: list[str] = []
+    for path in files:
+        if _is_forbidden(path):
+            violations.append(str(path))
+            continue
+        oversized = _oversized_reason(repo_root, path)
+        if oversized is not None:
+            violations.append(oversized)
     return ArtifactAuditResult(
         tracked_file_count=len(files),
-        violations=violations,
+        violations=tuple(violations),
     )
 
 
@@ -87,3 +91,13 @@ def _is_forbidden(path: Path) -> bool:
     if path.suffix in FORBIDDEN_SUFFIXES:
         return True
     return path.name in FORBIDDEN_FILENAMES
+
+
+def _oversized_reason(repo_root: Path, path: Path) -> str | None:
+    full_path = path if path.is_absolute() else repo_root / path
+    if not full_path.exists() or not full_path.is_file():
+        return None
+    size = full_path.stat().st_size
+    if size <= MAX_TRACKED_FILE_BYTES:
+        return None
+    return f"{path} ({size} bytes exceeds {MAX_TRACKED_FILE_BYTES} byte limit)"

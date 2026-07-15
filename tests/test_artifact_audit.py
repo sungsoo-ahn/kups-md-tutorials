@@ -4,6 +4,7 @@ import subprocess
 import pytest
 
 from kups_md_tutorials.artifact_audit import (
+    MAX_TRACKED_FILE_BYTES,
     audit_tracked_artifacts,
     verify_tracked_artifacts,
 )
@@ -44,6 +45,31 @@ def test_artifact_audit_rejects_raw_or_cached_artifacts() -> None:
     )
     with pytest.raises(ValueError, match="forbidden tracked artifacts"):
         verify_tracked_artifacts(paths=paths)
+
+
+def test_artifact_audit_rejects_oversized_tracked_file(tmp_path: Path) -> None:
+    path = tmp_path / "results" / "post-01" / "full" / "large_summary.json"
+    path.parent.mkdir(parents=True)
+    path.write_bytes(b"x" * (MAX_TRACKED_FILE_BYTES + 1))
+
+    result = audit_tracked_artifacts(repo_root=tmp_path, paths=(path.relative_to(tmp_path),))
+
+    assert len(result.violations) == 1
+    assert "large_summary.json" in result.violations[0]
+    assert "exceeds" in result.violations[0]
+
+
+def test_artifact_audit_allows_compact_file_under_size_limit(tmp_path: Path) -> None:
+    path = tmp_path / "results" / "post-01" / "full" / "small_summary.json"
+    path.parent.mkdir(parents=True)
+    path.write_bytes(b"x" * 1024)
+
+    result = verify_tracked_artifacts(
+        repo_root=tmp_path,
+        paths=(path.relative_to(tmp_path),),
+    )
+
+    assert result.violations == ()
 
 
 def test_verify_artifacts_cli_passes_clean_git_repo(

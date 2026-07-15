@@ -715,6 +715,54 @@ Review decision:
   citation backlink integrity, figure include integrity, footnote hygiene,
   hidden/non-final state, and unresolved final-release blockers.
 
+## Update 2026-07-15: Oversized Tracked Artifact Gate
+
+Scope:
+
+- Added a tracked-file size guard to `verify-artifacts`, matching the PLAN
+  requirement to confirm that no trajectories, model archives, caches, or
+  oversized generated files are tracked.
+- The audit now rejects any tracked file larger than 5 MiB while keeping the
+  current compact committed summaries, notebooks, figures, and snapshots
+  valid. The largest current tracked file is
+  `results/post-11/full/enhanced_sampling_curves.csv` at about 1.8 MiB.
+- Added tests for an oversized compact-result-like file and a small compact
+  file below the limit.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/artifact_audit.py tests/test_artifact_audit.py`
+- `uv run pytest tests/test_artifact_audit.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `uv run pytest tests/test_artifact_audit.py tests/test_cli.py -q`
+- `uv run kups-tutorial verify-reviews`
+- `uv run kups-tutorial verify-release-readiness --skip-site 2>&1 | tail -n 160`
+- `uv run kups-tutorial verify-release-readiness 2>&1 | tail -n 220`
+- `git diff --check`
+- Pending validation for this commit: push and CI.
+
+Code and reproducibility review:
+
+- The guard is implemented inside `audit_tracked_artifacts`, so it applies to
+  both direct Python calls and the `kups-tutorial verify-artifacts` CLI used by
+  CI.
+- The size check only inspects files that exist in the audited repository,
+  which preserves existing unit tests that use synthetic forbidden path names
+  without creating files.
+
+Figure and rendered-page review:
+
+- No configs, results, notebooks, figures, snapshots, website pages, or
+  website assets changed in this pass.
+- Because this milestone only changes repository hygiene tooling and tests, no
+  figure snapshot capture or rendered-page snapshot capture was required.
+
+Review decision:
+
+- Accepted for the artifact-hygiene tooling milestone after focused validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

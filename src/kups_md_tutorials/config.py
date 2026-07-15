@@ -538,6 +538,7 @@ class ArgonNPTDynamicsSpec:
     sample_every: int
     initial_volume_factor: float
     seed: int
+    target_device: str
     epsilon: float = 1.0
     sigma: float = 1.0
     cutoff: float = 2.5
@@ -575,6 +576,9 @@ class ArgonNPTDynamicsSpec:
             raise ValueError(msg)
         if self.initial_volume_factor <= 0.0:
             msg = "argon NPT initial_volume_factor must be positive"
+            raise ValueError(msg)
+        if not self.target_device:
+            msg = "argon NPT target_device must be non-empty"
             raise ValueError(msg)
         if self.epsilon <= 0.0:
             msg = "argon NPT epsilon must be positive"
@@ -1717,6 +1721,7 @@ def load_barostat_spec(
                 sample_every=int(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["sample_every"]),
                 initial_volume_factor=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["initial_volume_factor"]),
                 seed=int(_expect_mapping(npt_dynamics, "argon_npt_dynamics")["seed"]),
+                target_device=str(_expect_mapping(npt_dynamics, "argon_npt_dynamics").get("target_device", "cpu")),
                 epsilon=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics").get("epsilon", 1.0)),
                 sigma=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics").get("sigma", 1.0)),
                 cutoff=float(_expect_mapping(npt_dynamics, "argon_npt_dynamics").get("cutoff", 2.5)),

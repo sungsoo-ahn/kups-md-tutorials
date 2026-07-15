@@ -473,6 +473,16 @@ def _verify_post05(post: str, profile: str, output_root: Path) -> None:
         if summary.argon_npt_dynamics.replica_count != spec.argon_npt_dynamics.replica_count:
             msg = "argon NPT dynamics replica count does not match config"
             raise ValueError(msg)
+        if not summary.argon_npt_dynamics.runtime_device:
+            msg = "argon NPT dynamics summary is missing runtime-device provenance"
+            raise ValueError(msg)
+        if (
+            summary.argon_npt_dynamics.target_requests_gpu
+            and not summary.argon_npt_dynamics.production_gpu_ready
+            and not summary.argon_npt_dynamics.gpu_blocking_reason
+        ):
+            msg = "argon NPT GPU-targeted fallback must record a blocking reason"
+            raise ValueError(msg)
         if summary.argon_npt_dynamics.volume_factor_span <= 0.005:
             msg = "argon NPT moving-cell span is too small"
             raise ValueError(msg)

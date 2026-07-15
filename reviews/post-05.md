@@ -471,3 +471,99 @@ Final-release blockers:
   barostat coupling, and finite-size pressure fluctuations.
 - Re-run rendered desktop/mobile page snapshots after final production NPT
   diagnostics or public-indexing changes.
+
+## Update 2026-07-15: NPT Runtime Provenance Gate
+
+Commands added in this pass:
+
+- `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/barostats.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py tests/test_config.py`
+- `uv run python -m py_compile src/kups_md_tutorials/config.py src/kups_md_tutorials/barostats.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py`
+- `uv run pytest tests/test_config.py::test_load_barostat_spec -q`
+- `uv run kups-tutorial run 05 --profile smoke`
+- `uv run kups-tutorial verify 05 --profile smoke`
+- `uv run kups-tutorial run 05 --profile full`
+- `uv run kups-tutorial verify 05 --profile full`
+- `uv run python scripts/generate_post05_figures.py`
+- `uv run jupyter execute notebooks/post-05-barostats.ipynb --inplace`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `uv run kups-tutorial verify-reviews`
+- `git diff --check`
+
+Code and reproducibility review:
+
+- `ArgonNPTDynamicsSpec` now has an explicit `target_device`; the smoke config
+  records `cpu`, and the full config records `cuda_or_cpu_fallback`.
+- `ArgonNPTDynamicsSummary` now records `target_device`, `runtime_device`,
+  `target_requests_gpu`, `production_gpu_ready`, and `gpu_blocking_reason`.
+- Post 05 verification now requires runtime-device provenance and requires a
+  blocking reason whenever a GPU-targeted moving-cell diagnostic falls back
+  from GPU execution.
+- The full profile records `target_device = cuda_or_cpu_fallback`,
+  `runtime_device = jax:cpu;devices:cpu`, `production_gpu_ready = false`, and
+  the blocking reason `target device requests CUDA/GPU, but generated artifact
+  runtime was jax:cpu;devices:cpu`.
+- The notebook now prints target device, runtime device, production GPU
+  readiness, and the GPU blocking reason next to the full-profile summary.
+
+Scientific review:
+
+- The numerical moving-cell metrics are unchanged by the provenance schema
+  change. The full profile still reports `N = 108`, `3` replicas, `1200`
+  samples, mean `V/V0 = 0.9315`, mean pressure `0.9255 +/- 0.0052`, mean
+  kinetic temperature `0.6988 +/- 0.0009`, volume effective samples `96.0`,
+  and maximum absolute sampled total-energy change `0.1205` per atom.
+- The new fields prevent the compact moving-cell diagnostic from being
+  mistaken for a completed GPU kUPS production NPT run. The current artifact is
+  a CPU-fallback reduced-unit diagnostic with explicit evidence for why the
+  final GPU blocker remains.
+- Local execution again reported that an NVIDIA GPU may be present, but a
+  CUDA-enabled `jaxlib` is not installed, so JAX/kUPS fell back to CPU.
+
+Figure feedback:
+
+- Full-profile figure snapshot inspected:
+  `snapshots/post-05/barostat_diagnostics_full_snapshot.png`
+  (`1728 x 1152`).
+- Smoke-profile figure snapshot inspected:
+  `snapshots/post-05/barostat_diagnostics_snapshot.png` (`1728 x 1152`).
+- Intended visual claim: the fourth panel should show a compact moving-cell
+  volume/temperature diagnostic while making clear that the artifact is CPU
+  fallback, not a completed GPU production NPT run.
+- Full-profile feedback: the moving-cell annotation now includes `runtime: CPU
+  fallback` below the replicas, effective-sample, and pressure lines. The
+  annotation intersects the dense temperature trace in a few places, but the
+  white box keeps the text readable; the volume mean, uncertainty band,
+  reference line, and right-axis temperature label remain visible.
+- Smoke-profile feedback: the same runtime label appears for the 32-atom,
+  2-replica smoke panel. The annotation remains contained, and the noisy smoke
+  temperature trace does not obscure the label.
+- Revision decision: accepted for the hidden draft. No additional figure edit
+  was needed after adding the runtime label and inspecting both snapshots.
+
+Website review status:
+
+- Pending in this pass: commit the tutorial provenance update, re-export the
+  hidden website assets so the manifest points at that commit, deploy the
+  hidden page, capture rendered desktop/mobile snapshots, and record page
+  feedback.
+
+Blocking items for current hidden draft:
+
+- None. The hidden draft already states the CPU-fallback/non-production status.
+
+Non-blocking items accepted until final article pass:
+
+- Mobile figure/table density remains accepted for the hidden draft.
+- The reduced-unit moving-cell protocol remains a teaching diagnostic rather
+  than a final GPU kUPS production NPT study.
+
+Final-release blockers:
+
+- Run and review the real kUPS production NPT diagnostic with full atomistic
+  thermostat/barostat settings, GPU provenance, and production stress/cell
+  checks.
+- Add final citations for NPT ensemble fluctuations, compressibility,
+  barostat coupling, and finite-size pressure fluctuations.
+- Re-run rendered desktop/mobile page snapshots after final production NPT
+  diagnostics or any public-indexing change.

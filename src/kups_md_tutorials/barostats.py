@@ -9,7 +9,13 @@ import kups
 import numpy as np
 
 from kups_md_tutorials.config import BarostatCase, BarostatTutorialSpec
-from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.provenance import (
+    gpu_blocking_reason,
+    provenance,
+    runtime_device,
+    runtime_is_gpu,
+    target_requests_gpu,
+)
 from kups_md_tutorials.systems import argon_fcc
 
 
@@ -62,6 +68,11 @@ class ArgonCellResponseSummary:
 class ArgonNPTDynamicsSummary:
     """Compact summary for an isotropic reduced-unit moving-cell diagnostic."""
 
+    target_device: str
+    runtime_device: str
+    target_requests_gpu: bool
+    production_gpu_ready: bool
+    gpu_blocking_reason: str | None
     atom_count: int
     replica_count: int
     samples: int
@@ -318,7 +329,18 @@ def simulate_argon_npt_dynamics(
         dtype=float,
     )
     sem_denominator = np.sqrt(npt_spec.replica_count)
+    runtime = runtime_device()
+    requests_gpu = target_requests_gpu(npt_spec.target_device)
+    production_gpu_ready = requests_gpu and runtime_is_gpu(runtime)
+    blocking_reason = None
+    if requests_gpu and not production_gpu_ready:
+        blocking_reason = gpu_blocking_reason(npt_spec.target_device, runtime)
     summary = ArgonNPTDynamicsSummary(
+        target_device=npt_spec.target_device,
+        runtime_device=runtime,
+        target_requests_gpu=requests_gpu,
+        production_gpu_ready=production_gpu_ready,
+        gpu_blocking_reason=blocking_reason,
         atom_count=atom_count,
         replica_count=npt_spec.replica_count,
         samples=len(data),

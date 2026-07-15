@@ -87,6 +87,7 @@ def test_load_barostat_spec() -> None:
     assert spec.argon_npt_dynamics is not None
     assert spec.argon_npt_dynamics.initial_volume_factor < 1.0
     assert spec.argon_npt_dynamics.replica_count == 2
+    assert spec.argon_npt_dynamics.target_device == "cpu"
 
 
 def test_load_trajectory_length_spec() -> None:

@@ -1244,13 +1244,15 @@ def _draw_post05_figure(
         temp_axis.set_ylabel("kinetic temperature", color="#b55339")
         temp_axis.tick_params(axis="y", labelcolor="#b55339", labelsize=8)
         dynamics = summary.get("argon_npt_dynamics") or {}
+        runtime_label = "GPU" if dynamics.get("production_gpu_ready") else "CPU fallback"
         axes[3].text(
             0.04,
             0.95,
             f"replicas = {dynamics.get('replica_count', 1)}\n"
             f"Neff = {dynamics.get('volume_effective_samples', float('nan')):.1f}\n"
             f"P = {dynamics.get('mean_pressure', float('nan')):.2f} +/- "
-            f"{dynamics.get('pressure_standard_error', float('nan')):.2f}",
+            f"{dynamics.get('pressure_standard_error', float('nan')):.2f}\n"
+            f"runtime: {runtime_label}",
             transform=axes[3].transAxes,
             va="top",
             ha="left",

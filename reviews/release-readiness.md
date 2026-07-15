@@ -1007,6 +1007,64 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Website Source-Link Gate
+
+Scope:
+
+- Added a site-aware release-readiness check that every hidden kUPS post links
+  back to the executable source artifacts required by PLAN.md.
+- For each post, the gate now requires links or URL fragments for the smoke
+  config, full config, notebook, smoke results, full results, full provenance
+  manifest, and self-review note.
+- Updated the synthetic website fixture with the same source-link block and
+  added a regression test that removes Post 02 source links and verifies the
+  release audit reports the missing coverage.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed: 23 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `uv run pytest tests/test_release_readiness.py tests/test_cli.py -q` passed:
+  37 tests, with the existing ASE/NumPy deprecation warnings from CLI tests.
+- `uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers`
+  passed for 12 posts.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `uv run kups-tutorial verify-artifacts` passed for 279 tracked files.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `git diff --check` passed.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers for hidden pages,
+  hidden-draft notes, production GPU diagnostics, and public indexing.
+
+Code and reproducibility review:
+
+- The new check mirrors the existing website-side `validate_kups_pages.py`
+  source-link requirement, bringing the same invariant into the repository-side
+  final-publication gate.
+- The gate is site-aware only, so CI contexts without the website checkout can
+  continue using `--skip-site` while local final-readiness checks verify the
+  full cross-repository link surface.
+- The current hidden website pages already satisfy the new source-link gate.
+
+Figure and rendered-page review:
+
+- No website page source, front matter, prose, linked figures, CSS-sensitive
+  markup, assets, figures, configs, results, notebooks, or snapshot images
+  changed in this milestone.
+- Because this pass only adds verifier coverage and synthetic fixture links,
+  no new figure snapshot or rendered desktop/mobile page capture was required.
+
+Review decision:
+
+- Accepted for the website source-link release-surface milestone after focused,
+  site-aware, and strict-readiness validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

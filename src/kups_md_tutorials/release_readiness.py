@@ -735,6 +735,7 @@ def _check_site_blog_style(
         violations.append(f"{page_path}: missing author-note Note text")
     if "sungsoo-ahn/kups-md-tutorials" not in body:
         violations.append(f"{page_path}: missing source repository link text")
+    _check_site_source_links(page_path, post, body, violations)
     _check_site_references(page_path, body, violations)
     _check_site_figures(page_path, body, violations)
     _check_site_footnotes(page_path, body, violations)
@@ -744,6 +745,26 @@ def _check_site_blog_style(
             f"{page_path}: expected {MIN_POST_WORDS}-{MAX_POST_WORDS} body words, "
             f"found {word_count}"
         )
+
+
+def _check_site_source_links(
+    page_path: Path,
+    post: str,
+    body: str,
+    violations: list[str],
+) -> None:
+    required_fragments = {
+        f"configs/post-{post}/smoke.json": "smoke configuration link",
+        f"configs/post-{post}/full.json": "full configuration link",
+        f"notebooks/post-{post}": "notebook link",
+        f"results/post-{post}/smoke/": "smoke result link",
+        f"results/post-{post}/full/": "full result link",
+        f"results/post-{post}/full/manifest.json": "full provenance manifest link",
+        f"reviews/post-{post}.md": "self-review note link",
+    }
+    for fragment, description in required_fragments.items():
+        if fragment not in body:
+            violations.append(f"{page_path}: missing {description}: {fragment}")
 
 
 def _check_site_references(

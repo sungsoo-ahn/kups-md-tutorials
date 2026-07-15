@@ -377,6 +377,14 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
             f"<em>Note: {note_context}Corrections and replication issues should be tracked in "
             '<a href="https://github.com/sungsoo-ahn/kups-md-tutorials">sungsoo-ahn/kups-md-tutorials</a>.</em>\n'
             "</p>\n"
+            "\n## Source Links\n\n"
+            f"- [smoke configuration](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/configs/post-{post_id}/smoke.json)\n"
+            f"- [full configuration](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/configs/post-{post_id}/full.json)\n"
+            f"- [notebook](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/notebooks/post-{post_id}-example.ipynb)\n"
+            f"- [smoke summary](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/results/post-{post_id}/smoke/example_summary.json)\n"
+            f"- [full summary](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/results/post-{post_id}/full/example_summary.json)\n"
+            f"- [full provenance manifest](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/results/post-{post_id}/full/manifest.json)\n"
+            f"- [self-review note](https://github.com/sungsoo-ahn/kups-md-tutorials/blob/main/reviews/post-{post_id}.md)\n"
             f"\n<span id=\"cite-example{post_id}\"></span>[Example {post_id}](#ref-example{post_id})\n\n"
             f'{{% include figure.liquid path="{figure_path}" class="img-fluid rounded z-depth-1" zoomable=true caption="Figure {post_id} diagnostics for the committed full profile. The caption explains the mechanism supported by the figure." %}}\n\n'
             f"{body_words}\n\n"
@@ -551,6 +559,34 @@ def test_release_readiness_reports_blog_style_violations(tmp_path: Path) -> None
     assert any("post_type: tutorial" in violation for violation in result.violations)
     assert any("toc sidebar: left" in violation for violation in result.violations)
     assert any("author-note Note text" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_missing_site_source_links(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    page = tmp_path / "site" / "_pages" / "kups-md-post-02-example.md"
+    text = page.read_text(encoding="utf-8")
+    text = text.replace("configs/post-02/smoke.json", "configs/post-99/smoke.json")
+    text = text.replace("notebooks/post-02-example.ipynb", "notebooks/example.ipynb")
+    text = text.replace("results/post-02/full/manifest.json", "results/post-99/full/manifest.json")
+    text = text.replace("reviews/post-02.md", "reviews/post-99.md")
+    page.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("missing smoke configuration link" in violation for violation in result.violations)
+    assert any("missing notebook link" in violation for violation in result.violations)
+    assert any("missing full provenance manifest link" in violation for violation in result.violations)
+    assert any("missing self-review note link" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_series_index_violations(tmp_path: Path) -> None:

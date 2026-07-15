@@ -2801,3 +2801,71 @@ Revision decisions:
   citations before public indexing.
 - Re-run rendered snapshots after final production MD diagnostics, final
   citations, or any public-indexing change.
+
+## Post 09 Provenance Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Final snapshot run: `29401699781`.
+- Earlier snapshot passes: `29400881017` and `29401323263`.
+- Website commits reviewed:
+  `e22f2924b97f996f43f70b235b471dd050b5df67`,
+  `d7fff97a9770bdb822bcd88a15d61cce68b0da32`, and
+  `dee7bead9504f33250259ec3cc47cb502d76ad64`.
+- Website deploy runs:
+  `29400709025`, `29401143938`, and final deploy `29401528292`.
+- Tutorial restamp commit reviewed:
+  `1022fbe4c9f5bd4bfdf615b5b657e21f22d1239e`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded final review copy:
+  `/tmp/kups-post09-provenance-final-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post09-provenance-final-snapshots/manifest.json`.
+- Capture scope: hidden Post 09 page after restamping estimator provenance,
+  adding a provenance table, correcting Current Status, and fixing mobile table
+  wrapping.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Do Free-Energy Estimators Assume? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post09-provenance-final-snapshots/post-09-desktop.png`
+  (`1440 x 11282`)
+- `/tmp/kups-post09-provenance-final-snapshots/post-09-mobile.png`
+  (`573 x 16950`)
+- Focused crops:
+  `/tmp/kups-post09-provenance-final-snapshots/desktop-provenance-status.png`
+  and
+  `/tmp/kups-post09-provenance-final-snapshots/mobile-provenance-status.png`.
+
+Feedback:
+
+- Desktop capture renders the updated Reproduction section, provenance table,
+  Current Status section, references, and footer. The long configuration hash,
+  source revision, runtime device, and precision policy wrap inside the table.
+- First mobile snapshot pass found horizontal clipping in the provenance table
+  values. The first attempted fix around markdown code spans was insufficient.
+- Final mobile capture confirms the explicit HTML `code` wrapping fix works:
+  provenance values now wrap inside the value column, and no table text extends
+  beyond the article column.
+- Current Status now lists rendered desktop/mobile page snapshots as
+  implemented and no longer lists them as missing.
+- Live check confirmed the deployed HTML contains the current configuration
+  hash, source revision, runtime device, and provenance table.
+- Hidden status: live `/blog/` and `/` checks found no `kups-md-tutorials` or
+  `post-09-estimators` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after provenance wrapping fix.
+- Keep the unchanged reproduction code block behavior as accepted hidden-draft
+  behavior.
+- If a later public article adds a chemistry-specific estimator figure or makes
+  this page public, rerun desktop/mobile snapshots and update this ledger.

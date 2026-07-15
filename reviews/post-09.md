@@ -298,3 +298,124 @@ Non-blocking items accepted until the final article pass:
 Final-release blockers:
 
 - None.
+
+## Update 2026-07-15: Provenance Restamp And Page Snapshot Refresh
+
+- Tutorial restamp commit reviewed:
+  `1022fbe4c9f5bd4bfdf615b5b657e21f22d1239e`.
+- Website commits reviewed:
+  `e22f2924b97f996f43f70b235b471dd050b5df67`,
+  `d7fff97a9770bdb822bcd88a15d61cce68b0da32`, and
+  `dee7bead9504f33250259ec3cc47cb502d76ad64`.
+- Website deployment runs:
+  `29400709025`, `29401143938`, and final deploy `29401528292`.
+- Snapshot workflow runs:
+  first pass `29400881017`, second pass `29401323263`, and final pass
+  `29401699781`.
+- Final snapshot artifact: `kups-md-page-snapshots`.
+- Downloaded final review copy:
+  `/tmp/kups-post09-provenance-final-snapshots/`.
+
+Scope:
+
+- No estimator algorithm or numerical-summary logic changed in this pass.
+- Smoke and full Post 09 manifests were restamped under the current repository
+  state, and the notebook was re-executed.
+- The hidden website page `last_updated` was moved to `2026-07-15`.
+- The Reproduction section now exposes the full-profile configuration hash,
+  source revision, runtime device, and precision policy in a provenance table.
+- The Current Status section now lists rendered desktop/mobile snapshots as
+  implemented instead of missing.
+
+Validation:
+
+- `uv run kups-tutorial run 09 --profile smoke` and
+  `uv run kups-tutorial verify 09 --profile smoke` passed.
+- `uv run kups-tutorial run 09 --profile full` and
+  `uv run kups-tutorial verify 09 --profile full` passed.
+- `uv run python scripts/generate_post09_figures.py` passed; figure files were
+  unchanged.
+- `uv run jupyter execute notebooks/post-09-estimators.ipynb --inplace` passed.
+- `uv run pytest tests/test_config.py::test_load_estimator_spec
+  tests/test_cli.py::test_cli_run_and_verify_post09_smoke
+  tests/test_figures.py::test_post09_figure_generation
+  tests/test_notebooks.py::test_post09_notebook_executes -q` passed.
+- `uv run kups-tutorial verify-artifacts` passed.
+- `python3 scripts/validate_kups_pages.py` passed in
+  `../sungsoo-ahn.github.io`.
+- `python3 scripts/validate_blog.py` passed in `../sungsoo-ahn.github.io` with
+  pre-existing unused-image warnings.
+- `git diff --check` passed in both repositories.
+
+Code and reproducibility review:
+
+- Full manifest now records source revision
+  `98dc7cb2b3a6828141117f80de81bb9a242e57aa`, configuration hash
+  `54f9c7456965f1eb75ff0f47960d59c3eccd1c5dfa192c5298919e3fc04ed125`,
+  runtime device `jax:cpu;devices:cpu`, and precision policy
+  `jax_enable_x64=false;env_JAX_ENABLE_X64=unset`.
+- Numerical estimator summaries are unchanged relative to the prior reviewed
+  hidden draft. The provenance restamp is accepted because it brings the page
+  metadata in line with the current executable repository state.
+
+Figure feedback:
+
+- Figure asset inspected:
+  `figures/post-09/estimator_diagnostics_full.svg`.
+- Snapshot inspected:
+  `snapshots/post-09/estimator_diagnostics_full_snapshot.png`.
+- Intended visual claim: estimator reliability is controlled by overlap and
+  effective sample size, and a multi-state bridge needs connected adjacent
+  overlap.
+- Feedback: the existing four-panel snapshot remains readable. The estimator
+  bars keep the true \(\Delta F\) line visible, the overlap/ESS panel shows
+  ESS collapse before raw samples disappear, the work histogram still exposes
+  rare-tail dependence, and the bridge panel shows the sparse protocol's
+  missing middle without label clipping. No figure edit was needed.
+- Revision decision: accepted unchanged; no revised figure snapshot was needed
+  because the figure assets did not change.
+
+Website and rendered-page review:
+
+- Final snapshot manifest reviewed:
+  `/tmp/kups-post09-provenance-final-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-09-estimators/`; both
+  returned HTTP 200 and title
+  `What Do Free-Energy Estimators Assume? | Sungsoo Ahn`.
+- Desktop snapshot inspected:
+  `/tmp/kups-post09-provenance-final-snapshots/post-09-desktop.png` at
+  `1440 x 11282`.
+- Mobile snapshot inspected:
+  `/tmp/kups-post09-provenance-final-snapshots/post-09-mobile.png` at
+  `573 x 16950`.
+- Focused crops inspected:
+  `/tmp/kups-post09-provenance-final-snapshots/desktop-provenance-status.png`
+  and
+  `/tmp/kups-post09-provenance-final-snapshots/mobile-provenance-status.png`.
+- First mobile snapshot pass found that the provenance table values clipped
+  horizontally because markdown code spans did not wrap inside the value cell.
+- First fix using `overflow-wrap: anywhere` around markdown code was
+  insufficient; the second fix used explicit HTML `code` elements with
+  `white-space: normal`, `overflow-wrap: anywhere`, and `word-break: break-all`.
+- Final desktop feedback: the provenance table, Current Status section,
+  References, and footer are present and contained. Long hashes wrap in the
+  table without disturbing the article column.
+- Final mobile feedback: the provenance values now wrap inside the table; the
+  Current Status section no longer lists snapshots as missing; references and
+  footer remain contained. The reproduction code block remains horizontally
+  dense but is unchanged from prior hidden-draft behavior.
+- Live check with cache buster `?v=dee7bea` confirmed the deployed page
+  contains the current configuration hash, source revision, runtime device, and
+  `Provenance field` table.
+- Live homepage and `/blog/` checks with cache buster `?v=dee7bea` confirmed
+  `post-09-estimators` and `kups-md-tutorials` are not exposed.
+
+Open items:
+
+- Blocking items for the current hidden draft: none.
+- Non-blocking items accepted until the final article pass: the page remains
+  explicitly non-final and direct-link only.
+- Final-release blockers: none specific to this controlled estimator post,
+  unless a later public article adds a chemistry-specific production WHAM/MBAR
+  or alchemical example; if so, add that figure and rerun snapshot review.

@@ -5,7 +5,10 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from kups_md_tutorials.artifact_audit import verify_tracked_artifacts
-from kups_md_tutorials.release_readiness import verify_release_readiness
+from kups_md_tutorials.release_readiness import (
+    verify_release_readiness,
+    verify_release_surface,
+)
 from kups_md_tutorials.review_audit import verify_reviews
 from kups_md_tutorials.site_export import export_site_assets
 from kups_md_tutorials.workflows import run_all, run_post, verify_all, verify_post
@@ -59,6 +62,14 @@ def _build_parser() -> argparse.ArgumentParser:
         "--skip-site",
         action="store_true",
         help="skip website hidden/non-final page checks",
+    )
+    release_parser.add_argument(
+        "--allow-current-blockers",
+        action="store_true",
+        help=(
+            "allow known hidden-draft and production-GPU blockers while still "
+            "failing structural release-readiness regressions"
+        ),
     )
 
     export_site = subparsers.add_parser(
@@ -121,7 +132,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         if args.command == "verify-release-readiness":
             site_root = None if args.skip_site else args.site_root
-            result = verify_release_readiness(
+            verifier = (
+                verify_release_surface
+                if args.allow_current_blockers
+                else verify_release_readiness
+            )
+            result = verifier(
                 review_dir=args.review_dir,
                 config_root=args.config_root,
                 results_root=args.results_root,
@@ -130,7 +146,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 snapshot_root=args.snapshot_root,
                 site_root=site_root,
             )
-            print(f"Release readiness audit passed for {result.checked_posts} posts")
+            label = (
+                "Release surface audit"
+                if args.allow_current_blockers
+                else "Release readiness audit"
+            )
+            print(f"{label} passed for {result.checked_posts} posts")
             return 0
         if args.command == "export-site":
             posts = None

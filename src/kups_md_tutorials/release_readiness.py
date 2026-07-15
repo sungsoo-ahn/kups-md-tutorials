@@ -25,6 +25,14 @@ class ReleaseReadinessResult:
     violations: tuple[str, ...]
 
 
+CURRENT_FINAL_BLOCKER_MARKERS = (
+    "unresolved final-release blockers",
+    "page remains hidden with nav: false",
+    "page still declares itself non-final",
+    "page still has hidden-draft note",
+)
+
+
 def audit_release_readiness(
     *,
     review_dir: Path = Path("reviews"),
@@ -92,6 +100,49 @@ def verify_release_readiness(
         msg = "release readiness audit failed:\n" + "\n".join(result.violations)
         raise ValueError(msg)
     return result
+
+
+def verify_release_surface(
+    *,
+    review_dir: Path = Path("reviews"),
+    config_root: Path = Path("configs"),
+    results_root: Path = Path("results"),
+    notebook_root: Path = Path("notebooks"),
+    figure_root: Path = Path("figures"),
+    snapshot_root: Path = Path("snapshots"),
+    site_root: Path | None = None,
+) -> ReleaseReadinessResult:
+    """Raise if release readiness has unexpected structural violations.
+
+    This keeps CI strict about artifact, provenance, notebook, and website
+    contract regressions while allowing the known hidden-draft and production
+    GPU blockers to remain until final publication.
+    """
+
+    result = audit_release_readiness(
+        review_dir=review_dir,
+        config_root=config_root,
+        results_root=results_root,
+        notebook_root=notebook_root,
+        figure_root=figure_root,
+        snapshot_root=snapshot_root,
+        site_root=site_root,
+    )
+    unexpected = tuple(
+        violation
+        for violation in result.violations
+        if not is_current_final_blocker(violation)
+    )
+    if unexpected:
+        msg = "release surface audit failed:\n" + "\n".join(unexpected)
+        raise ValueError(msg)
+    return result
+
+
+def is_current_final_blocker(violation: str) -> bool:
+    """Return whether a violation is an accepted hidden/final-release blocker."""
+
+    return any(marker in violation for marker in CURRENT_FINAL_BLOCKER_MARKERS)
 
 
 def _check_review_blockers(review_dir: Path, violations: list[str]) -> None:

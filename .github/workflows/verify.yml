@@ -51,6 +51,9 @@ jobs:
       - name: Audit review notes
         run: uv run kups-tutorial verify-reviews
 
+      - name: Audit release surface
+        run: uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers
+
       - name: Execute notebooks
         run: uv run kups-tutorial verify-notebooks --output-dir /tmp/kups-md-notebooks
 

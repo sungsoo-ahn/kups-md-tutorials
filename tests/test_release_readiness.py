@@ -6,6 +6,7 @@ import pytest
 from kups_md_tutorials.cli import main
 from kups_md_tutorials.release_readiness import (
     audit_release_readiness,
+    verify_release_surface,
     verify_release_readiness,
 )
 
@@ -345,6 +346,25 @@ def test_release_readiness_reports_current_project_blockers() -> None:
     )
 
 
+def test_release_surface_allows_current_project_blockers() -> None:
+    result = verify_release_surface(
+        review_dir=Path("reviews"),
+        config_root=Path("configs"),
+        results_root=Path("results"),
+        notebook_root=Path("notebooks"),
+        figure_root=Path("figures"),
+        snapshot_root=Path("snapshots"),
+        site_root=None,
+    )
+
+    assert result.checked_posts == 12
+    assert result.violations
+    assert all(
+        "unresolved final-release blockers" in violation
+        for violation in result.violations
+    )
+
+
 def test_release_readiness_reports_hidden_site_pages(tmp_path: Path) -> None:
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)
@@ -600,6 +620,24 @@ def test_release_readiness_reports_placeholder_model_metadata(tmp_path: Path) ->
     )
 
 
+def test_release_surface_rejects_structural_violations(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    (tmp_path / "reviews" / "figure-sources.json").unlink()
+
+    with pytest.raises(ValueError, match="release surface audit failed"):
+        verify_release_surface(
+            review_dir=tmp_path / "reviews",
+            config_root=tmp_path / "configs",
+            results_root=tmp_path / "results",
+            notebook_root=tmp_path / "notebooks",
+            figure_root=tmp_path / "figures",
+            snapshot_root=tmp_path / "snapshots",
+            site_root=tmp_path / "site",
+        )
+
+
 def test_release_readiness_reports_missing_required_artifacts(tmp_path: Path) -> None:
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)
@@ -743,6 +781,19 @@ def test_verify_release_readiness_cli_passes_clean_final_state(tmp_path: Path) -
                 str(tmp_path / "snapshots"),
                 "--site-root",
                 str(tmp_path / "site"),
+            ]
+        )
+        == 0
+    )
+
+
+def test_verify_release_surface_cli_allows_current_blockers() -> None:
+    assert (
+        main(
+            [
+                "verify-release-readiness",
+                "--skip-site",
+                "--allow-current-blockers",
             ]
         )
         == 0

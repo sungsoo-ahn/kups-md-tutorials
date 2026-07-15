@@ -763,6 +763,60 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by `verify-release-readiness`.
 
+## Update 2026-07-15: CI Release-Surface Gate
+
+Scope:
+
+- Added `verify_release_surface`, a release-readiness mode that allows the
+  current hidden-draft and production-GPU final blockers but still fails on
+  structural release-surface regressions.
+- Added the CLI flag
+  `kups-tutorial verify-release-readiness --allow-current-blockers`.
+- Added a CI workflow step:
+  `uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers`.
+- Added tests proving the current project blockers are allowed by the surface
+  audit and that structural violations, such as a missing figure-source ledger,
+  still fail.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/cli.py src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+- `uv run pytest tests/test_release_readiness.py tests/test_cli.py -q`
+- `uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers`
+- `uv run pytest tests/test_release_readiness.py tests/test_cli.py tests/test_artifact_audit.py -q`
+- `uv run kups-tutorial verify-artifacts`
+- `uv run kups-tutorial verify-reviews`
+- `uv run kups-tutorial verify-release-readiness --skip-site 2>&1 | tail -n 160`
+- `uv run kups-tutorial verify-release-readiness 2>&1 | tail -n 220`
+- `git diff --check`
+- Pending validation for this commit: push and CI.
+
+Code and reproducibility review:
+
+- The original `verify-release-readiness` behavior is unchanged: it remains the
+  strict final-publication gate and still fails while final blockers remain.
+- The new `--allow-current-blockers` mode exists so CI can enforce artifact,
+  manifest, notebook, figure-source, and review-surface regressions before the
+  final GPU/public-indexing pass.
+- The CI step uses `--skip-site` because the website repository is not checked
+  out in the tutorial workflow. Site-aware readiness remains validated locally
+  and by website-side validation when website files change.
+
+Figure and rendered-page review:
+
+- No configs, results, notebooks, figures, snapshots, website pages, or
+  website assets changed in this pass.
+- Because this milestone only changes release-readiness tooling, tests, and CI
+  configuration, no figure snapshot capture or rendered-page snapshot capture
+  was required.
+
+Review decision:
+
+- Accepted for the CI/release-surface tooling milestone after focused
+  validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

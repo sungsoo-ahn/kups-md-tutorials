@@ -659,6 +659,62 @@ Review decision:
   include integrity, footnote hygiene, hidden/non-final state, and unresolved
   final-release blockers.
 
+## Update 2026-07-15: Notebook Execution Ledger Gate
+
+Scope:
+
+- Added a repository-side final-publication check for clean-kernel notebook
+  execution evidence.
+- Added `reviews/notebook-execution.json`, a machine-checkable ledger for all
+  twelve notebooks with source paths, source SHA-256 digests, code-cell counts,
+  executed-cell counts, output counts, kernel, timeout, and source revision.
+- The release gate now fails if a notebook is missing from the ledger, if a
+  ledger source path is stale, if a notebook source hash no longer matches, if
+  the recorded code-cell count disagrees with the current notebook JSON, if
+  not all code cells executed, or if a notebook recorded no outputs.
+- Added a regression test that removes the Post 08 ledger entry, corrupts one
+  source hash, and marks another notebook partially executed.
+
+Commands:
+
+- `uv run kups-tutorial verify-notebooks --output-dir /tmp/kups-notebook-runs`
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+- `uv run pytest tests/test_release_readiness.py tests/test_notebook_execution.py -q`
+- `uv run pytest tests/test_release_readiness.py tests/test_notebook_execution.py tests/test_cli.py -q`
+- `uv run kups-tutorial verify-reviews`
+- `uv run kups-tutorial verify-release-readiness --skip-site 2>&1 | tail -n 180`
+- `uv run kups-tutorial verify-release-readiness 2>&1 | tail -n 220`
+- `git diff --check`
+- Pending validation for this commit: push and CI.
+
+Code and reproducibility review:
+
+- The clean notebook execution command passed and wrote
+  `/tmp/kups-notebook-runs/manifest.json`.
+- The committed `reviews/notebook-execution.json` was derived from that
+  manifest and records current notebook source hashes for Posts 01-12.
+- The gate checks the current notebook files directly, so editing a notebook
+  without rerunning `verify-notebooks` and updating the ledger becomes a
+  final-release blocker.
+
+Figure and rendered-page review:
+
+- No notebook source, figure asset, figure-generation code, website page, CSS
+  sensitive markup, website manifest, or linked figure changed in this pass.
+- Because this milestone only adds notebook execution evidence and verifier
+  coverage, no new figure snapshot capture or rendered page snapshot capture
+  was required.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone after the clean
+  notebook run.
+- The final-publication gate now enforces artifact surface, notebook execution
+  ledger freshness, figure source provenance, website export-manifest
+  synchronization, manifest provenance, blog-style metadata, article length,
+  citation backlink integrity, figure include integrity, footnote hygiene,
+  hidden/non-final state, and unresolved final-release blockers.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

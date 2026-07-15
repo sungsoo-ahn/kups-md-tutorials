@@ -1,0 +1,103 @@
+{
+  "kernel_name": "python3",
+  "notebooks": [
+    {
+      "code_cells": 6,
+      "executed_code_cells": 6,
+      "output_count": 7,
+      "post": "01",
+      "source": "notebooks/post-01-initialization.ipynb",
+      "source_sha256": "2f66f5f93406174fa20c0d539fede1187fb607009e6024336817f0f6aa01cf7a"
+    },
+    {
+      "code_cells": 6,
+      "executed_code_cells": 6,
+      "output_count": 6,
+      "post": "02",
+      "source": "notebooks/post-02-integrators.ipynb",
+      "source_sha256": "9299b17d4a02cc41a509cc7a66b083a0b52b9e610df91bbd621d0f4d224b683e"
+    },
+    {
+      "code_cells": 7,
+      "executed_code_cells": 7,
+      "output_count": 7,
+      "post": "03",
+      "source": "notebooks/post-03-errors.ipynb",
+      "source_sha256": "c9def3b9885d3749b1ba770d0a5783b688f1a9236a98f458da851533317ec827"
+    },
+    {
+      "code_cells": 6,
+      "executed_code_cells": 6,
+      "output_count": 6,
+      "post": "04",
+      "source": "notebooks/post-04-thermostats.ipynb",
+      "source_sha256": "82df9f1c8763890c1985b0f9a7f0dae46861b2fb8eba7d18af49176182a10111"
+    },
+    {
+      "code_cells": 6,
+      "executed_code_cells": 6,
+      "output_count": 7,
+      "post": "05",
+      "source": "notebooks/post-05-barostats.ipynb",
+      "source_sha256": "21e67ff6d97a3d36c1b308d23948d8a649f7aa90ef05ce23b4f83424b81825b5"
+    },
+    {
+      "code_cells": 5,
+      "executed_code_cells": 5,
+      "output_count": 4,
+      "post": "06",
+      "source": "notebooks/post-06-trajectory-length.ipynb",
+      "source_sha256": "29ab8c386816b91319163e96d6d645af6c1b3b02282c961fa049cdb505a26f1c"
+    },
+    {
+      "code_cells": 5,
+      "executed_code_cells": 5,
+      "output_count": 4,
+      "post": "07",
+      "source": "notebooks/post-07-observables.ipynb",
+      "source_sha256": "33badf596601df9c276923c74542d0825f15347c74d8b10e7a6e78b8eaabaee4"
+    },
+    {
+      "code_cells": 5,
+      "executed_code_cells": 5,
+      "output_count": 4,
+      "post": "08",
+      "source": "notebooks/post-08-free-energies.ipynb",
+      "source_sha256": "68d3e0cf2dbadcce8c4ba71bb403998d9de7cf4899bb14e91933b9299db2a392"
+    },
+    {
+      "code_cells": 5,
+      "executed_code_cells": 5,
+      "output_count": 4,
+      "post": "09",
+      "source": "notebooks/post-09-estimators.ipynb",
+      "source_sha256": "65d8e02b49c842ed7de96f5ba79b1046ebb564fd02e4c0883a6c0148cbfb83d3"
+    },
+    {
+      "code_cells": 5,
+      "executed_code_cells": 5,
+      "output_count": 4,
+      "post": "10",
+      "source": "notebooks/post-10-umbrella-sampling.ipynb",
+      "source_sha256": "257958d3a317944359d34177dd6eef0a322c8ae106a9659ef9134ad7c9b815a6"
+    },
+    {
+      "code_cells": 5,
+      "executed_code_cells": 5,
+      "output_count": 4,
+      "post": "11",
+      "source": "notebooks/post-11-enhanced-sampling.ipynb",
+      "source_sha256": "b0d345ddea9168e6745dea24d8a18d7f7144f00aed56a20212fb779d0e0d8771"
+    },
+    {
+      "code_cells": 5,
+      "executed_code_cells": 5,
+      "output_count": 4,
+      "post": "12",
+      "source": "notebooks/post-12-mlip-capstone.ipynb",
+      "source_sha256": "9308f5367ae5daa9c9fcbfd37ce1cb99922766adfac6f620d1ffa814a4e5ae90"
+    }
+  ],
+  "source_git_revision": "8469eb3487f555284a0ba6c6d519fda08487de26",
+  "timeout_seconds": 120
+}

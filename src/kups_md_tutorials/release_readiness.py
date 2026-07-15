@@ -45,6 +45,11 @@ def audit_release_readiness(
         results_root=results_root,
         violations=violations,
     )
+    _check_notebook_execution_ledger(
+        review_dir / "notebook-execution.json",
+        notebook_root=notebook_root,
+        violations=violations,
+    )
     _check_required_artifact_surface(
         config_root=config_root,
         results_root=results_root,
@@ -257,6 +262,102 @@ def _check_figure_source_provenance(
         rel_path = _relative_to_root_or_posix(figure_path, repo_root)
         if rel_path not in covered_files:
             violations.append(f"{path}: missing source provenance for {rel_path}")
+
+
+def _check_notebook_execution_ledger(
+    path: Path,
+    *,
+    notebook_root: Path,
+    violations: list[str],
+) -> None:
+    if not path.exists():
+        violations.append(f"{path}: missing notebook execution ledger")
+        return
+    text = path.read_text(encoding="utf-8")
+    try:
+        ledger = json.loads(text)
+    except json.JSONDecodeError as exc:
+        violations.append(f"{path}: invalid JSON: {exc}")
+        return
+    if not isinstance(ledger, dict):
+        violations.append(f"{path}: notebook execution ledger must be a JSON object")
+        return
+
+    if ledger.get("kernel_name") != "python3":
+        violations.append(
+            f"{path}: expected kernel_name python3, found {ledger.get('kernel_name')!r}"
+        )
+    timeout = ledger.get("timeout_seconds")
+    if not isinstance(timeout, int) or timeout <= 0:
+        violations.append(f"{path}: missing positive timeout_seconds")
+
+    entries = ledger.get("notebooks")
+    if not isinstance(entries, list) or not entries:
+        violations.append(f"{path}: missing notebook execution entries")
+        return
+
+    seen_posts: set[str] = set()
+    for index, entry in enumerate(entries, start=1):
+        label = f"{path}: notebook entry {index}"
+        if not isinstance(entry, dict):
+            violations.append(f"{label} must be a JSON object")
+            continue
+        post = entry.get("post")
+        if post not in SUPPORTED_POSTS:
+            violations.append(f"{label} has unsupported post {post!r}")
+            continue
+        seen_posts.add(post)
+        source = entry.get("source")
+        if not isinstance(source, str) or not source:
+            violations.append(f"{label} missing source")
+            continue
+        expected_source = _single_notebook_for_post(notebook_root, post)
+        if expected_source is None:
+            violations.append(f"{label} cannot find current notebook for post {post}")
+            continue
+        source_path = Path(source)
+        if source_path.is_absolute():
+            violations.append(f"{label} source should be repository-relative: {source}")
+        elif source_path != expected_source:
+            violations.append(
+                f"{label} expected source {expected_source.as_posix()}, found {source}"
+            )
+        source_file = notebook_root.parent / source_path
+        if not source_file.exists():
+            violations.append(f"{label} source does not exist: {source}")
+            continue
+        expected_sha = entry.get("source_sha256")
+        actual_sha = file_sha256(source_file)
+        if expected_sha != actual_sha:
+            violations.append(
+                f"{label} source_sha256 mismatch for {source}: "
+                f"expected {expected_sha!r}, found {actual_sha}"
+            )
+
+        code_cells = entry.get("code_cells")
+        executed_code_cells = entry.get("executed_code_cells")
+        output_count = entry.get("output_count")
+        actual_code_cells = _notebook_code_cell_count(source_file, violations)
+        if not isinstance(code_cells, int) or code_cells <= 0:
+            violations.append(f"{label} missing positive code_cells")
+        elif actual_code_cells is not None and code_cells != actual_code_cells:
+            violations.append(
+                f"{label} expected code_cells {actual_code_cells}, found {code_cells}"
+            )
+        if executed_code_cells != code_cells:
+            violations.append(
+                f"{label} executed_code_cells {executed_code_cells!r} "
+                f"does not match code_cells {code_cells!r}"
+            )
+        if not isinstance(output_count, int) or output_count <= 0:
+            violations.append(f"{label} missing positive output_count")
+
+    missing_posts = sorted(set(SUPPORTED_POSTS) - seen_posts)
+    if missing_posts:
+        violations.append(
+            f"{path}: missing notebook execution entries for posts "
+            + ", ".join(missing_posts)
+        )
 
 
 def _check_post12_model_artifact(
@@ -767,6 +868,31 @@ def _ledger_path_exists(repo_root: Path, path_text: str) -> bool:
     if path.is_absolute():
         return path.exists()
     return path.exists() or (repo_root / path).exists()
+
+
+def _single_notebook_for_post(notebook_root: Path, post: str) -> Path | None:
+    matches = sorted(notebook_root.glob(f"post-{post}-*.ipynb"))
+    if len(matches) != 1:
+        return None
+    return matches[0].relative_to(notebook_root.parent)
+
+
+def _notebook_code_cell_count(path: Path, violations: list[str]) -> int | None:
+    text = path.read_text(encoding="utf-8")
+    try:
+        notebook = json.loads(text)
+    except json.JSONDecodeError as exc:
+        violations.append(f"{path}: invalid notebook JSON: {exc}")
+        return None
+    cells = notebook.get("cells")
+    if not isinstance(cells, list):
+        violations.append(f"{path}: notebook missing cells list")
+        return None
+    return sum(
+        1
+        for cell in cells
+        if isinstance(cell, dict) and cell.get("cell_type") == "code"
+    )
 
 
 def _site_manifest_destination(site_root: Path, destination_text: str) -> Path:

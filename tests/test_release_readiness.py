@@ -54,7 +54,15 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
         (notebook_dir / f"post-{post_id}-example.ipynb").write_text(
             json.dumps(
                 {
-                    "cells": [],
+                    "cells": [
+                        {
+                            "cell_type": "code",
+                            "execution_count": None,
+                            "metadata": {},
+                            "outputs": [],
+                            "source": "print('ok')",
+                        }
+                    ],
                     "metadata": {},
                     "nbformat": 4,
                     "nbformat_minor": 5,
@@ -80,6 +88,7 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
 
     _write_post12_model_metadata(root, placeholder=placeholder)
     _write_figure_source_ledger(root)
+    _write_notebook_execution_ledger(root)
 
 
 def _write_figure_source_ledger(root: Path) -> None:
@@ -112,6 +121,37 @@ def _write_figure_source_ledger(root: Path) -> None:
         ]
     (review_dir / "figure-sources.json").write_text(
         json.dumps(ledger, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _write_notebook_execution_ledger(root: Path) -> None:
+    review_dir = root / "reviews"
+    review_dir.mkdir(parents=True, exist_ok=True)
+    entries = []
+    for post in range(1, 13):
+        post_id = f"{post:02d}"
+        notebook_path = root / "notebooks" / f"post-{post_id}-example.ipynb"
+        entries.append(
+            {
+                "post": post_id,
+                "source": f"notebooks/post-{post_id}-example.ipynb",
+                "source_sha256": _sha256(notebook_path),
+                "code_cells": 1,
+                "executed_code_cells": 1,
+                "output_count": 1,
+            }
+        )
+    (review_dir / "notebook-execution.json").write_text(
+        json.dumps(
+            {
+                "kernel_name": "python3",
+                "timeout_seconds": 120,
+                "notebooks": entries,
+            },
+            indent=2,
+        )
+        + "\n",
         encoding="utf-8",
     )
 
@@ -617,6 +657,39 @@ def test_release_readiness_reports_missing_figure_source_provenance(
         for violation in result.violations
     )
     assert any("post-08 entry 1 missing license" in violation for violation in result.violations)
+
+
+def test_release_readiness_reports_stale_notebook_execution_ledger(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    ledger_path = tmp_path / "reviews" / "notebook-execution.json"
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    ledger["notebooks"] = [
+        entry for entry in ledger["notebooks"] if entry["post"] != "08"
+    ]
+    ledger["notebooks"][0]["source_sha256"] = "0" * 64
+    ledger["notebooks"][1]["executed_code_cells"] = 0
+    ledger_path.write_text(json.dumps(ledger) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("source_sha256 mismatch" in violation for violation in result.violations)
+    assert any("does not match code_cells" in violation for violation in result.violations)
+    assert any(
+        "missing notebook execution entries for posts 08" in violation
+        for violation in result.violations
+    )
 
 
 def test_release_readiness_reports_manifest_provenance_violations(tmp_path: Path) -> None:

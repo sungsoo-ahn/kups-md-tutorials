@@ -3004,3 +3004,67 @@ Final-release blockers:
   verify-release-readiness`.
 - Run the command without `--skip-site` after final website pages are public,
   non-hidden, and no longer marked as drafts.
+
+## Update 2026-07-15: GPU Fallback Evidence Gate
+
+Scope:
+
+- Added a release-surface audit over full-profile compact summaries that scans
+  nested GPU readiness records containing `target_requests_gpu`,
+  `production_gpu_ready`, and `gpu_blocking_reason`.
+- The audit now rejects GPU-targeted full artifacts that fell back from
+  production GPU execution without an explicit blocking reason, production-GPU
+  ready artifacts that still carry a blocking reason, non-GPU-targeted
+  artifacts with a blocking reason, and non-boolean readiness fields.
+- Added regression coverage with a synthetic Post 03 full summary whose
+  `argon_nve_protocol` requests GPU, reports `production_gpu_ready = false`,
+  and omits `gpu_blocking_reason`; `verify_release_surface` rejects it.
+
+Current full-profile GPU-targeted evidence inspected:
+
+- `results/post-03/full/error_summary.json` `argon_nve_protocol`:
+  `target_requests_gpu = true`, `production_gpu_ready = false`, blocking reason
+  records CPU fallback.
+- `results/post-04/full/thermostat_summary.json` `argon_langevin_protocol`:
+  `target_requests_gpu = true`, `production_gpu_ready = false`, blocking reason
+  records CPU fallback.
+- `results/post-05/full/barostat_summary.json` `argon_npt_dynamics`:
+  `target_requests_gpu = true`, `production_gpu_ready = false`, blocking reason
+  records CPU fallback.
+- `results/post-06/full/trajectory_length_summary.json` `argon_observable`:
+  `target_requests_gpu = true`, `production_gpu_ready = false`, blocking reason
+  records CPU fallback.
+- `results/post-07/full/observable_summary.json` `argon_trajectory`:
+  `target_requests_gpu = true`, `production_gpu_ready = false`, blocking reason
+  records CPU fallback.
+- `results/post-08/full/free_energy_summary.json` `argon_rdf_pmf`:
+  `target_requests_gpu = true`, `production_gpu_ready = false`, blocking reason
+  records CPU fallback.
+- `results/post-10/full/umbrella_summary.json` `pair_distance_umbrella`:
+  `target_requests_gpu = true`, `production_gpu_ready = false`, blocking reason
+  records CPU fallback.
+- `results/post-11/full/enhanced_sampling_summary.json`
+  `pair_distance_steered`: `target_requests_gpu = true`,
+  `production_gpu_ready = false`, blocking reason records CPU fallback.
+
+Commands and evidence:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 43 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+
+Review decision:
+
+- Accepted for the tooling milestone. The release-surface gate now preserves
+  the current final GPU blockers as explicit evidence instead of allowing
+  silent CPU fallback.
+- No figure or rendered-page snapshot was required because this change only
+  touches release-readiness tooling, tests, and review prose; no figures,
+  notebooks, configs, result files, website pages, CSS-sensitive markup, or
+  publication assets changed.
+- Final release remains blocked on actual production GPU diagnostics, public
+  indexing, migrating hidden drafts to final `_posts`, recapturing rendered
+  snapshots after final publication changes, and passing strict
+  `verify-release-readiness`.

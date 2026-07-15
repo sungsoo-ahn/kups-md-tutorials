@@ -102,6 +102,7 @@ def audit_release_readiness(
         snapshot_root=snapshot_root,
         violations=violations,
     )
+    _check_gpu_production_readiness(results_root, violations)
     _check_post12_model_artifact(config_root, results_root, violations)
     if site_root is not None:
         _check_site_snapshot_capture(site_root, violations)
@@ -346,6 +347,79 @@ def _json_contains_key(value: object, key: str) -> bool:
     if isinstance(value, list):
         return any(_json_contains_key(child, key) for child in value)
     return False
+
+
+def _check_gpu_production_readiness(
+    results_root: Path,
+    violations: list[str],
+) -> None:
+    for post in SUPPORTED_POSTS:
+        result_dir = results_root / f"post-{post}" / "full"
+        for summary_path in sorted(result_dir.glob("*_summary.json")):
+            try:
+                summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                continue
+            _check_gpu_records(
+                summary,
+                label=str(summary_path),
+                violations=violations,
+            )
+
+
+def _check_gpu_records(
+    value: object,
+    *,
+    label: str,
+    violations: list[str],
+) -> None:
+    if isinstance(value, dict):
+        required_keys = {
+            "target_requests_gpu",
+            "production_gpu_ready",
+            "gpu_blocking_reason",
+        }
+        if required_keys <= set(value):
+            target_requests_gpu = value.get("target_requests_gpu")
+            production_gpu_ready = value.get("production_gpu_ready")
+            gpu_blocking_reason = value.get("gpu_blocking_reason")
+            if not isinstance(target_requests_gpu, bool):
+                violations.append(f"{label}: target_requests_gpu must be boolean")
+            if not isinstance(production_gpu_ready, bool):
+                violations.append(f"{label}: production_gpu_ready must be boolean")
+            if gpu_blocking_reason is not None and not isinstance(
+                gpu_blocking_reason, str
+            ):
+                violations.append(f"{label}: gpu_blocking_reason must be string or null")
+
+            if target_requests_gpu is True and production_gpu_ready is False:
+                if not isinstance(gpu_blocking_reason, str) or not gpu_blocking_reason:
+                    violations.append(
+                        f"{label}: GPU-targeted full artifact fell back from "
+                        "production GPU without gpu_blocking_reason"
+                    )
+            if production_gpu_ready is True and gpu_blocking_reason:
+                violations.append(
+                    f"{label}: production_gpu_ready artifact still records "
+                    "gpu_blocking_reason"
+                )
+            if target_requests_gpu is False and gpu_blocking_reason:
+                violations.append(
+                    f"{label}: non-GPU-targeted artifact records gpu_blocking_reason"
+                )
+        for key, child in value.items():
+            _check_gpu_records(
+                child,
+                label=f"{label}.{key}",
+                violations=violations,
+            )
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _check_gpu_records(
+                child,
+                label=f"{label}[{index}]",
+                violations=violations,
+            )
 
 
 def _check_figure_source_provenance(

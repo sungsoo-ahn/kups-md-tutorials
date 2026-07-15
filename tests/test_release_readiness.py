@@ -1345,6 +1345,49 @@ def test_release_surface_rejects_structural_violations(tmp_path: Path) -> None:
         )
 
 
+def test_release_surface_rejects_gpu_fallback_without_blocking_reason(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    summary_path = tmp_path / "results" / "post-03" / "full" / "example_summary.json"
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    summary["argon_nve_protocol"] = {
+        "target_requests_gpu": True,
+        "production_gpu_ready": False,
+        "gpu_blocking_reason": None,
+    }
+    summary_path.write_text(json.dumps(summary) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "GPU-targeted full artifact fell back from production GPU without "
+        "gpu_blocking_reason"
+        in violation
+        for violation in result.violations
+    )
+    with pytest.raises(ValueError, match="release surface audit failed"):
+        verify_release_surface(
+            review_dir=tmp_path / "reviews",
+            config_root=tmp_path / "configs",
+            results_root=tmp_path / "results",
+            notebook_root=tmp_path / "notebooks",
+            figure_root=tmp_path / "figures",
+            snapshot_root=tmp_path / "snapshots",
+            site_root=tmp_path / "site",
+        )
+
+
 def test_release_readiness_reports_missing_required_artifacts(tmp_path: Path) -> None:
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)

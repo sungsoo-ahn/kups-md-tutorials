@@ -680,6 +680,16 @@ def _verify_post07(post: str, profile: str, output_root: Path) -> None:
         if summary.argon_trajectory.vacf_lag1_autocorrelation <= 0.0:
             msg = "argon trajectory VACF lag-1 autocorrelation should be positive"
             raise ValueError(msg)
+        if not summary.argon_trajectory.runtime_device:
+            msg = "argon trajectory summary is missing runtime-device provenance"
+            raise ValueError(msg)
+        if (
+            summary.argon_trajectory.target_requests_gpu
+            and not summary.argon_trajectory.production_gpu_ready
+            and not summary.argon_trajectory.gpu_blocking_reason
+        ):
+            msg = "argon trajectory GPU-targeted fallback must record a blocking reason"
+            raise ValueError(msg)
 
 
 def _verify_post08(post: str, profile: str, output_root: Path) -> None:

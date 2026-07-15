@@ -848,6 +848,7 @@ class ArgonObservableTrajectorySpec:
     cutoff: float = 2.5
     uncertainty_block_count: int = 4
     uncertainty_replica_count: int = 3
+    target_device: str = "cpu"
 
     def validate(self) -> None:
         if self.repetitions <= 0:
@@ -904,6 +905,9 @@ class ArgonObservableTrajectorySpec:
             raise ValueError(msg)
         if self.uncertainty_replica_count < 2:
             msg = "argon trajectory uncertainty_replica_count must be at least two"
+            raise ValueError(msg)
+        if not self.target_device:
+            msg = "argon trajectory target_device must be non-empty"
             raise ValueError(msg)
 
 
@@ -1915,6 +1919,9 @@ def load_observable_spec(
             epsilon=float(argon_root.get("epsilon", 1.0)),
             sigma=float(argon_root.get("sigma", 1.0)),
             cutoff=float(argon_root.get("cutoff", 2.5)),
+            uncertainty_block_count=int(argon_root.get("uncertainty_block_count", 4)),
+            uncertainty_replica_count=int(argon_root.get("uncertainty_replica_count", 3)),
+            target_device=str(argon_root.get("target_device", "cpu")),
         )
     spec = ObservableTutorialSpec(
         post=str(root["post"]),
@@ -1991,6 +1998,7 @@ def load_free_energy_spec(
             cutoff=float(argon.get("cutoff", 2.5)),
             uncertainty_block_count=int(argon.get("uncertainty_block_count", 4)),
             uncertainty_replica_count=int(argon.get("uncertainty_replica_count", 3)),
+            target_device=str(argon.get("target_device", "cpu")),
         )
     spec = FreeEnergyTutorialSpec(
         post=str(root["post"]),

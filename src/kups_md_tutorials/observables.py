@@ -13,7 +13,13 @@ from kups_md_tutorials.error_diagnostics import (
     _initialized_argon_velocities,
     _lennard_jones_forces,
 )
-from kups_md_tutorials.provenance import provenance
+from kups_md_tutorials.provenance import (
+    gpu_blocking_reason,
+    provenance,
+    runtime_device,
+    runtime_is_gpu,
+    target_requests_gpu,
+)
 from kups_md_tutorials.systems import argon_fcc
 
 
@@ -79,6 +85,11 @@ class ArgonTrajectoryObservableSummary:
     max_vacf_replica_std: float
     vacf_first_zero_lag: int | None
     vacf_lag1_autocorrelation: float
+    target_device: str
+    runtime_device: str
+    target_requests_gpu: bool
+    production_gpu_ready: bool
+    gpu_blocking_reason: str | None
 
 
 @dataclass(frozen=True)
@@ -396,6 +407,9 @@ def _summarize_argon_trajectory(
     vacf_replica_std = np.std(vacf_stack, axis=0, ddof=1)
     vacf_integral_replicas = np.asarray(replica_vacf_integrals, dtype=float)
     zero_crossings = np.flatnonzero(vacf <= 0.0)
+    runtime = runtime_device()
+    requests_gpu = target_requests_gpu(argon.target_device)
+    production_gpu_ready = requests_gpu and runtime_is_gpu(runtime)
     summary = ArgonTrajectoryObservableSummary(
         atom_count=frames.shape[1],
         frame_count=frames.shape[0],
@@ -428,6 +442,11 @@ def _summarize_argon_trajectory(
         max_vacf_replica_std=float(np.max(vacf_replica_std)),
         vacf_first_zero_lag=None if len(zero_crossings) == 0 else int(zero_crossings[0]),
         vacf_lag1_autocorrelation=float(vacf[1]),
+        target_device=argon.target_device,
+        runtime_device=runtime,
+        target_requests_gpu=requests_gpu,
+        production_gpu_ready=production_gpu_ready,
+        gpu_blocking_reason=gpu_blocking_reason(argon.target_device, runtime),
     )
     return summary, (radii, rdf), (lags.astype(float), vacf), (
         radii,

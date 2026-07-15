@@ -1604,12 +1604,16 @@ def _draw_post07_figure(
         axes[3].set_xlabel("radius")
         axes[3].set_ylabel("g(r)")
         axes[3].legend(frameon=False, fontsize=8)
+        runtime_label = (
+            "GPU" if argon_summary.get("production_gpu_ready") else "CPU fallback"
+        )
         axes[3].text(
             0.03,
             0.95,
             f"N = {argon_summary['atom_count']}\n"
             f"coord = {argon_summary['coordination_number']:.2f}\n"
-            f"rep SE = {argon_summary['coordination_replica_standard_error']:.3f}",
+            f"rep SE = {argon_summary['coordination_replica_standard_error']:.3f}\n"
+            f"runtime: {runtime_label}",
             transform=axes[3].transAxes,
             va="top",
             ha="left",

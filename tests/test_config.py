@@ -109,6 +109,7 @@ def test_load_observable_spec() -> None:
     assert spec.argon_trajectory is not None
     assert spec.argon_trajectory.repetitions == 2
     assert spec.argon_trajectory.uncertainty_replica_count == 3
+    assert spec.argon_trajectory.target_device == "cpu"
 
 
 def test_load_free_energy_spec() -> None:

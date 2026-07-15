@@ -3029,3 +3029,87 @@ Revision decisions:
   thermostat/barostat settings, GPU provenance, and production stress/cell
   checks, followed by new desktop/mobile snapshots after that production
   update or any public-indexing change.
+
+## Post 07 Citation Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29406322485`.
+- Website commit reviewed:
+  `da462ee`.
+- Website deploy run:
+  `29406139927`.
+- Tutorial review state: working tree after Post 07 citation-review update on
+  top of tutorial commit `948415d`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post07-citation-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post07-citation-snapshots/manifest.json`.
+- Capture scope: hidden Post 07 page after adding final citations for RDF
+  normalization, coordination integrals, finite-size transport effects,
+  time-correlation functions, and VACF tail interpretation.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post07-citation-snapshots/post-07-desktop.png`
+  (`1440 x 13150`)
+- `/tmp/kups-post07-citation-snapshots/post-07-mobile.png`
+  (`541 x 20364`)
+- Focused crops:
+  `/tmp/kups-post07-citation-snapshots/desktop-top-citations.png`,
+  `/tmp/kups-post07-citation-snapshots/desktop-mid-citations.png`,
+  `/tmp/kups-post07-citation-snapshots/desktop-status-refs.png`,
+  `/tmp/kups-post07-citation-snapshots/mobile-top-citations.png`,
+  `/tmp/kups-post07-citation-snapshots/mobile-mid-citations.png`, and
+  `/tmp/kups-post07-citation-snapshots/mobile-lower-status-refs-a.png`.
+
+Feedback:
+
+- Desktop top-section capture renders the title, hidden-draft note, source
+  links, estimator-definition table, and new Allen/Tildesley plus
+  Frenkel/Smit citation cluster without overflow. Sidebar navigation remains
+  intact.
+- Desktop middle capture renders the Hansen/McDonald RDF-normalization
+  citation, Allen/Tildesley and Tuckerman normalization-details citations,
+  Frenkel/Smit and Yeh/Hummer finite-support citations, coordination-integral
+  citations, Kubo and Alder/Wainwright VACF citations, and Green-Kubo paragraph
+  without clipping. The diagnostic figure and caption remain unchanged and
+  contained.
+- Desktop status/reference capture confirms final observable citations moved
+  to the implemented list; the missing-pieces list no longer includes citation
+  work. All expanded reference entries, DOIs, reverse backlinks, and the footer
+  fit in the article column.
+- Mobile top capture keeps the long title, author note, source links,
+  estimator table, and first citation cluster readable. Dense tables remain
+  contained.
+- Mobile middle capture keeps the RDF, coordination, time-correlation,
+  figure, uncertainty, and finite-size sections readable at `541 px`; citation
+  links wrap naturally and the figure is dense but unchanged from the accepted
+  hidden draft.
+- Mobile lower-status/reference capture renders Current Status, the expanded
+  references, DOI links, backlinks, and footer without clipping.
+- Live check with cache-buster `?v=da462ee` confirmed the deployed page
+  contains the new citation/status text and Hansen, Green, Kubo, Alder, and Yeh
+  reference entries.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-07-observables` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after citation refresh.
+- No figure revision was required because figures, figure captions, notebooks,
+  configs, and results were unchanged.
+- The Post 07 citation blocker is resolved; remaining final-release blockers
+  are the larger GPU kUPS trajectory diagnostics for physical observables and
+  new desktop/mobile snapshots after that production update or any
+  public-indexing change.

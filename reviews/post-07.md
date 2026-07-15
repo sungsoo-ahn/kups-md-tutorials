@@ -419,10 +419,111 @@ Final-release blockers:
 
 - Add larger GPU kUPS trajectory diagnostics for physical observables before
   treating this post as final.
-- Add final citations for RDF normalization, coordination integrals,
-  finite-size effects, and time-correlation functions.
 - Re-run rendered desktop/mobile snapshots after final production-observable
-  figures, final citations, or any public-indexing change.
+  figures or any public-indexing change.
+
+## Update 2026-07-15: Observable Citation Completion
+
+Scope:
+
+- Resolved the Post 07 citation blocker for the hidden draft without changing
+  simulations, configs, committed results, notebooks, figure sources, or figure
+  snapshots.
+- Website page updated:
+  `../sungsoo-ahn.github.io/_pages/kups-md-post-07-observables.md`.
+- Hidden page URL:
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`.
+
+Citation review:
+
+- Added inline citation anchors for RDF normalization, RDF finite-support
+  masking, coordination integrals, time-correlation/VACF estimators,
+  Green-Kubo tail interpretation, and finite-size transport effects.
+- Added reverse backlinks in the `## References` section for Frenkel/Smit,
+  Tuckerman, Allen/Tildesley, Hansen/McDonald, Green, Kubo,
+  Alder/Wainwright, and Yeh/Hummer.
+- The page's Current Status now lists final observable-estimator citations as
+  implemented and no longer lists citation work as a missing piece.
+- No figure snapshot was required for this citation-only prose pass because
+  `figures/post-07/`, `snapshots/post-07/`, notebooks, configs, and results
+  were unchanged. The existing reviewed figure snapshots remain
+  `snapshots/post-07/observable_diagnostics_snapshot.png` and
+  `snapshots/post-07/observable_diagnostics_full_snapshot.png`.
+
+Source checks:
+
+- Yeh/Hummer `System-size dependence of diffusion coefficients and viscosities
+  from molecular dynamics simulations with periodic boundary conditions`:
+  ACS/JPCB DOI `10.1021/jp0477147`.
+- Alder/Wainwright `Decay of the velocity autocorrelation function`: APS/Phys.
+  Rev. A DOI `10.1103/PhysRevA.1.18`.
+- Kubo `Statistical-mechanical theory of irreversible processes. I`: JPSJ DOI
+  `10.1143/JPSJ.12.570`.
+- Green `Markoff random processes and the statistical mechanics of
+  time-dependent phenomena. II`: JCP DOI `10.1063/1.1740082`.
+- RDF normalization and coordination-integral context checked against
+  Allen/Tildesley, Frenkel/Smit, Tuckerman, and Hansen/McDonald references.
+
+Validation and page review:
+
+- Website validation passed before deployment:
+  `python3 scripts/validate_kups_pages.py`,
+  `python3 scripts/validate_blog.py`, and `git diff --check`.
+- Website commit reviewed and deployed: `da462ee`.
+- Website deploy workflow run: `29406139927`, passed.
+- Snapshot workflow run: `29406322485`, passed.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post07-citation-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post07-citation-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`,
+  both with HTTP 200 and page title
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+- Full-page snapshots visually inspected:
+  `/tmp/kups-post07-citation-snapshots/post-07-desktop.png`
+  (`1440 x 13150`) and
+  `/tmp/kups-post07-citation-snapshots/post-07-mobile.png`
+  (`541 x 20364`).
+- Focused crops visually inspected:
+  `/tmp/kups-post07-citation-snapshots/desktop-top-citations.png`,
+  `/tmp/kups-post07-citation-snapshots/desktop-mid-citations.png`,
+  `/tmp/kups-post07-citation-snapshots/desktop-status-refs.png`,
+  `/tmp/kups-post07-citation-snapshots/mobile-top-citations.png`,
+  `/tmp/kups-post07-citation-snapshots/mobile-mid-citations.png`, and
+  `/tmp/kups-post07-citation-snapshots/mobile-lower-status-refs-a.png`.
+- Desktop feedback: the intro and estimator-definition citation cluster,
+  RDF-normalization citations, finite-support/finite-size citations,
+  coordination-integral citations, time-correlation citations, Current Status,
+  and expanded References section all render inside the article column. The
+  figure section and tables remain contained and unchanged.
+- Mobile feedback: the long title, hidden-draft note, source links, citations,
+  tables, equations, figure, Current Status, references, backlinks, and footer
+  fit at `541 px` width. The article remains dense, but no citation overflow,
+  table clipping, missing reference, or broken page chrome was found in the
+  inspected crops.
+- Live check with cache-buster `?v=da462ee` confirmed the deployed Post 07 page
+  contains the new citation/status text and Hansen, Green, Kubo, Alder, and Yeh
+  reference entries.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-07-observables` links, so the page remains direct-link only.
+
+Blocking items for the current hidden draft:
+
+- None from this citation refresh.
+
+Non-blocking items accepted until the final article pass:
+
+- Mobile table and figure density remain accepted for the hidden draft.
+- The compact reduced-unit argon trajectory remains a teaching diagnostic
+  rather than a final GPU kUPS production observable study.
+
+Final-release blockers after this refresh:
+
+- Add larger GPU kUPS trajectory diagnostics for physical observables before
+  treating this post as final.
+- Re-run rendered desktop/mobile snapshots after final production-observable
+  figures or any public-indexing change.
 
 ## Update 2026-07-15: Runtime Provenance Gate
 

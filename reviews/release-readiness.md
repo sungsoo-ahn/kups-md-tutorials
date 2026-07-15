@@ -2919,6 +2919,74 @@ Review decision:
   after final publication changes, and passing strict
   `verify-release-readiness`.
 
+## Update 2026-07-15: Hidden Index Blog-List Alignment
+
+Scope:
+
+- Updated the hidden website index
+  `../sungsoo-ahn.github.io/_pages/kups-md-tutorials.md` so its listing loop
+  follows the public `/blog/` page more closely: it now uses the same
+  post-type label normalization, redirect handling, external-source read-time
+  fallback, and author/date/read-time metadata shape.
+- Kept `nav: false` and `site.pages | where: "series", "kups-md-tutorials"`
+  so the series remains direct-link-only while hidden drafts are reviewed.
+- Updated `reviews/website-build.json` to the successful website deploy run
+  `29444127335` for commit `55c5d35`.
+
+Commands and workflow evidence:
+
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_blog.py` passed
+  with the existing unused-image warnings.
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_kups_pages.py`
+  passed.
+- In `../sungsoo-ahn.github.io`, `git diff --check` passed.
+- Local `bundle exec jekyll build` failed because `bundle` is not installed on
+  this host. The GitHub deploy workflow was used as the authoritative Jekyll
+  build evidence.
+- Website deploy run `29444127335` passed `Validate blog posts`, `Validate
+  hidden kUPS pages`, `Build site`, and `Deploy to GitHub Pages`.
+- Snapshot workflow run `29444301067` passed with input `posts=index` and
+  uploaded artifact `kups-md-page-snapshots`.
+- Downloaded snapshot review copy:
+  `/tmp/kups-index-bloglike-final-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-index-bloglike-final-snapshots/manifest.json`.
+- Live cache-busted checks with `?v=55c5d35` confirmed the hidden index
+  contains `kUPS MD Tutorials`, `Tutorials 12`, and screen-reader-only
+  `part 1 of 12` series metadata while `/` plus `/blog/` still do not expose
+  the kUPS pages.
+
+Rendered-page review:
+
+- `/tmp/kups-index-bloglike-final-snapshots/post-index-desktop.png`
+  (`1440 x 1763`) inspected.
+- `/tmp/kups-index-bloglike-final-snapshots/post-index-mobile.png`
+  (`390 x 2380`) inspected.
+- Desktop feedback: the index renders as a blog-style listing with centered
+  title, muted description, compact type summary, twelve linked tutorial
+  entries, descriptions, author/date/read-time metadata, and footer. No broken
+  navigation/header chrome, clipping, overlap, or missing entries were found.
+- Mobile feedback: the 390 px capture keeps the hamburger header, title,
+  summary, type summary, twelve long titles, descriptions, metadata lines, and
+  footer within the viewport. Long titles wrap cleanly, and retaining
+  series-position metadata as `sr-only` text prevents visual crowding while
+  preserving the series context required by the release gate.
+
+Figure review:
+
+- No figure assets, figure captions, figure-generation code, notebooks,
+  configs, or result files changed, so no figure snapshot was required.
+
+Review decision:
+
+- Accepted for the hidden index milestone after website validators, successful
+  deploy, rendered desktop/mobile snapshot inspection, and live hidden/public
+  exposure checks.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after final publication changes, and passing strict
+  `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

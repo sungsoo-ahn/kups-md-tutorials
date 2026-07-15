@@ -3798,3 +3798,66 @@ Revision decisions:
 - No figure revision or figure snapshot was required because figure assets,
   figure captions, notebooks, configs, and result files were unchanged.
 - The pages remain hidden from public navigation and direct-link reachable.
+
+## Hidden Index Blog-List Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website deploy workflow: `Deploy site`.
+- Successful deploy run: `29444127335`.
+- Website commit reviewed: `55c5d35109ad760007b37034f5313ffa025d8b32`.
+- Snapshot workflow: `Capture kUPS snapshots`.
+- Successful snapshot run: `29444301067`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-index-bloglike-final-snapshots/`.
+- Manifest reviewed: `/tmp/kups-index-bloglike-final-snapshots/manifest.json`.
+- Capture scope: hidden kUPS series index after aligning the listing loop with
+  the public `/blog/` page.
+
+Commands and checks:
+
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_blog.py` passed
+  with the existing unused-image warnings.
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_kups_pages.py`
+  passed.
+- In `../sungsoo-ahn.github.io`, `git diff --check` passed.
+- Local `bundle exec jekyll build` could not run because `bundle` is not
+  installed on this host. GitHub deploy run `29444127335` is the authoritative
+  Jekyll build for this change.
+- GitHub deploy run `29444127335` passed `Validate blog posts`, `Validate
+  hidden kUPS pages`, `Build site`, and `Deploy to GitHub Pages`.
+- Snapshot workflow run `29444301067` captured desktop and mobile screenshots
+  for the hidden index with `posts=index`.
+- Manifest coverage confirms HTTP 200 for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/`.
+- Live cache-busted checks with `?v=55c5d35` confirmed the hidden index
+  contains `kUPS MD Tutorials`, `Tutorials 12`, and screen-reader-only
+  `part 1 of 12` series metadata while `/` plus `/blog/` still do not expose
+  kUPS links.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-index-bloglike-final-snapshots/post-index-desktop.png`
+  (`1440 x 1763`)
+- `/tmp/kups-index-bloglike-final-snapshots/post-index-mobile.png`
+  (`390 x 2380`)
+
+Feedback:
+
+- Desktop: the hidden index follows the public blog-list rhythm with the
+  centered page title, muted description, compact `Post types` summary, linked
+  titles, descriptions, and author/date/read-time metadata lines. All twelve
+  entries are visible, the footer clears the list, and no clipping, overlap, or
+  broken header/navigation chrome was found.
+- Mobile: the hamburger header, title, summary text, type summary, twelve
+  linked tutorial titles, descriptions, and metadata lines remain within the
+  390 px viewport. Long titles wrap cleanly; the series-position metadata is
+  retained in `sr-only` text and does not visually crowd the narrow metadata
+  row; no horizontal overflow was visible in the inspected snapshot.
+
+Revision decisions:
+
+- Accepted for the hidden draft index after blog-list alignment, successful
+  deploy, rendered desktop/mobile snapshot review, and live exposure checks.
+- No figure revision or figure snapshot was required because no figure assets,
+  figure captions, notebooks, configs, or result files changed.
+- The index remains direct-link reachable and hidden from public navigation.

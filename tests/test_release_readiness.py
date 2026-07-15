@@ -428,11 +428,13 @@ def _write_post12_model_metadata(root: Path, *, placeholder: bool) -> None:
 def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
     pages = site_root / "_pages"
     posts = site_root / "_posts"
+    scripts = site_root / "scripts"
     figure_dir = site_root / "assets" / "img" / "blog"
     export_dir = site_root / "assets" / "json" / "kups-md-tutorials"
     workflow_dir = site_root / ".github" / "workflows"
     pages.mkdir(parents=True)
     posts.mkdir(parents=True)
+    scripts.mkdir(parents=True)
     figure_dir.mkdir(parents=True)
     workflow_dir.mkdir(parents=True)
     (workflow_dir / "deploy.yml").write_text(
@@ -446,6 +448,50 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
         "        run: python3 scripts/validate_kups_pages.py\n"
         "      - name: Build site\n"
         "        run: bundle exec jekyll build\n",
+        encoding="utf-8",
+    )
+    (workflow_dir / "kups-snapshots.yml").write_text(
+        "name: Capture kUPS snapshots\n"
+        "on:\n"
+        "  workflow_dispatch:\n"
+        "    inputs:\n"
+        "      base_url:\n"
+        "        default: https://sungsoo-ahn.github.io\n"
+        "      posts:\n"
+        "        default: 01,02,03,04,05,06,07,08,09,10,11,12\n"
+        "jobs:\n"
+        "  capture:\n"
+        "    steps:\n"
+        "      - name: Install Chromium\n"
+        "        run: npx playwright install chromium\n"
+        "      - name: Capture hidden page snapshots\n"
+        "        run: |\n"
+        "          node scripts/capture_kups_snapshots.js --base-url \"${{ inputs.base_url }}\" --posts \"${{ inputs.posts }}\" --output-dir snapshots/kups-md-pages\n"
+        "      - name: Upload snapshots\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        "          name: kups-md-page-snapshots\n"
+        "          path: snapshots/kups-md-pages\n",
+        encoding="utf-8",
+    )
+    (scripts / "capture_kups_snapshots.js").write_text(
+        "const viewports = [\n"
+        '  ["desktop", { width: 1440, height: 1200 }],\n'
+        '  ["mobile", { width: 390, height: 1200, isMobile: true }],\n'
+        "];\n"
+        "const slugs = [\n"
+        '  "/kups-md-tutorials/",\n'
+        + "".join(
+            f'  "/kups-md-tutorials/post-{post:02d}-example/",\n'
+            for post in range(1, 13)
+        )
+        + "];\n"
+        "async function capture(page, url) {\n"
+        '  const response = await page.goto(url, { waitUntil: "networkidle" });\n'
+        "  if (!response || response.status() >= 400) throw new Error(url);\n"
+        "  await page.screenshot({ path: 'snapshot.png', fullPage: true });\n"
+        "}\n"
+        "fs.writeFileSync('manifest.json', JSON.stringify(slugs));\n",
         encoding="utf-8",
     )
     body_words = " ".join(f"sample{idx}" for idx in range(3600))
@@ -1475,6 +1521,42 @@ def test_release_readiness_reports_stale_website_build_ledger(
         in violation
         for violation in result.violations
     )
+
+
+def test_release_readiness_reports_stale_site_snapshot_capture(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    workflow_path = tmp_path / "site" / ".github" / "workflows" / "kups-snapshots.yml"
+    workflow_text = workflow_path.read_text(encoding="utf-8")
+    workflow_path.write_text(
+        workflow_text.replace("name: kups-md-page-snapshots", "name: snapshots"),
+        encoding="utf-8",
+    )
+    script_path = tmp_path / "site" / "scripts" / "capture_kups_snapshots.js"
+    script_text = script_path.read_text(encoding="utf-8")
+    script_text = script_text.replace(
+        '  ["mobile", { width: 390, height: 1200, isMobile: true }],\n',
+        "",
+    )
+    script_text = script_text.replace("fullPage: true", "fullPage: false")
+    script_path.write_text(script_text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("missing kUPS snapshot snapshot artifact name" in violation for violation in result.violations)
+    assert any("missing kUPS snapshot mobile viewport" in violation for violation in result.violations)
+    assert any("missing kUPS snapshot full-page capture" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_stale_ci_workflow(

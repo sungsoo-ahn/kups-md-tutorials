@@ -2098,6 +2098,63 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Website Snapshot Capture Infrastructure Gate
+
+Scope:
+
+- Added a site-aware release-readiness check for the website snapshot capture
+  infrastructure used by the rendered-page review ledger.
+- The gate now verifies `../sungsoo-ahn.github.io/.github/workflows/kups-snapshots.yml`
+  keeps manual dispatch inputs, Chromium installation, the
+  `scripts/capture_kups_snapshots.js` command, the `snapshots/kups-md-pages`
+  output directory, and the `kups-md-page-snapshots` artifact.
+- The gate also verifies the capture script keeps desktop and mobile
+  viewports, direct-link kUPS URLs for the index and posts 01-12, HTTP failure
+  checks, network-idle navigation, full-page screenshots, and a manifest.
+- Added regression coverage for a stale artifact name, a removed mobile
+  viewport, and disabled full-page capture.
+- No configs, results, notebooks, figure assets, snapshots, website pages,
+  website assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 38 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the expected final-release blockers: production GPU
+  diagnostics, hidden/non-final pages, missing final `_posts`, and snapshot
+  recapture after public indexing.
+
+Code and reproducibility review:
+
+- The previous release gate read `reviews/page-snapshots.md` and the website
+  build ledger, but it did not prove the website repository still had the
+  capture workflow and script required to reproduce those snapshot artifacts.
+- The new check ties the ledger to the workflow and script that can regenerate
+  desktop/mobile direct-link page snapshots.
+- The current website checkout satisfies the new infrastructure check.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, capture output,
+  or CSS-sensitive markup changed, so no new rendered desktop/mobile page
+  snapshots were required. Existing rendered-page evidence remains in
+  `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone after focused lint,
+  release-readiness regression tests, and a site-aware audit against the real
+  website checkout.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

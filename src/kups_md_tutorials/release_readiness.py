@@ -99,6 +99,7 @@ def audit_release_readiness(
     )
     _check_post12_model_artifact(config_root, results_root, violations)
     if site_root is not None:
+        _check_site_snapshot_capture(site_root, violations)
         _check_site_publication_state(
             site_root,
             source_root=review_dir.parent,
@@ -699,6 +700,56 @@ def _check_website_build_ledger(
         if command not in workflow_text:
             violations.append(
                 f"{workflow_path}: missing release validation command {command}"
+            )
+
+
+def _check_site_snapshot_capture(site_root: Path, violations: list[str]) -> None:
+    workflow_path = site_root / ".github" / "workflows" / "kups-snapshots.yml"
+    script_path = site_root / "scripts" / "capture_kups_snapshots.js"
+    if not workflow_path.exists():
+        violations.append(f"{workflow_path}: missing kUPS page snapshot workflow")
+    else:
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        required_workflow_fragments = {
+            "workflow_dispatch:": "manual dispatch trigger",
+            "base_url": "base URL input",
+            "posts": "post selection input",
+            "npx playwright install chromium": "Chromium installation",
+            "node scripts/capture_kups_snapshots.js": "snapshot capture command",
+            "--output-dir snapshots/kups-md-pages": "snapshot output directory",
+            "name: kups-md-page-snapshots": "snapshot artifact name",
+            "path: snapshots/kups-md-pages": "snapshot artifact path",
+        }
+        for fragment, description in required_workflow_fragments.items():
+            if fragment not in workflow_text:
+                violations.append(
+                    f"{workflow_path}: missing kUPS snapshot {description}: {fragment}"
+                )
+
+    if not script_path.exists():
+        violations.append(f"{script_path}: missing kUPS page snapshot script")
+        return
+
+    script_text = script_path.read_text(encoding="utf-8")
+    required_script_fragments = {
+        '["desktop", { width: 1440, height: 1200 }]': "desktop viewport",
+        '["mobile", { width: 390, height: 1200, isMobile: true }]': (
+            "mobile viewport"
+        ),
+        "page.goto(url": "page navigation",
+        "waitUntil: \"networkidle\"": "network-idle wait",
+        "response.status() >= 400": "HTTP failure check",
+        "page.screenshot": "page screenshot capture",
+        "fullPage: true": "full-page capture",
+        "manifest.json": "snapshot manifest output",
+        "/kups-md-tutorials/": "series index URL",
+    }
+    for post in SUPPORTED_POSTS:
+        required_script_fragments[f"post-{post}-"] = f"post {post} URL slug"
+    for fragment, description in required_script_fragments.items():
+        if fragment not in script_text:
+            violations.append(
+                f"{script_path}: missing kUPS snapshot {description}: {fragment}"
             )
 
 

@@ -696,6 +696,37 @@ def _check_ci_workflow(path: Path, violations: list[str]) -> None:
         if fragment not in text:
             violations.append(f"{path}: missing CI {description}: {fragment}")
 
+    required_order = (
+        ("uv sync --locked", "locked dependency installation"),
+        ("uv run ruff check .", "ruff check"),
+        ("uv run pytest -q", "pytest"),
+        ("uv run kups-tutorial run-all --profile smoke", "smoke reproduction"),
+        ("uv run kups-tutorial verify --profile smoke", "smoke verification"),
+        ("uv run kups-tutorial verify --profile full", "committed full verification"),
+        ("uv run kups-tutorial verify-artifacts", "tracked artifact audit"),
+        ("uv run kups-tutorial verify-reviews", "review audit"),
+        (
+            "uv run kups-tutorial verify-release-readiness --skip-site "
+            "--allow-current-blockers",
+            "release-surface audit",
+        ),
+        ("uv run kups-tutorial verify-notebooks", "clean notebook execution"),
+        ("git diff --check", "whitespace audit"),
+    )
+    previous_index = -1
+    previous_description = ""
+    for fragment, description in required_order:
+        index = text.find(fragment)
+        if index == -1:
+            continue
+        if index < previous_index:
+            violations.append(
+                f"{path}: CI {description} runs before {previous_description}"
+            )
+        else:
+            previous_index = index
+            previous_description = description
+
 
 def _check_gitignore_policy(path: Path, violations: list[str]) -> None:
     if not path.exists():

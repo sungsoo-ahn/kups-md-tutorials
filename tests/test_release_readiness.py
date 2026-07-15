@@ -1214,6 +1214,41 @@ def test_release_readiness_reports_stale_ci_workflow(
     assert any("missing CI clean notebook execution" in violation for violation in result.violations)
 
 
+def test_release_readiness_reports_misordered_ci_workflow(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    workflow_path = tmp_path / ".github" / "workflows" / "verify.yml"
+    text = workflow_path.read_text(encoding="utf-8")
+    review_step = (
+        "      - name: Audit review notes\n"
+        "        run: uv run kups-tutorial verify-reviews\n"
+    )
+    release_step = (
+        "      - name: Audit release surface\n"
+        "        run: uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers\n"
+    )
+    text = text.replace(review_step + release_step, release_step + review_step)
+    workflow_path.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "CI release-surface audit runs before review audit" in violation
+        for violation in result.violations
+    )
+
+
 def test_release_readiness_reports_stale_gitignore_policy(
     tmp_path: Path,
 ) -> None:

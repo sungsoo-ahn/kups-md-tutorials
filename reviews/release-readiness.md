@@ -1492,6 +1492,52 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: CI Release Audit Ordering Gate
+
+Scope:
+
+- Tightened the tutorial CI release-readiness contract so
+  `.github/workflows/verify.yml` must run checks in the expected review order,
+  not merely contain the right commands somewhere in the file.
+- The enforced order is locked dependency installation, lint, tests, smoke
+  reproduction, smoke verification, committed full-output verification,
+  artifact audit, review audit, allowed-blocker release-surface audit, clean
+  notebook execution, and whitespace audit.
+- Added a regression test that swaps the review audit and release-surface audit
+  and verifies the release-readiness checker reports the misordered workflow.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed: 29 tests.
+
+Code and reproducibility review:
+
+- The previous workflow gate caught missing CI commands but could not detect a
+  workflow that performed the release-surface audit before review evidence was
+  checked.
+- The current gate preserves the intended progression from generated outputs
+  and review ledgers into release-surface validation, then notebook execution
+  and whitespace checks.
+- This directly supports the PLAN requirement that validation and review gates
+  stay explicit rather than being hidden under generic CI success.
+
+Figure and rendered-page review:
+
+- No figure-generation code, figure assets, numerical outputs, notebooks,
+  website pages, website assets, or CSS-sensitive markup changed in this
+  milestone.
+- No figure or rendered-page snapshot was required for this validation-only CI
+  contract change.
+
+Review decision:
+
+- Accepted for the CI release-audit ordering milestone after focused lint and
+  release-readiness regression tests.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:
@@ -1500,8 +1546,8 @@ Blocking items for the current hidden draft/tooling milestone:
 
 Non-blocking items accepted until the final article pass:
 
-- `verify-release-readiness` is not part of routine CI yet because the current
-  repository is not final-publication ready.
+- The routine CI release-surface audit intentionally runs with `--skip-site
+  --allow-current-blockers` while the website pages remain hidden drafts.
 
 Final-release blockers:
 

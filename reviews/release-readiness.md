@@ -5,8 +5,9 @@
 - Scope: final-publication gate for the twelve-post kUPS MD tutorial series.
 - Current status: a `verify-release-readiness` CLI command is implemented and
   intentionally fails while final-release blockers remain.
-- Working-tree state: release-readiness audit implementation, tests, README,
-  PLAN, and this review note are staged for the current pass.
+- Current working-tree state for this ledger refresh: review prose update on
+  top of tutorial commit `2ec3ee8`; no release-readiness code, tests, configs,
+  results, notebooks, figures, or website pages changed in this pass.
 - Hidden website drafts remain the current intended publication state until
   final production diagnostics are complete.
 
@@ -26,7 +27,9 @@
 - The command checks post-level review notes for unresolved final-release
   blockers, checks post 12 config/result metadata for placeholder MACE artifact
   markers, and optionally checks the website repository for hidden or non-final
-  page state.
+  page state. The placeholder check remains part of the gate even though the
+  current committed Post 12 configs/results now contain pinned MACE artifact
+  metadata.
 - The command is intentionally separate from routine CI because it should fail
   until the final GPU/model/publication pass is complete.
 - Added `tests/test_release_readiness.py` with a clean final-state fixture,
@@ -39,9 +42,13 @@
 - The current failure output correctly identifies production diagnostics that
   are still needed: argon/kUPS physical diagnostics, final estimator and
   enhanced-sampling figures where applicable, real MACE/fcc-Al GPU results,
-  pinned model artifact hash, and post-snapshot recapture after final changes.
-- The post 12 placeholder MACE metadata is treated as a hard release blocker,
-  not a warning.
+  and post-snapshot recapture after final changes.
+- The post 12 placeholder MACE metadata check remains a hard release blocker
+  in the implementation and tests, but the current project state no longer
+  triggers that blocker because `mace-mp-0b3-medium.model`, revision
+  `e291ace`, and SHA-256
+  `2f2be696351ac9e94fbe01cdfb6f017679acdbd2db7645209ef55fec9826b012`
+  are recorded in Post 12 configs/results/manifests.
 
 ## Figure Feedback Review
 
@@ -68,6 +75,36 @@
   final-release blockers, or placeholder model artifacts remain.
 - Updated `PLAN.md` verification and progress-log sections to include the new
   final-publication gate.
+
+## Update 2026-07-15: Current Gate State Refresh
+
+Scope:
+
+- Refreshed this review ledger so it no longer describes placeholder Post 12
+  MACE metadata as a current blocker.
+- No release-readiness code, CLI behavior, tests, configs, results, notebooks,
+  figures, website pages, or website assets changed in this pass.
+
+Commands:
+
+- `uv run kups-tutorial verify-reviews`
+- `uv run pytest tests/test_release_readiness.py -q`
+- `uv run kups-tutorial verify-release-readiness --skip-site 2>&1 | tail -n 140`
+- `git diff --check`
+
+Review decision:
+
+- The release-readiness gate still fails intentionally for final publication.
+- The expected current blocker set is hidden/public-release status plus
+  production diagnostics, including the real MACE/fcc-Al GPU capstone.
+- The expected current blocker set does not include placeholder Post 12 MACE
+  metadata; `tests/test_release_readiness.py` explicitly checks that the
+  current project audit reports the real GPU capstone and does not report a
+  placeholder model artifact blocker.
+- No figure snapshot feedback was required because no figure asset or figure
+  generation code changed.
+- No rendered page snapshot feedback was required because no website prose,
+  front matter, linked figure, CSS-sensitive markup, or page asset changed.
 
 ## Open Items
 

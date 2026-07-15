@@ -287,6 +287,72 @@ Revision decisions:
 - The argon/kUPS NVE diagnostic remains a final-release blocker for post 03.
 - The page remains hidden from public navigation and direct-link reachable.
 
+## Post 03 Runtime Provenance Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- GitHub Actions run: `29390961441`.
+- Tutorial commit:
+  `b0ed74d482a449d3064c7602c8f310d4c6696fc5`.
+- Website commit: `29827b0`.
+- Deploy run for that commit: `29390809533`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post03-runtime-provenance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/manifest.json`.
+- Capture scope: post 03 only, after adding runtime-device and GPU-readiness
+  provenance to the NVE diagnostic summary and hidden article.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots both captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-03-errors/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
+
+Snapshots visually inspected in this pass:
+
+- `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/post-03-desktop.png`
+  (`1440 x 11678`).
+- `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/post-03-mobile.png`
+  (`461 x 18612`).
+- `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/post-03-figure-crop.png`.
+- `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/post-03-mobile-figure-crop.png`.
+- `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/post-03-mobile-status-check-1.png`.
+
+Feedback:
+
+- Desktop capture renders the hidden draft end to end with sidebar table of
+  contents, runtime-device table rows, diagnostic figure, reproduction block,
+  Current Status section, references, and footer present. No blank page,
+  missing figure, obvious text clipping, or broken page chrome was found in the
+  inspected snapshot.
+- Desktop figure crop shows the NVE panel legend label `runtime: CPU fallback`
+  without clipping or hiding the drift traces.
+- Mobile capture renders the long article, figure, status lists, references,
+  and footer within the viewport. The runtime label is small at mobile width
+  but visible, and the nearby prose explicitly states that the artifact is a
+  CPU-fallback run rather than a completed GPU production run.
+- Mobile status crop confirms the page lists runtime-device/GPU-readiness
+  provenance as implemented and the real CUDA/GPU kUPS production NVE
+  diagnostic as remaining work.
+- Live cache-busted checks on the hidden post confirmed the deployed HTML
+  contains `production_gpu_ready`, `runtime_device`, `jax:cpu;devices:cpu`,
+  `CPU fallback`, and `CUDA/GPU`.
+- Live checks of `/` and `/blog/` found no `kups-md-tutorials` or
+  `post-03-errors` links.
+
+Revision decisions:
+
+- No blocking layout issue was found for the runtime-provenance hidden draft.
+- The hidden post remains direct-link reachable and absent from public
+  homepage/blog navigation.
+- Real CUDA/GPU kUPS production NVE remains a final-release blocker for post
+  03.
+
 ## Expanded Post 04 Snapshot Capture
 
 - Capture date: 2026-07-14.

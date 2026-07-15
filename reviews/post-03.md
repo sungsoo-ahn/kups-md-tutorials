@@ -308,10 +308,53 @@ Figure feedback:
 
 Website review status:
 
-- Pending in this pass: commit the tutorial provenance update, re-export the
-  hidden website assets so the manifest points at that commit, deploy the
-  hidden page, capture rendered desktop/mobile snapshots, and record page
-  feedback.
+- Complete for this pass. Tutorial commit
+  `b0ed74d482a449d3064c7602c8f310d4c6696fc5` was exported to the website and
+  deployed as website commit `29827b0`.
+- GitHub Pages deploy `29390809533` succeeded for the hidden post 03 refresh.
+- GitHub Actions snapshot workflow `29390961441` captured the deployed hidden
+  page. The artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post03-runtime-provenance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/manifest.json`.
+  It contains desktop and mobile captures for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-03-errors/`, both HTTP
+  200, with title
+  `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
+
+Rendered snapshots reviewed:
+
+- `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/post-03-desktop.png`
+  (`1440 x 11678`).
+- `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/post-03-mobile.png`
+  (`461 x 18612`).
+- `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/post-03-figure-crop.png`.
+- `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/post-03-mobile-figure-crop.png`.
+- `/tmp/kups-post03-runtime-provenance-snapshots/kups-md-page-snapshots/post-03-mobile-status-check-1.png`.
+
+Rendered feedback:
+
+- Desktop capture renders the hidden draft end to end with sidebar table of
+  contents, new runtime-device table rows, diagnostic figure, reproduction
+  block, Current Status section, references, and footer present. No missing
+  figure, clipped table, blank region, or broken page chrome was found in the
+  inspected snapshot.
+- Desktop figure crop shows the NVE legend label `runtime: CPU fallback`
+  without clipping or obscuring the drift traces.
+- Mobile capture renders the article, figure, Current Status section, and
+  footer. The runtime label is small at mobile width but visible, and the prose
+  immediately below the figure explicitly states that this is a CPU-fallback
+  run rather than a completed GPU production run.
+- Mobile status crop confirms the implemented-list item for machine-readable
+  runtime-device and GPU-readiness provenance, and the remaining-list item for
+  a real CUDA/GPU kUPS production NVE diagnostic before final release.
+- Live cache-busted checks on
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-03-errors/?v=29827b0`
+  confirmed the deployed HTML contains `production_gpu_ready`,
+  `runtime_device`, `jax:cpu;devices:cpu`, `CPU fallback`, and `CUDA/GPU`.
+- Live checks of `/` and `/blog/` found no `kups-md-tutorials` or
+  `post-03-errors` links, so the page remains direct-link reachable and hidden
+  from public navigation.
 
 Blocking items for current hidden draft:
 

@@ -379,6 +379,38 @@ Blocking items for the current hidden draft:
 
 - None from this update.
 
+Website page review:
+
+- Website commit `604c4833b14622f14e55a3a19c43148affc18d56`
+  deployed in GitHub Actions run `29388521392`.
+- Snapshot workflow run `29388638389` captured the deployed VACF refresh.
+- Snapshot artifact `kups-md-page-snapshots` was downloaded to
+  `/tmp/kups-post07-vacf-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post07-vacf-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`;
+  both returned HTTP 200 with page title
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post07-vacf-snapshots/post-07-desktop.png` (`1440 x 12256`) and
+  `/tmp/kups-post07-vacf-snapshots/post-07-mobile.png` (`541 x 18822`).
+- Live cache-busted HTML check returned HTTP 200 and contained
+  `VACF integral replica SE` and `replica band`.
+
+Rendered page feedback:
+
+- Desktop capture renders the hidden Post 07 draft end to end with sidebar
+  TOC, hidden-draft note, source links, updated compact trajectory table,
+  refreshed four-panel figure, revised caption, reproduction block, Practical
+  Checklist, Current Status, references, and footer present.
+- The refreshed figure is visible in the article body; the VACF panel is not
+  clipped and the caption now matches the replica-band content.
+- Mobile capture keeps the long title, hidden-draft note, tables, figure,
+  caption, reproduction block, Current Status, references, and footer
+  contained. Tables and the four-panel figure are dense at mobile width but
+  not broken in the inspected snapshot.
+
 Non-blocking items accepted until the final article pass:
 
 - Mobile title/table/figure density remains a typography-polish item.

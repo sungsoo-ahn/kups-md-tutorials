@@ -2040,3 +2040,67 @@ Revision decisions:
   observables before public indexing.
 - Re-run rendered snapshots after final production physical-observable
   diagnostics, final citations, or any public-indexing change.
+
+## Post 07 VACF Replica Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29388638389`.
+- Website commit reviewed:
+  `604c4833b14622f14e55a3a19c43148affc18d56`.
+- Website deploy run: `29388521392`.
+- Tutorial commit reviewed:
+  `6b07076c0b7575be24809e281092aa9ba7ff99e8`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post07-vacf-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post07-vacf-snapshots/manifest.json`.
+- Capture scope: post 07 after adding compact reduced-unit argon VACF
+  replica uncertainty, refreshing the figure assets, exporting JSON/CSV
+  assets, and updating hidden-page prose.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-07-observables/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Trajectories Become Physical Observables? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post07-vacf-snapshots/post-07-desktop.png`
+  (`1440 x 12256`)
+- `/tmp/kups-post07-vacf-snapshots/post-07-mobile.png`
+  (`541 x 18822`)
+
+Feedback:
+
+- Desktop capture renders the hidden Post 07 draft end to end with sidebar
+  TOC, updated VACF-replica prose, source links, diagnostic tables, refreshed
+  four-panel figure, reproduction block, Practical Checklist, Current Status,
+  references, and footer present.
+- The refreshed figure is visible in the article body; the VACF panel is not
+  clipped, and the caption now matches the controlled-plus-compact VACF
+  replica-band content.
+- Mobile capture keeps the long title, hidden-draft note, tables, figure,
+  caption, reproduction block, Current Status, references, and footer
+  contained. Tables and the figure are dense at mobile width but not broken in
+  the inspected snapshot.
+- Live check with cache-buster `?cachebust=post07-vacf-604c483` returned HTTP
+  200 and confirmed the deployed HTML contains `VACF integral replica SE` and
+  `replica band`.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 07 VACF-replica hidden
+  draft.
+- The compact reduced-unit argon VACF replica diagnostic is accepted for the
+  hidden draft state.
+- Keep mobile table/figure density as a final typography-polish item.
+- Add larger GPU kUPS trajectory diagnostics for production physical
+  observables before public indexing.
+- Re-run rendered snapshots after final production physical-observable
+  diagnostics, final citations, or any public-indexing change.

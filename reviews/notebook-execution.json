@@ -3,7 +3,9 @@
   "notebooks": [
     {
       "code_cells": 6,
+      "elapsed_seconds": 3.045,
       "executed_code_cells": 6,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-01-initialization.ipynb",
       "output_count": 7,
       "post": "01",
       "source": "notebooks/post-01-initialization.ipynb",
@@ -11,15 +13,19 @@
     },
     {
       "code_cells": 6,
+      "elapsed_seconds": 2.737,
       "executed_code_cells": 6,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-02-integrators.ipynb",
       "output_count": 6,
       "post": "02",
       "source": "notebooks/post-02-integrators.ipynb",
-      "source_sha256": "9299b17d4a02cc41a509cc7a66b083a0b52b9e610df91bbd621d0f4d224b683e"
+      "source_sha256": "800df16e794b574b6de1b65d078d29c56f92dfd0e61f68a5933a96cc369b1d79"
     },
     {
       "code_cells": 7,
+      "elapsed_seconds": 2.676,
       "executed_code_cells": 7,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-03-errors.ipynb",
       "output_count": 7,
       "post": "03",
       "source": "notebooks/post-03-errors.ipynb",
@@ -27,7 +33,9 @@
     },
     {
       "code_cells": 6,
+      "elapsed_seconds": 2.673,
       "executed_code_cells": 6,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-04-thermostats.ipynb",
       "output_count": 6,
       "post": "04",
       "source": "notebooks/post-04-thermostats.ipynb",
@@ -35,7 +43,9 @@
     },
     {
       "code_cells": 6,
+      "elapsed_seconds": 2.547,
       "executed_code_cells": 6,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-05-barostats.ipynb",
       "output_count": 7,
       "post": "05",
       "source": "notebooks/post-05-barostats.ipynb",
@@ -43,7 +53,9 @@
     },
     {
       "code_cells": 5,
+      "elapsed_seconds": 3.158,
       "executed_code_cells": 5,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-06-trajectory-length.ipynb",
       "output_count": 4,
       "post": "06",
       "source": "notebooks/post-06-trajectory-length.ipynb",
@@ -51,7 +63,9 @@
     },
     {
       "code_cells": 5,
+      "elapsed_seconds": 2.886,
       "executed_code_cells": 5,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-07-observables.ipynb",
       "output_count": 4,
       "post": "07",
       "source": "notebooks/post-07-observables.ipynb",
@@ -59,7 +73,9 @@
     },
     {
       "code_cells": 5,
+      "elapsed_seconds": 3.021,
       "executed_code_cells": 5,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-08-free-energies.ipynb",
       "output_count": 4,
       "post": "08",
       "source": "notebooks/post-08-free-energies.ipynb",
@@ -67,7 +83,9 @@
     },
     {
       "code_cells": 5,
+      "elapsed_seconds": 2.729,
       "executed_code_cells": 5,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-09-estimators.ipynb",
       "output_count": 4,
       "post": "09",
       "source": "notebooks/post-09-estimators.ipynb",
@@ -75,7 +93,9 @@
     },
     {
       "code_cells": 5,
+      "elapsed_seconds": 3.057,
       "executed_code_cells": 5,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-10-umbrella-sampling.ipynb",
       "output_count": 4,
       "post": "10",
       "source": "notebooks/post-10-umbrella-sampling.ipynb",
@@ -83,7 +103,9 @@
     },
     {
       "code_cells": 5,
+      "elapsed_seconds": 3.358,
       "executed_code_cells": 5,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-11-enhanced-sampling.ipynb",
       "output_count": 4,
       "post": "11",
       "source": "notebooks/post-11-enhanced-sampling.ipynb",
@@ -91,13 +113,15 @@
     },
     {
       "code_cells": 5,
+      "elapsed_seconds": 2.384,
       "executed_code_cells": 5,
+      "executed_copy": "/tmp/kups-md-notebooks-seed-refresh/post-12-mlip-capstone.ipynb",
       "output_count": 4,
       "post": "12",
       "source": "notebooks/post-12-mlip-capstone.ipynb",
       "source_sha256": "9308f5367ae5daa9c9fcbfd37ce1cb99922766adfac6f620d1ffa814a4e5ae90"
     }
   ],
-  "source_git_revision": "8469eb3487f555284a0ba6c6d519fda08487de26",
+  "source_git_revision": "7a55c398c1768cba9e065646ed35c15abc8d2891",
   "timeout_seconds": 120
 }

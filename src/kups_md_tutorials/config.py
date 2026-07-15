@@ -109,12 +109,16 @@ class HarmonicOscillatorSpec:
 class IntegratorExperimentSpec:
     """Configuration for deterministic integrator error diagnostics."""
 
+    seed: int
     time_steps: tuple[float, ...]
     num_steps: int
     integrators: tuple[str, ...]
     reference_integrator: str
 
     def validate(self) -> None:
+        if self.seed < 0:
+            msg = "seed must be non-negative"
+            raise ValueError(msg)
         if not self.time_steps:
             msg = "time_steps must be non-empty"
             raise ValueError(msg)
@@ -1559,6 +1563,7 @@ def load_integrator_spec(
             velocity=float(system["velocity"]),
         ),
         experiment=IntegratorExperimentSpec(
+            seed=int(experiment["seed"]),
             time_steps=tuple(float(value) for value in experiment["time_steps"]),
             num_steps=int(experiment["num_steps"]),
             integrators=tuple(str(value) for value in experiment["integrators"]),

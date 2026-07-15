@@ -219,3 +219,90 @@ Final-release blockers:
 - Make the page public only after the series-level final production and
   public-indexing pass.
 - Re-run rendered desktop/mobile snapshots after any public-indexing change.
+
+## Update 2026-07-15: Explicit Integrator Seed
+
+Scope and provenance:
+
+- Added explicit fixed seed `2026071402` to both Post 02 profiles in
+  `configs/post-02/smoke.json` and `configs/post-02/full.json`.
+- Extended the typed integrator config schema and compact
+  `integrator_summary.json` so the deterministic integrator diagnostic records
+  the same fixed-seed convention as the stochastic posts.
+- Regenerated `results/post-02/smoke/` and `results/post-02/full/`, executed
+  `notebooks/post-02-integrators.ipynb`, regenerated the Post 02 figure
+  snapshots, and exported the refreshed full-profile compact JSON assets to
+  `../sungsoo-ahn.github.io`.
+
+Commands:
+
+- `uv run kups-tutorial run 02 --profile smoke` passed.
+- `uv run kups-tutorial verify 02 --profile smoke` passed.
+- `uv run kups-tutorial run 02 --profile full` passed.
+- `uv run kups-tutorial verify 02 --profile full` passed.
+- `uv run python scripts/generate_post02_figures.py` passed.
+- `uv run jupyter execute notebooks/post-02-integrators.ipynb --inplace`
+  passed.
+- `uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io`
+  passed and restored all twelve posts in the export manifest.
+
+Code and reproducibility review:
+
+- The integrator workflow remains deterministic, but the config now carries a
+  machine-readable seed so every tutorial profile has an explicit fixed-seed
+  field.
+- The full manifest records `config.experiment.seed = 2026071402` and
+  `provenance.config_sha256 =
+  f50d0058bc90342e80be4a9ea6e7b25bbd7defbfe39a5bec72e27056ea46e388`.
+- The full compact summary records `seed = 2026071402`, the same config hash,
+  and eight run summaries.
+- Added a release-readiness regression that removes the Post 02 seed and
+  expects `missing explicit fixed seed`.
+
+Figure feedback review:
+
+- Smoke figure snapshot inspected:
+  `snapshots/post-02/integrator_diagnostics_snapshot.png` (`1952 x 576`).
+- Full figure snapshot inspected:
+  `snapshots/post-02/integrator_diagnostics_full_snapshot.png`
+  (`1952 x 576`).
+- Intended visual claim: the figure should show that velocity Verlet preserves
+  the oscillator phase-space structure and keeps bounded energy/reversibility
+  error while explicit Euler has scheme-dependent runaway energy error.
+- Smoke feedback: axis labels, legend, timestep labels, and the
+  forward/backward annotation are readable; the annotation does not cover the
+  bars; no clipping or caption mismatch was found.
+- Full feedback: the log-scale energy-error panel clearly separates velocity
+  Verlet from explicit Euler over all timesteps; the phase-space orbit and
+  reversibility panel remain readable at the inspected raster size.
+- Revision decision: accepted without a figure edit. The figure assets were
+  regenerated from the updated summaries but the visual content remains
+  consistent with the prior hidden draft.
+
+Website page review:
+
+- No website prose, front matter, figure include, caption, or CSS-sensitive
+  markup changed.
+- The website export manifest now contains 71 files across posts 01-12, and
+  the Post 02 exported full summary/manifest include seed `2026071402`.
+- No rendered desktop/mobile page snapshot was required for this data-only
+  export refresh because the rendered hidden page does not consume the compact
+  JSON assets directly.
+
+Open items:
+
+Blocking items for the current hidden draft:
+
+- None. The hidden draft remains direct-link only and the integrator package
+  now has explicit seed provenance.
+
+Non-blocking items accepted until the final article pass:
+
+- The page remains intentionally hidden from public navigation while the full
+  series is still under review.
+
+Final-release blockers:
+
+- Make the page public only after the series-level final production and
+  public-indexing pass.
+- Re-run rendered desktop/mobile snapshots after any public-indexing change.

@@ -35,6 +35,7 @@ class IntegratorExperimentSummary:
 
     post: str
     profile: str
+    seed: int
     mass: float
     omega: float
     initial_position: float
@@ -188,6 +189,7 @@ def run_integrator_experiment(spec: IntegratorTutorialSpec, config_sha256: str) 
     return IntegratorExperimentSummary(
         post=spec.post,
         profile=spec.profile,
+        seed=spec.experiment.seed,
         mass=system.mass,
         omega=system.omega,
         initial_position=system.position,

@@ -1689,6 +1689,75 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Fixed-Seed Config Gate
+
+Scope:
+
+- Added an explicit fixed seed to Post 02 smoke/full integrator configs so the
+  deterministic integrator diagnostic follows the same seed-provenance
+  convention as the rest of the series.
+- Extended the typed integrator config and compact summary schema to carry the
+  seed.
+- Added a release-readiness gate that rejects any smoke/full config without an
+  explicit `seed` field anywhere in the JSON tree.
+- Regenerated Post 02 smoke/full outputs, the executed notebook, figure
+  snapshots, and the website export JSON assets.
+
+Commands:
+
+- `uv run kups-tutorial run 02 --profile smoke` passed.
+- `uv run kups-tutorial verify 02 --profile smoke` passed.
+- `uv run kups-tutorial run 02 --profile full` passed.
+- `uv run kups-tutorial verify 02 --profile full` passed.
+- `uv run python scripts/generate_post02_figures.py` passed.
+- `uv run jupyter execute notebooks/post-02-integrators.ipynb --inplace`
+  passed.
+- `uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io`
+  passed.
+- Website validation and deploy run `29430420195` passed for website commit
+  `ed0ba9e608968a349b42e13e57fa36feba724313`.
+- Live deployed JSON checks with `?v=ed0ba9e` confirmed the Post 02 full
+  manifest and compact summary both record seed `2026071402` and config hash
+  `f50d0058bc90342e80be4a9ea6e7b25bbd7defbfe39a5bec72e27056ea46e388`.
+- `uv run pytest tests/test_config.py tests/test_release_readiness.py::test_release_readiness_reports_missing_config_seed -q`
+  passed: 14 tests.
+- `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/integrators.py src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+
+Code and reproducibility review:
+
+- Before this pass, every post except Post 02 already had at least one
+  explicit seed in each smoke/full profile. Post 02 was deterministic but did
+  not state that reproducibility convention in machine-readable config.
+- The new gate recursively checks each committed profile JSON for `seed`, so a
+  future deterministic diagnostic cannot omit fixed-seed provenance silently.
+- Post 02 full manifest and exported website manifest now record
+  `config.experiment.seed = 2026071402` and the refreshed config hash.
+- `reviews/website-build.json` now records the successful website deploy run
+  and commit used for the refreshed exported JSON assets.
+
+Figure and rendered-page review:
+
+- Post 02 smoke and full figure snapshots were regenerated and visually
+  inspected:
+  `snapshots/post-02/integrator_diagnostics_snapshot.png` (`1952 x 576`) and
+  `snapshots/post-02/integrator_diagnostics_full_snapshot.png`
+  (`1952 x 576`).
+- The phase-space, log-energy-error, and forward/backward panels remain
+  readable; labels and annotations are not clipped; the figure still supports
+  the velocity-Verlet versus explicit-Euler mechanism described in the hidden
+  draft.
+- No rendered desktop/mobile page snapshot was required because no website
+  prose, front matter, figure include, caption, or CSS-sensitive markup
+  changed; only exported compact JSON assets changed.
+
+Review decision:
+
+- Accepted for the fixed-seed config gate after focused config, run, figure,
+  notebook, export, lint, and regression validation.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

@@ -7,6 +7,7 @@
       ],
       "num_steps": 400,
       "reference_integrator": "velocity_verlet",
+      "seed": 2026071402,
       "time_steps": [
         0.04,
         0.12
@@ -25,8 +26,8 @@
   },
   "provenance": {
     "config_path": "configs/post-02/smoke.json",
-    "config_sha256": "e0d71cc61f7a1612cb54247abc3a4e3953c0d4ae4d22d965423c2b840ae81332",
-    "git_revision": "ffbf49effecb7ccac823145c58c073e0c8cd731c",
+    "config_sha256": "62dc13b670213feaebb26ba21eb1badab83a66bc5698f24809334e5518d19ec5",
+    "git_revision": "7a55c398c1768cba9e065646ed35c15abc8d2891",
     "lock_path": "uv.lock",
     "lock_sha256": "1e3d7f63e177a6a9a753cdb7a62667b8dc1c9d6bb5563b1deebdd70de4168844",
     "platform": "Linux-5.15.0-134-generic-x86_64-with-glibc2.35",

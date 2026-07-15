@@ -1069,6 +1069,32 @@ def test_release_readiness_reports_typed_config_validation_errors(
     )
 
 
+def test_release_readiness_reports_missing_config_seed(tmp_path: Path) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    config_path = tmp_path / "configs" / "post-02" / "full.json"
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    config["integrator_experiment"].pop("seed")
+    config_path.write_text(json.dumps(config) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "configs/post-02/full.json" in violation
+        and "missing explicit fixed seed" in violation
+        for violation in result.violations
+    )
+
+
 def test_release_readiness_reports_missing_figure_source_provenance(
     tmp_path: Path,
 ) -> None:

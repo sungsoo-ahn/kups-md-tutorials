@@ -10,6 +10,7 @@
     "velocity": 0.0
   },
   "integrator_experiment": {
+    "seed": 2026071402,
     "time_steps": [0.04, 0.12],
     "num_steps": 400,
     "integrators": ["velocity_verlet", "explicit_euler"],

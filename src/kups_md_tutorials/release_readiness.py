@@ -217,6 +217,10 @@ def _check_required_artifact_surface(
                 violations,
                 missing_reason=f"missing {profile} configuration",
             )
+            _check_config_seed_coverage(
+                config_root / f"post-{post}" / f"{profile}.json",
+                violations,
+            )
             _check_typed_config_file(
                 config_root=config_root,
                 post=post,
@@ -312,6 +316,28 @@ def _check_typed_config_file(
             f"{config_path}: typed config loader returned profile "
             f"{getattr(spec, 'profile', None)!r}"
         )
+
+
+def _check_config_seed_coverage(path: Path, violations: list[str]) -> None:
+    if not path.exists():
+        return
+    text = path.read_text(encoding="utf-8")
+    try:
+        config = json.loads(text)
+    except json.JSONDecodeError:
+        return
+    if not _json_contains_key(config, "seed"):
+        violations.append(f"{path}: missing explicit fixed seed")
+
+
+def _json_contains_key(value: object, key: str) -> bool:
+    if isinstance(value, dict):
+        return key in value or any(
+            _json_contains_key(child, key) for child in value.values()
+        )
+    if isinstance(value, list):
+        return any(_json_contains_key(child, key) for child in value)
+    return False
 
 
 def _check_figure_source_provenance(

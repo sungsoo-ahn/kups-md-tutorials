@@ -26,12 +26,23 @@ def audit_release_readiness(
     review_dir: Path = Path("reviews"),
     config_root: Path = Path("configs"),
     results_root: Path = Path("results"),
+    notebook_root: Path = Path("notebooks"),
+    figure_root: Path = Path("figures"),
+    snapshot_root: Path = Path("snapshots"),
     site_root: Path | None = None,
 ) -> ReleaseReadinessResult:
     """Check whether the series is ready for public final release."""
 
     violations: list[str] = []
     _check_review_blockers(review_dir, violations)
+    _check_required_artifact_surface(
+        config_root=config_root,
+        results_root=results_root,
+        notebook_root=notebook_root,
+        figure_root=figure_root,
+        snapshot_root=snapshot_root,
+        violations=violations,
+    )
     _check_post12_model_artifact(config_root, results_root, violations)
     if site_root is not None:
         _check_site_publication_state(site_root, violations)
@@ -46,6 +57,9 @@ def verify_release_readiness(
     review_dir: Path = Path("reviews"),
     config_root: Path = Path("configs"),
     results_root: Path = Path("results"),
+    notebook_root: Path = Path("notebooks"),
+    figure_root: Path = Path("figures"),
+    snapshot_root: Path = Path("snapshots"),
     site_root: Path | None = None,
 ) -> ReleaseReadinessResult:
     """Raise ``ValueError`` if final-release blockers remain."""
@@ -54,6 +68,9 @@ def verify_release_readiness(
         review_dir=review_dir,
         config_root=config_root,
         results_root=results_root,
+        notebook_root=notebook_root,
+        figure_root=figure_root,
+        snapshot_root=snapshot_root,
         site_root=site_root,
     )
     if result.violations:
@@ -85,6 +102,78 @@ def _check_review_blockers(review_dir: Path, violations: list[str]) -> None:
             )
 
 
+def _check_required_artifact_surface(
+    *,
+    config_root: Path,
+    results_root: Path,
+    notebook_root: Path,
+    figure_root: Path,
+    snapshot_root: Path,
+    violations: list[str],
+) -> None:
+    for post in SUPPORTED_POSTS:
+        for profile in ("smoke", "full"):
+            _check_json_file(
+                config_root / f"post-{post}" / f"{profile}.json",
+                violations,
+                missing_reason=f"missing {profile} configuration",
+            )
+            result_dir = results_root / f"post-{post}" / profile
+            _check_json_file(
+                result_dir / "manifest.json",
+                violations,
+                missing_reason=f"missing {profile} result manifest",
+            )
+            summary_paths = sorted(result_dir.glob("*_summary.json"))
+            if not summary_paths:
+                violations.append(f"{result_dir}: missing {profile} compact summary")
+            for summary_path in summary_paths:
+                _check_json_file(
+                    summary_path,
+                    violations,
+                    missing_reason=f"missing {profile} compact summary",
+                )
+
+        notebook_matches = sorted(notebook_root.glob(f"post-{post}-*.ipynb"))
+        if len(notebook_matches) != 1:
+            violations.append(
+                f"{notebook_root}: expected one notebook for post {post}, "
+                f"found {len(notebook_matches)}"
+            )
+        else:
+            _check_json_file(
+                notebook_matches[0],
+                violations,
+                missing_reason=f"missing notebook for post {post}",
+            )
+
+        figure_dir = figure_root / f"post-{post}"
+        for pattern, description in (
+            ("*_diagnostics.svg", "publication SVG figure"),
+            ("*_diagnostics.png", "publication PNG figure"),
+            ("*_diagnostics_full.svg", "full-profile SVG figure"),
+            ("*_diagnostics_full.png", "full-profile PNG figure"),
+        ):
+            _check_glob_matches(
+                figure_dir,
+                pattern,
+                violations,
+                missing_reason=f"missing {description}",
+            )
+
+        snapshot_dir = snapshot_root / f"post-{post}"
+        for pattern, description in (
+            ("*_diagnostics_snapshot.png", "figure snapshot"),
+            ("*_diagnostics_full_snapshot.png", "full-profile figure snapshot"),
+        ):
+            _check_glob_matches(
+                snapshot_dir,
+                pattern,
+                violations,
+                missing_reason=f"missing {description}",
+            )
+
+
 def _check_post12_model_artifact(
     config_root: Path,
     results_root: Path,
@@ -107,10 +196,7 @@ def _check_post12_model_artifact(
                 violations.append(f"{path}: contains placeholder model artifact marker")
                 break
         if path.suffix == ".json":
-            try:
-                json.loads(text)
-            except json.JSONDecodeError as exc:
-                violations.append(f"{path}: invalid JSON: {exc}")
+            _check_json_text(path, text, violations)
 
 
 def _check_site_publication_state(site_root: Path, violations: list[str]) -> None:
@@ -128,6 +214,41 @@ def _check_site_publication_state(site_root: Path, violations: list[str]) -> Non
             violations.append(f"{page_path}: page still declares itself non-final")
         if "intentionally hidden from site navigation" in text:
             violations.append(f"{page_path}: page still has hidden-draft note")
+
+
+def _check_json_file(
+    path: Path,
+    violations: list[str],
+    *,
+    missing_reason: str,
+) -> None:
+    if not path.exists():
+        violations.append(f"{path}: {missing_reason}")
+        return
+    text = path.read_text(encoding="utf-8")
+    _check_json_text(path, text, violations)
+
+
+def _check_json_text(path: Path, text: str, violations: list[str]) -> None:
+    try:
+        json.loads(text)
+    except json.JSONDecodeError as exc:
+        violations.append(f"{path}: invalid JSON: {exc}")
+
+
+def _check_glob_matches(
+    directory: Path,
+    pattern: str,
+    violations: list[str],
+    *,
+    missing_reason: str,
+) -> None:
+    if not directory.exists():
+        violations.append(f"{directory}: {missing_reason}")
+        return
+    matches = sorted(directory.glob(pattern))
+    if not matches:
+        violations.append(f"{directory}: {missing_reason}")
 
 
 def _section_after_heading(text: str, heading: str) -> str | None:
@@ -189,4 +310,7 @@ def _bullet_items(section: str) -> tuple[str, ...]:
 
 
 def _blockers_are_none(blockers: tuple[str, ...]) -> bool:
-    return all(item.strip().lower().rstrip(".") in {"none", "none remaining"} for item in blockers)
+    return all(
+        item.strip().lower().rstrip(".") in {"none", "none remaining"}
+        for item in blockers
+    )

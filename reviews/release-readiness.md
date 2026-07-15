@@ -5,9 +5,9 @@
 - Scope: final-publication gate for the twelve-post kUPS MD tutorial series.
 - Current status: a `verify-release-readiness` CLI command is implemented and
   intentionally fails while final-release blockers remain.
-- Current working-tree state for this ledger refresh: review prose update on
-  top of tutorial commit `2ec3ee8`; no release-readiness code, tests, configs,
-  results, notebooks, figures, or website pages changed in this pass.
+- Current working-tree state: release-readiness artifact-surface gate update
+  on top of tutorial commit `a423bff`; no configs, results, notebooks,
+  figures, snapshots, website pages, or website assets changed in this pass.
 - Hidden website drafts remain the current intended publication state until
   final production diagnostics are complete.
 
@@ -105,6 +105,64 @@ Review decision:
   generation code changed.
 - No rendered page snapshot feedback was required because no website prose,
   front matter, linked figure, CSS-sensitive markup, or page asset changed.
+
+## Update 2026-07-15: Required Artifact Surface Gate
+
+Scope:
+
+- Expanded `verify-release-readiness` so final release now checks the required
+  artifact surface for every post, not only review blockers and Post 12 model
+  metadata.
+- Added release-gate coverage for both smoke/full configs, smoke/full result
+  manifests, compact `*_summary.json` files, exactly one notebook per post,
+  publication SVG/PNG figures, full-profile SVG/PNG figures, and both figure
+  snapshot PNGs for all twelve posts.
+- Added `--notebook-root`, `--figure-root`, and `--snapshot-root` CLI
+  arguments so the audit can be tested against isolated final-state fixtures.
+- Updated release-readiness tests to create a complete clean final-state
+  fixture and to prove missing notebooks or figure snapshots are reported.
+- No tutorial configurations, results, notebooks, figures, local snapshots,
+  website pages, or website assets changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py src/kups_md_tutorials/cli.py tests/test_release_readiness.py`
+- `uv run pytest tests/test_release_readiness.py tests/test_cli.py -q`
+- `uv run kups-tutorial verify-release-readiness --skip-site 2>&1 | tail -n 160`
+- `uv run kups-tutorial verify-release-readiness 2>&1 | tail -n 80`
+
+Code and reproducibility review:
+
+- The expanded gate validates JSON syntax for configs, manifests, compact
+  summaries, and notebooks.
+- The current checkout has the required artifact surface, so the
+  `--skip-site` audit still reports only the existing final-release blockers:
+  hidden/public-indexing state and missing production GPU diagnostics.
+- The clean final-state fixture no longer relies on real checkout notebooks or
+  figures; it passes explicit artifact roots through the API and CLI.
+- The missing-artifact test removes one notebook and one figure snapshot and
+  confirms both are reported.
+- The placeholder-model test writes `pinned-placeholder` and
+  `pending-gpu-artifact-hash` metadata and confirms the hard blocker is still
+  reported.
+
+Figure and rendered-page review:
+
+- No figure asset or figure-generation code changed, so no new figure snapshot
+  capture was required.
+- No website prose, front matter, linked figure, CSS-sensitive markup, or page
+  asset changed, so no rendered page snapshot capture was required.
+- Existing figure and page snapshot evidence remains in `reviews/post-01.md`
+  through `reviews/post-12.md` and `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone.
+- The final-publication gate now better represents the PLAN requirement that
+  every final post has configs, compact outputs, notebooks, figures, snapshots,
+  review evidence, and clean publication state.
+- Final release remains blocked on the production GPU/public-indexing items
+  reported by `uv run kups-tutorial verify-release-readiness`.
 
 ## Open Items
 

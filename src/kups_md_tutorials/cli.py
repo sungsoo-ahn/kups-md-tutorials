@@ -46,6 +46,9 @@ def _build_parser() -> argparse.ArgumentParser:
     release_parser.add_argument("--review-dir", type=Path, default=Path("reviews"))
     release_parser.add_argument("--config-root", type=Path, default=Path("configs"))
     release_parser.add_argument("--results-root", type=Path, default=Path("results"))
+    release_parser.add_argument("--notebook-root", type=Path, default=Path("notebooks"))
+    release_parser.add_argument("--figure-root", type=Path, default=Path("figures"))
+    release_parser.add_argument("--snapshot-root", type=Path, default=Path("snapshots"))
     release_parser.add_argument(
         "--site-root",
         type=Path,
@@ -122,6 +125,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 review_dir=args.review_dir,
                 config_root=args.config_root,
                 results_root=args.results_root,
+                notebook_root=args.notebook_root,
+                figure_root=args.figure_root,
+                snapshot_root=args.snapshot_root,
                 site_root=site_root,
             )
             print(f"Release readiness audit passed for {result.checked_posts} posts")

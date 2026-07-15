@@ -87,6 +87,9 @@ SUPPORTED_PROFILES = ("smoke", "full")
 def run_post(post: str, profile: str, output_root: Path = Path("results")) -> Path:
     """Run one supported tutorial workflow."""
 
+    if profile == "full":
+        verify_post(post, "smoke", output_root=output_root)
+
     if post == "01":
         spec = load_tutorial_spec(post, profile)
         return write_initialization_outputs(spec, output_root=output_root)

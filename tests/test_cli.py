@@ -1,6 +1,9 @@
 from pathlib import Path
 
+import pytest
+
 from kups_md_tutorials.cli import main
+from kups_md_tutorials.workflows import run_post, verify_post
 
 
 def test_cli_run_and_verify_smoke(tmp_path: Path) -> None:
@@ -133,3 +136,16 @@ def test_cli_run_and_verify_post12_smoke(tmp_path: Path) -> None:
         main(["verify", "12", "--profile", "smoke", "--output-dir", str(tmp_path)])
         == 0
     )
+
+
+def test_full_run_requires_verified_smoke_outputs(tmp_path: Path) -> None:
+    with pytest.raises(FileNotFoundError, match="missing expected output files"):
+        run_post("02", "full", output_root=tmp_path)
+
+
+def test_full_run_succeeds_after_smoke_verification(tmp_path: Path) -> None:
+    run_post("02", "smoke", output_root=tmp_path)
+    verify_post("02", "smoke", output_root=tmp_path)
+
+    run_post("02", "full", output_root=tmp_path)
+    verify_post("02", "full", output_root=tmp_path)

@@ -491,6 +491,50 @@ Review decision:
   figure include integrity, footnote hygiene, hidden/non-final state, and
   unresolved final-release blockers.
 
+## Update 2026-07-15: Smoke-Before-Full Run Guard
+
+Scope:
+
+- Added the PLAN execution rule that full-profile runs require existing
+  verified smoke outputs first.
+- `run_post(..., profile="full")` now calls `verify_post(post, "smoke", ...)`
+  before generating full outputs. Because `run-all --profile full` delegates to
+  `run_post`, the guard covers both single-post and all-post full workflows.
+- Added tests for the failure path when smoke outputs are absent and for a
+  successful Post 02 full run after smoke generation and verification.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/workflows.py tests/test_cli.py`
+- `uv run pytest tests/test_cli.py -q`
+- `uv run kups-tutorial run 02 --profile full --output-dir /tmp/kups-full-guard-no-smoke`
+  failed intentionally with missing smoke summary, manifest, and samples.
+- Pending final validation for this commit: full local validation set, push,
+  and CI.
+
+Code and reproducibility review:
+
+- The guard is placed at the workflow boundary rather than individual post
+  writers, so all current and future full-profile post runners inherit the
+  same smoke-first behavior.
+- The guard uses the existing per-post smoke verification checks, not just file
+  existence, so malformed smoke summaries still block a full run.
+- The positive test uses Post 02 because it is deterministic and cheap while
+  still exercising the full run path.
+
+Figure and rendered-page review:
+
+- No figure assets, figure-generation code, website pages, or website assets
+  changed in this pass.
+- Because this milestone only changes workflow control flow and tests, no new
+  figure snapshot capture or rendered page snapshot capture was required.
+
+Review decision:
+
+- Accepted for the workflow tooling milestone.
+- Full-profile execution now enforces the smoke-before-full checkpoint from
+  PLAN.md.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

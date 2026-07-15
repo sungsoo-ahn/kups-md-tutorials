@@ -2236,6 +2236,82 @@ Revision decisions:
 - Re-run rendered snapshots after public-indexing changes or major curriculum
   title/description updates.
 
+## Post 05 Runtime Provenance Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29393178055`.
+- Website commit reviewed:
+  `908fac2`.
+- Website deploy run: `29393038275`.
+- Tutorial commit reviewed:
+  `9f5ee463377d42ab75f764d47a7e31ad15e2b530`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post05-runtime-provenance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/manifest.json`.
+- Capture scope: hidden Post 05 page after adding machine-readable
+  target-device, runtime-device, GPU-readiness, and blocking-reason
+  provenance to the moving-cell NPT diagnostic, figure annotation, notebook,
+  and page text.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Should Pressure and Cell Degrees of Freedom Be Coupled? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/post-05-desktop.png`
+  (`1440 x 12633`)
+- `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/post-05-mobile.png`
+  (`616 x 19900`)
+- `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/post-05-desktop-runtime-table-check-3.png`
+- `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/post-05-desktop-figure-check-3.png`
+- `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/mobile-slice-08-9600.png`
+- `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/mobile-slice-09-10800.png`
+- `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/mobile-slice-13-15600.png`
+
+Feedback:
+
+- Desktop capture renders the hidden Post 05 draft end to end with sidebar TOC,
+  runtime limitation table, refreshed moving-cell figure, caption, reproduction
+  block, Practical Checklist, Current Status, references, and footer present.
+- The desktop runtime table is contained; the long CPU-fallback blocking reason
+  wraps cleanly and keeps `cuda_or_cpu_fallback`,
+  `jax:cpu;devices:cpu`, and `production GPU ready = false` visible.
+- The desktop figure crop shows the updated runtime annotation in the
+  moving-cell panel. The figure is compact at page scale, but it remains
+  contained and the caption states that the replicas are CPU-fallback
+  reduced-unit diagnostics.
+- Mobile capture keeps the runtime table, figure, caption, Current Status, and
+  references contained. The table and figure are dense at mobile width but
+  readable, and no text/image overlap was found in the inspected slices.
+- Live check with cache-buster `?v=908fac2` returned HTTP 200 and confirmed
+  the deployed HTML contains `production GPU ready`, `runtime device`,
+  `jax:cpu;devices:cpu`, `CPU-fallback`, `cuda_or_cpu_fallback`, and
+  `machine-readable`.
+- Public homepage and public blog checks did not expose `kups-md-tutorials` or
+  `post-05-barostats`, preserving the hidden direct-link-only status.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 05 runtime-provenance hidden
+  draft.
+- The CPU-fallback provenance table and figure annotation are accepted for the
+  hidden draft state.
+- Keep mobile figure/table density as a final typography-polish item.
+- Run and review a real GPU kUPS production NPT diagnostic with full atomistic
+  thermostat/barostat settings, GPU provenance, and production stress/cell
+  checks before public indexing.
+- Re-run rendered snapshots after final production NPT diagnostics, final
+  citations, or any public-indexing change.
+
 ## Post 08 RDF-PMF Support-Sensitivity Snapshot Refresh
 
 - Capture date: 2026-07-15.

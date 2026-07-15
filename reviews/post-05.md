@@ -543,10 +543,38 @@ Figure feedback:
 
 Website review status:
 
-- Pending in this pass: commit the tutorial provenance update, re-export the
-  hidden website assets so the manifest points at that commit, deploy the
-  hidden page, capture rendered desktop/mobile snapshots, and record page
-  feedback.
+- Complete for the hidden draft provenance gate. Tutorial commit
+  `9f5ee463377d42ab75f764d47a7e31ad15e2b530` was exported to website commit
+  `908fac2`, deployed by website run `29393038275`, and rendered snapshots
+  were captured by snapshot run `29393178055`.
+- Snapshot artifact: `kups-md-page-snapshots`, downloaded to
+  `/tmp/kups-post05-runtime-provenance-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/manifest.json`.
+  It records desktop and mobile captures for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-05-barostats/`, both
+  returning HTTP 200 with page title
+  `How Should Pressure and Cell Degrees of Freedom Be Coupled? | Sungsoo Ahn`.
+- Full-page snapshots reviewed:
+  `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/post-05-desktop.png`
+  (`1440 x 12633`) and
+  `/tmp/kups-post05-runtime-provenance-snapshots/kups-md-page-snapshots/post-05-mobile.png`
+  (`616 x 19900`).
+- Desktop crops reviewed:
+  `post-05-desktop-runtime-table-check-3.png` and
+  `post-05-desktop-figure-check-3.png`. The runtime limitation table is
+  contained, the long blocking reason wraps cleanly, and the embedded figure
+  plus caption make the CPU-fallback scope visible.
+- Mobile crops reviewed:
+  `mobile-slice-08-9600.png`, `mobile-slice-09-10800.png`, and
+  `mobile-slice-13-15600.png`. The runtime table, figure, caption, and
+  Current Status section are readable and contained at mobile width.
+- Live hidden-page check with cache-buster `?v=908fac2` confirmed the deployed
+  HTML contains `production GPU ready`, `runtime device`,
+  `jax:cpu;devices:cpu`, `CPU-fallback`, `cuda_or_cpu_fallback`, and
+  `machine-readable`.
+- Public home and `/blog/` checks returned no `kups-md-tutorials` or
+  `post-05-barostats` hits, preserving the direct-link-only status.
 
 Blocking items for current hidden draft:
 

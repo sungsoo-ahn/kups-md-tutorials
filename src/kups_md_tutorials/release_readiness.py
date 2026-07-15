@@ -29,6 +29,8 @@ class ReleaseReadinessResult:
 
 CURRENT_FINAL_BLOCKER_MARKERS = (
     "unresolved final-release blockers",
+    "missing final _posts blog post",
+    "series index still queries hidden pages instead of final posts",
     "page remains hidden with nav: false",
     "page still declares itself non-final",
     "page still has hidden-draft note",
@@ -879,14 +881,34 @@ def _check_site_publication_state(
         source_root=source_root,
         violations=violations,
     )
-    _check_site_series_index(site_root, violations)
+    posts_dir = site_root / "_posts"
+    pages_dir = site_root / "_pages"
+    final_post_paths: dict[str, Path] = {}
+    hidden_page_paths: dict[str, Path] = {}
+    for post in SUPPORTED_POSTS:
+        post_matches = sorted(posts_dir.glob(f"*-kups-md-post-{post}-*.md"))
+        if post_matches:
+            final_post_paths[post] = post_matches[0]
+        page_matches = sorted(pages_dir.glob(f"kups-md-post-{post}-*.md"))
+        if page_matches:
+            hidden_page_paths[post] = page_matches[0]
+
+    _check_site_series_index(
+        site_root,
+        violations,
+        final_posts_available=len(final_post_paths) == len(SUPPORTED_POSTS),
+    )
     pages_dir = site_root / "_pages"
     for post in SUPPORTED_POSTS:
-        matches = sorted(pages_dir.glob(f"kups-md-post-{post}-*.md"))
-        if not matches:
+        page_path = final_post_paths.get(post)
+        if page_path is None:
+            violations.append(
+                f"{posts_dir}: missing final _posts blog post for post {post}"
+            )
+            page_path = hidden_page_paths.get(post)
+        if page_path is None:
             violations.append(f"{pages_dir}: missing website page for post {post}")
             continue
-        page_path = matches[0]
         text = page_path.read_text(encoding="utf-8")
         _check_site_blog_style(page_path, post, text, violations)
         if re.search(r"(?m)^nav:\s*false\s*$", text):
@@ -897,7 +919,12 @@ def _check_site_publication_state(
             violations.append(f"{page_path}: page still has hidden-draft note")
 
 
-def _check_site_series_index(site_root: Path, violations: list[str]) -> None:
+def _check_site_series_index(
+    site_root: Path,
+    violations: list[str],
+    *,
+    final_posts_available: bool,
+) -> None:
     index_path = site_root / "_pages" / "kups-md-tutorials.md"
     if not index_path.exists():
         violations.append(f"{index_path}: missing kUPS series index page")
@@ -928,9 +955,27 @@ def _check_site_series_index(site_root: Path, violations: list[str]) -> None:
         violations.append(f"{index_path}: page remains hidden with nav: false")
 
     body = text.split("---", 2)[2] if text.startswith("---") else text
+    expected_query = (
+        '{% assign postlist = site.posts | where: "series", "kups-md-tutorials" | sort: "series_order" %}'
+        if final_posts_available
+        else '{% assign postlist = site.pages | where: "series", "kups-md-tutorials" | sort: "series_order" %}'
+    )
+    if (
+        not final_posts_available
+        and '{% assign postlist = site.pages | where: "series", "kups-md-tutorials" | sort: "series_order" %}'
+        in body
+    ):
+        violations.append(
+            f"{index_path}: series index still queries hidden pages instead of final posts"
+        )
+
     required_fragments = {
         '<div class="publications blog-index">': "blog-index wrapper",
-        '{% assign postlist = site.pages | where: "series", "kups-md-tutorials" | sort: "series_order" %}': "series-ordered page query",
+        expected_query: (
+            "series-ordered post query"
+            if final_posts_available
+            else "series-ordered page query"
+        ),
         "{% assign tutorial_count = postlist | size %}": "tutorial count assignment",
         "<h1>kUPS MD Tutorials</h1>": "series h1",
         '<p class="blog-index-note">': "blog-index note",

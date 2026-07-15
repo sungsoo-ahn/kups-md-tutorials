@@ -427,10 +427,12 @@ def _write_post12_model_metadata(root: Path, *, placeholder: bool) -> None:
 
 def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
     pages = site_root / "_pages"
+    posts = site_root / "_posts"
     figure_dir = site_root / "assets" / "img" / "blog"
     export_dir = site_root / "assets" / "json" / "kups-md-tutorials"
     workflow_dir = site_root / ".github" / "workflows"
     pages.mkdir(parents=True)
+    posts.mkdir(parents=True)
     figure_dir.mkdir(parents=True)
     workflow_dir.mkdir(parents=True)
     (workflow_dir / "deploy.yml").write_text(
@@ -449,6 +451,7 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
     body_words = " ".join(f"sample{idx}" for idx in range(3600))
     exported_files = []
     nav = "false" if hidden else "true"
+    post_collection = "site.pages" if hidden else "site.posts"
     (pages / "kups-md-tutorials.md").write_text(
         "---\n"
         "layout: page\n"
@@ -461,7 +464,7 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
         "  enabled: false\n"
         "---\n\n"
         '<div class="publications blog-index">\n'
-        '  {% assign postlist = site.pages | where: "series", "kups-md-tutorials" | sort: "series_order" %}\n'
+        f'  {{% assign postlist = {post_collection} | where: "series", "kups-md-tutorials" | sort: "series_order" %}}\n'
         "  {% assign tutorial_count = postlist | size %}\n\n"
         "  <h1>kUPS MD Tutorials</h1>\n"
         '  <p class="blog-index-note">\n'
@@ -532,7 +535,13 @@ def _write_site_pages(site_root: Path, *, hidden: bool) -> None:
             if hidden
             else "Final article. "
         )
-        (pages / f"kups-md-post-{post:02d}-example.md").write_text(
+        page_dir = pages if hidden else posts
+        page_name = (
+            f"kups-md-post-{post:02d}-example.md"
+            if hidden
+            else f"2026-07-14-kups-md-post-{post:02d}-example.md"
+        )
+        (page_dir / page_name).write_text(
             "---\n"
             "layout: post\n"
             f"permalink: /kups-md-tutorials/post-{post_id}-example/\n"
@@ -596,6 +605,13 @@ def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
     digest.update(path.read_bytes())
     return digest.hexdigest()
+
+
+def _site_post_page_path(site_root: Path, post: str) -> Path:
+    matches = sorted((site_root / "_posts").glob(f"*-kups-md-post-{post}-*.md"))
+    if matches:
+        return matches[0]
+    return site_root / "_pages" / f"kups-md-post-{post}-example.md"
 
 
 def test_release_readiness_passes_clean_final_state(tmp_path: Path) -> None:
@@ -671,6 +687,8 @@ def test_release_readiness_reports_hidden_site_pages(tmp_path: Path) -> None:
     )
 
     assert any("nav: false" in violation for violation in result.violations)
+    assert any("missing final _posts blog post" in violation for violation in result.violations)
+    assert any("series index still queries hidden pages" in violation for violation in result.violations)
     assert any("non-final" in violation for violation in result.violations)
     with pytest.raises(ValueError, match="release readiness audit failed"):
         verify_release_readiness(
@@ -745,7 +763,7 @@ def test_release_readiness_reports_blog_style_violations(tmp_path: Path) -> None
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)
     _write_site_pages(tmp_path / "site", hidden=False)
-    page = tmp_path / "site" / "_pages" / "kups-md-post-03-example.md"
+    page = _site_post_page_path(tmp_path / "site", "03")
     text = page.read_text(encoding="utf-8")
     text = text.replace("post_type: tutorial\n", "")
     text = text.replace("  sidebar: left\n", "")
@@ -771,7 +789,7 @@ def test_release_readiness_reports_missing_site_source_links(tmp_path: Path) -> 
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)
     _write_site_pages(tmp_path / "site", hidden=False)
-    page = tmp_path / "site" / "_pages" / "kups-md-post-02-example.md"
+    page = _site_post_page_path(tmp_path / "site", "02")
     text = page.read_text(encoding="utf-8")
     text = text.replace("configs/post-02/smoke.json", "configs/post-99/smoke.json")
     text = text.replace("notebooks/post-02-example.ipynb", "notebooks/example.ipynb")
@@ -806,7 +824,7 @@ def test_release_readiness_reports_series_index_violations(tmp_path: Path) -> No
     text = text.replace("layout: page\n", "layout: archive\n")
     text = text.replace('<div class="publications blog-index">\n', "")
     text = text.replace(
-        '{% assign postlist = site.pages | where: "series", "kups-md-tutorials" | sort: "series_order" %}\n',
+        '{% assign postlist = site.posts | where: "series", "kups-md-tutorials" | sort: "series_order" %}\n',
         "",
     )
     text = text.replace("part {{ post.series_order }} of {{ tutorial_count }}", "")
@@ -824,7 +842,7 @@ def test_release_readiness_reports_series_index_violations(tmp_path: Path) -> No
 
     assert any("expected front matter layout: page" in violation for violation in result.violations)
     assert any("missing blog-index wrapper" in violation for violation in result.violations)
-    assert any("missing series-ordered page query" in violation for violation in result.violations)
+    assert any("missing series-ordered post query" in violation for violation in result.violations)
     assert any("missing series position metadata" in violation for violation in result.violations)
 
 
@@ -832,7 +850,7 @@ def test_release_readiness_reports_short_site_page(tmp_path: Path) -> None:
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)
     _write_site_pages(tmp_path / "site", hidden=False)
-    page = tmp_path / "site" / "_pages" / "kups-md-post-04-example.md"
+    page = _site_post_page_path(tmp_path / "site", "04")
     text = page.read_text(encoding="utf-8")
     front_matter, body = text.split("---\n\n", 1)
     note = body.split("</p>", 1)[0] + "</p>\n"
@@ -861,7 +879,7 @@ def test_release_readiness_reports_site_reference_violations(tmp_path: Path) -> 
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)
     _write_site_pages(tmp_path / "site", hidden=False)
-    page = tmp_path / "site" / "_pages" / "kups-md-post-04-example.md"
+    page = _site_post_page_path(tmp_path / "site", "04")
     text = page.read_text(encoding="utf-8")
     text = text.replace('id="ref-example04"', 'id="ref-broken04"')
     text = text.replace('href="#cite-example04"', 'href="#cite-missing04"')
@@ -885,7 +903,7 @@ def test_release_readiness_reports_missing_reference_backlink(tmp_path: Path) ->
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)
     _write_site_pages(tmp_path / "site", hidden=False)
-    page = tmp_path / "site" / "_pages" / "kups-md-post-05-example.md"
+    page = _site_post_page_path(tmp_path / "site", "05")
     text = page.read_text(encoding="utf-8")
     text = text.replace('href="#cite-example05"', 'href="#cite-other05"')
     page.write_text(text, encoding="utf-8")
@@ -910,7 +928,7 @@ def test_release_readiness_reports_site_figure_violations(tmp_path: Path) -> Non
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)
     _write_site_pages(tmp_path / "site", hidden=False)
-    page = tmp_path / "site" / "_pages" / "kups-md-post-06-example.md"
+    page = _site_post_page_path(tmp_path / "site", "06")
     text = page.read_text(encoding="utf-8")
     text = text.replace(
         'path="assets/img/blog/kups_md_post06_diagnostics.svg"',
@@ -946,7 +964,7 @@ def test_release_readiness_reports_site_footnote_violations(tmp_path: Path) -> N
     _write_clean_reviews(tmp_path / "reviews")
     _write_required_artifacts(tmp_path)
     _write_site_pages(tmp_path / "site", hidden=False)
-    page = tmp_path / "site" / "_pages" / "kups-md-post-07-example.md"
+    page = _site_post_page_path(tmp_path / "site", "07")
     text = page.read_text(encoding="utf-8")
     text = text.replace(
         "sample0",

@@ -1807,6 +1807,61 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Final Blog Post Location Gate
+
+Scope:
+
+- Tightened the site-aware final-publication gate so the clean final state must
+  publish the twelve kUPS articles as `_posts/YYYY-MM-DD-slug.md` blog posts,
+  matching `PLAN.md`.
+- Hidden direct-link drafts under `_pages` remain accepted current blockers
+  until public indexing. The gate now reports the missing final `_posts`
+  articles and the hidden index query against `site.pages` as final-release
+  blockers instead of treating `_pages` as a clean final publication shape.
+- Updated the release-readiness test fixture so hidden drafts use `_pages`,
+  final fixtures use `_posts`, and the kUPS index queries `site.posts` in the
+  clean final-state case.
+- No configs, results, notebooks, figures, snapshots, website pages, website
+  assets, or CSS-sensitive markup changed in this pass.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed with 32 tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed intentionally and now reports that final `_posts` blog posts are
+  missing while the hidden `_pages` drafts and direct-link index remain in use.
+
+Code and reproducibility review:
+
+- The release gate now checks `_posts/*-kups-md-post-XX-*.md` first for each
+  final article. If a final blog post is missing, it records a final-release
+  blocker and falls back to the hidden `_pages/kups-md-post-XX-*.md` draft for
+  the existing style, link, reference, figure, and word-count checks.
+- The current real website state remains intentional: `_pages` direct links are
+  live and hidden from navigation, and `_posts` entries do not exist yet.
+- The clean final-state fixture proves that a final publication can pass with
+  `_posts` articles and a `site.posts` series query.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, or CSS-sensitive
+  markup changed, so no rendered desktop/mobile page snapshots were required.
+  Existing rendered-page evidence remains in `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone.
+- Final release remains blocked on the already recorded production GPU
+  diagnostics, public indexing, recaptured rendered snapshots after final
+  publication changes, and now the explicit migration from hidden `_pages`
+  drafts to final `_posts` blog articles.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

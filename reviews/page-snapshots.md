@@ -1737,3 +1737,62 @@ Revision decisions:
   public indexing.
 - Re-run rendered snapshots after final production observable figures/citations
   or any public-indexing change.
+
+## Post 03 Replica NVE Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29383922778`.
+- Website commit reviewed:
+  `e31de95f84635b1ba81a9644b195dcc4f7d6f54d2`.
+- Website deploy run: `29383806796`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post03-replica-nve-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post03-replica-nve-snapshots/manifest.json`.
+- Capture scope: post 03 after adding the 256-atom, three-replica reduced-unit
+  argon NVE protocol, exporting the refreshed full-profile figure and JSON/CSV
+  assets, and updating hidden-page prose/status.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-03-errors/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post03-replica-nve-snapshots/post-03-desktop.png`
+  (`1440 x 11452`)
+- `/tmp/kups-post03-replica-nve-snapshots/post-03-mobile.png`
+  (`453 x 18146`)
+
+Feedback:
+
+- Desktop capture renders the hidden Post 03 draft end to end with sidebar TOC,
+  updated full-profile NVE protocol table, refreshed four-panel figure,
+  reproduction block, Current Status section, references, and footer present.
+- The refreshed figure is visible in the article body and the NVE panel/caption
+  match the 256-atom, three-replica CPU-fallback protocol claim.
+- Mobile capture keeps the long title, hidden-draft note, tables, refreshed
+  figure, caption, code block, Current Status section, references, and footer
+  contained. Tables are dense but contained, and the figure is small at mobile
+  width but not clipped.
+- Live checks with cache-buster `?v=e31de95` confirmed the direct hidden post
+  contains `gpu_ready_lj_nve_replicas` and `256-atom`; the hidden kUPS index
+  links to Post 03; `/` and `/blog/` do not expose `kups-md-tutorials` or
+  `post-03-errors`.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 03 replica NVE hidden draft.
+- The 256-atom, three-replica reduced-unit argon NVE diagnostic is accepted for
+  the hidden draft state.
+- Keep mobile table/figure density as final typography-polish items.
+- Add real CUDA/GPU kUPS production NVE diagnostics before public indexing.
+- Re-run rendered snapshots after final production NVE diagnostics or any
+  public-indexing change.

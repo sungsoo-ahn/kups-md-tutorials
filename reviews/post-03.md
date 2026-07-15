@@ -172,12 +172,19 @@ Open items:
 - GitHub Pages deploy `29368638564` built and deployed updated website commit
   `c33b1adc726f91eb4a1f258f6e2a5e2e3651d69d` successfully after adding the
   compact argon NVE figure/prose refresh.
+- GitHub Pages deploy `29383806796` built and deployed website commit
+  `e31de95f84635b1ba81a9644b195dcc4f7d6f54d2` successfully after adding the
+  256-atom, three-replica NVE protocol refresh.
 - The deployed page snapshot manifest from workflow `29358450830` contains
   desktop and mobile captures for the hidden URL, both HTTP 200, with title
   `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
 - The deployed page snapshot manifest from workflow `29368819123` contains
   desktop and mobile captures for the updated hidden URL, both HTTP 200, with
   title
+  `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
+- The deployed page snapshot manifest from workflow `29383922778` contains
+  desktop and mobile captures for the replica NVE hidden URL, both HTTP 200,
+  with title
   `How Do Timestep, Precision, and Force Error Become Simulation Error? | Sungsoo Ahn`.
 
 Rendered snapshots reviewed:
@@ -186,6 +193,8 @@ Rendered snapshots reviewed:
 - `/tmp/kups-post03-expanded-snapshots/post-03-mobile.png`
 - `/tmp/kups-post03-argon-nve-snapshots/post-03-desktop.png`
 - `/tmp/kups-post03-argon-nve-snapshots/post-03-mobile.png`
+- `/tmp/kups-post03-replica-nve-snapshots/post-03-desktop.png`
+- `/tmp/kups-post03-replica-nve-snapshots/post-03-mobile.png`
 
 Rendered feedback:
 
@@ -209,6 +218,19 @@ Rendered feedback:
   table, code block, current-status list, and references within the viewport.
   The four-panel figure is small at mobile width but not clipped; table cells
   wrap tightly but remain contained.
+- Replica NVE desktop capture at `1440 x 11452` renders the hidden draft end to
+  end with sidebar TOC, updated full-profile NVE protocol table, refreshed
+  four-panel figure, reproduction block, Current Status section, references, and
+  footer present. No missing figure, clipped table, blank region, or broken page
+  chrome was found in the inspected snapshot.
+- Replica NVE mobile capture at `453 x 18146` renders the long title, draft
+  note, tables, refreshed figure, caption, code block, Current Status section,
+  references, and footer. Tables are dense but contained, and the figure is
+  small at mobile width but not clipped.
+- Live checks with cache-buster `?v=e31de95` confirmed the direct hidden post
+  contains `gpu_ready_lj_nve_replicas` and `256-atom`; the hidden kUPS index
+  links to Post 03; `/` and `/blog/` do not expose `kups-md-tutorials` or
+  `post-03-errors`.
 
 Open items:
 

@@ -3509,3 +3509,64 @@ Revision decisions:
 - Accepted for hidden drafts after the citation-backlink refresh.
 - No figure revision or figure snapshot was required because figure assets,
   figure captions, notebooks, configs, and result files were unchanged.
+
+## Hidden Series Index Blog-List Alignment
+
+- Capture date: 2026-07-15.
+- Website deploy workflow: `Deploy site`.
+- Successful deploy run: `29424070898`.
+- Website commit reviewed: `4d7bfe9`.
+- Snapshot workflow: `Capture kUPS snapshots`.
+- Successful snapshot run: `29424333164`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy: `/tmp/kups-index-snapshots-4d7bfe9/`.
+- Manifest reviewed: `/tmp/kups-index-snapshots-4d7bfe9/manifest.json`.
+- Capture scope: hidden series index at
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/` after aligning the page
+  with the public `/blog/` list style.
+
+Commands and checks:
+
+- `bundle exec jekyll build` could not run locally because `bundle` is not
+  installed on this host.
+- `docker compose -f docker-compose-slim.yml up` could not run locally because
+  the current user cannot access `/var/run/docker.sock`.
+- `npx prettier --check _pages/kups-md-tutorials.md` could not run locally
+  because the host Node runtime is `v12.22.9` and Prettier requires Node 14 or
+  newer.
+- GitHub deploy run `29424070898` passed `Validate blog posts`, `Validate
+  hidden kUPS pages`, `Build site`, and `Deploy to GitHub Pages`.
+- Live direct-link check returned HTTP 200 for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/?v=4d7bfe9`.
+- Live content checks confirmed the rendered page contains `kUPS MD Tutorials`,
+  `Post types`, `Tutorials 12`, `updated draft`, and `part 12 of 12`.
+- Live content checks confirmed the removed custom labels `Executable notes`
+  and `MD practice` are absent.
+- Live homepage and public `/blog/` checks found no `kups-md-tutorials` or
+  `post-01-initialization` links, so the index and posts remain direct-link
+  only.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-index-snapshots-4d7bfe9/post-index-desktop.png`
+  (`1440 x 1763`)
+- `/tmp/kups-index-snapshots-4d7bfe9/post-index-mobile.png`
+  (`390 x 2609`)
+
+Feedback:
+
+- Desktop: the page now follows the public blog-list rhythm: title, muted
+  description, compact `Post types · Tutorials 12` row, then twelve linked
+  entries with descriptions and metadata. The old custom summary pills are no
+  longer visible. The article list fits inside the content column, and the
+  footer is not crowded.
+- Mobile: the title, note, count row, and twelve entries fit in one column.
+  Long titles, including the enhanced-sampling and MLIP capstone entries, wrap
+  cleanly without overlap. Metadata wraps into readable lines; no horizontal
+  overflow or clipped text was visible.
+
+Revision decisions:
+
+- Accepted for hidden draft after the blog-list alignment.
+- No figure revision or figure snapshot was required because figure assets,
+  figure captions, notebooks, configs, and result files were unchanged.

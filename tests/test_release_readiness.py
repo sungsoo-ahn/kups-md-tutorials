@@ -133,7 +133,9 @@ def _write_figure_source_ledger(root: Path) -> None:
                 ),
                 "generator": f"scripts/generate_post{post_id}_figures.py",
                 "source_data": [
+                    f"configs/post-{post_id}/smoke.json",
                     f"configs/post-{post_id}/full.json",
+                    f"results/post-{post_id}/smoke/example_summary.json",
                     f"results/post-{post_id}/full/example_summary.json",
                 ],
             }
@@ -1049,6 +1051,10 @@ def test_release_readiness_reports_missing_figure_source_provenance(
     ledger["post-08"][0]["figure_files"].remove(
         "figures/post-08/example_diagnostics_full.png"
     )
+    ledger["post-08"][0]["source_data"].remove("configs/post-08/full.json")
+    ledger["post-08"][0]["source_data"].remove(
+        "results/post-08/smoke/example_summary.json"
+    )
     ledger["post-08"][0]["license"] = ""
     ledger["post-08"][0]["generator"] = "scripts/missing_post08_figures.py"
     ledger["post-08"][0]["source_url"] = "internal:scripts/other.py"
@@ -1072,6 +1078,8 @@ def test_release_readiness_reports_missing_figure_source_provenance(
     assert any("post-08 entry 1 missing license" in violation for violation in result.violations)
     assert any("post-08 entry 1 generator does not exist" in violation for violation in result.violations)
     assert any("expected source_url internal:scripts/missing_post08_figures.py" in violation for violation in result.violations)
+    assert any("missing source data configs/post-08/full.json" in violation for violation in result.violations)
+    assert any("missing smoke compact summary source data" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_stale_notebook_execution_ledger(

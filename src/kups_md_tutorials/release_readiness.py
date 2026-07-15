@@ -386,12 +386,20 @@ def _check_figure_source_provenance(
             if not isinstance(source_data, list) or not source_data:
                 violations.append(f"{label} missing source_data")
             else:
+                source_data_paths: set[str] = set()
                 for source_path in source_data:
                     if not isinstance(source_path, str) or not source_path:
                         violations.append(f"{label} contains invalid source data path")
                         continue
+                    source_data_paths.add(source_path)
                     if not _ledger_path_exists(repo_root, source_path):
                         violations.append(f"{label} source data does not exist: {source_path}")
+                _check_figure_source_data_coverage(
+                    label,
+                    post=post,
+                    source_data_paths=source_data_paths,
+                    violations=violations,
+                )
 
     for figure_path in sorted(figure_root.glob("post-*/*.svg")) + sorted(
         figure_root.glob("post-*/*.png")
@@ -399,6 +407,28 @@ def _check_figure_source_provenance(
         rel_path = _relative_to_root_or_posix(figure_path, repo_root)
         if rel_path not in covered_files:
             violations.append(f"{path}: missing source provenance for {rel_path}")
+
+
+def _check_figure_source_data_coverage(
+    label: str,
+    *,
+    post: str,
+    source_data_paths: set[str],
+    violations: list[str],
+) -> None:
+    for profile in ("smoke", "full"):
+        config_path = f"configs/post-{post}/{profile}.json"
+        if config_path not in source_data_paths:
+            violations.append(f"{label} missing source data {config_path}")
+        result_prefix = f"results/post-{post}/{profile}/"
+        if not any(
+            source_path.startswith(result_prefix)
+            and source_path.endswith("_summary.json")
+            for source_path in source_data_paths
+        ):
+            violations.append(
+                f"{label} missing {profile} compact summary source data"
+            )
 
 
 def _check_ledger_relative_file(

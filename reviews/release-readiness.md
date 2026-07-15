@@ -1428,6 +1428,70 @@ Review decision:
 - Final release still requires the existing production GPU diagnostics and
   public-indexing work reported by strict `verify-release-readiness`.
 
+## Update 2026-07-15: Figure Source Data Coverage Gate
+
+Scope:
+
+- Expanded the figure-source release-readiness check so each
+  `reviews/figure-sources.json` entry must cite both
+  `configs/post-XX/smoke.json` and `configs/post-XX/full.json`.
+- The same gate now requires at least one committed compact
+  `results/post-XX/{smoke,full}/*_summary.json` source for each profile, so a
+  figure cannot pass provenance review by citing only a full-profile result or
+  an unrelated existing file.
+- Updated the synthetic release-readiness fixture and stale Post 08 regression
+  so missing full config and smoke-summary coverage are reported explicitly.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+  passed.
+- `uv run pytest tests/test_release_readiness.py -q` passed: 28 tests.
+- `uv run pytest tests/test_release_readiness.py tests/test_cli.py -q` passed:
+  42 tests, with the existing ASE/NumPy deprecation warnings from CLI tests.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `git diff --check` passed.
+- `uv run kups-tutorial verify-artifacts` passed for 280 tracked files.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts after this ledger
+  entry and the hidden-index snapshot note were added.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts after updating `reviews/website-build.json` to website
+  deploy run `29424070898` and site commit `4d7bfe9`.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on existing final-release blockers: hidden pages and hidden-draft
+  notes, production GPU diagnostics, and public-indexing/snapshot refresh work.
+- `bundle exec jekyll build` was skipped because `bundle` is not installed on
+  this host.
+- `docker compose -f docker-compose-slim.yml up` was skipped because the
+  current user cannot access `/var/run/docker.sock`.
+
+Code and reproducibility review:
+
+- The real `reviews/figure-sources.json` ledger already cites smoke and full
+  configs plus smoke and full compact summaries for all twelve posts.
+- The new gate makes that expectation executable and protects the PLAN rule
+  that final figures must be traceable to committed compact outputs, not only
+  to rendered image files.
+- The check is intentionally profile-aware but summary-name agnostic, because
+  different posts use different compact summary filenames.
+
+Figure and rendered-page review:
+
+- No figure-generation code, figure assets, numerical outputs, notebooks, or
+  website post bodies changed in this milestone.
+- No figure snapshot was required for this validation-only gate.
+- The hidden series index was separately aligned with the public blog-list
+  style in the website repository and is tracked in `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the figure-source data coverage release-surface milestone after
+  focused tests, site-aware readiness validation, artifact audit, and review
+  audit.
+- Final release still requires the existing production GPU diagnostics and
+  public-indexing work reported by strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

@@ -80,6 +80,10 @@ def audit_release_readiness(
         site_root=site_root,
         violations=violations,
     )
+    _check_ci_workflow(
+        review_dir.parent / ".github" / "workflows" / "verify.yml",
+        violations,
+    )
     _check_required_artifact_surface(
         config_root=config_root,
         results_root=results_root,
@@ -593,6 +597,33 @@ def _check_website_build_ledger(
             violations.append(
                 f"{workflow_path}: missing release validation command {command}"
             )
+
+
+def _check_ci_workflow(path: Path, violations: list[str]) -> None:
+    if not path.exists():
+        violations.append(f"{path}: missing tutorial verification workflow")
+        return
+
+    text = path.read_text(encoding="utf-8")
+    required_fragments = {
+        "uv sync --locked": "locked dependency installation",
+        "uv run ruff check .": "ruff check",
+        "uv run pytest -q": "pytest",
+        "uv run kups-tutorial run-all --profile smoke": "smoke reproduction",
+        "uv run kups-tutorial verify --profile smoke": "smoke verification",
+        "uv run kups-tutorial verify --profile full": "committed full verification",
+        "uv run kups-tutorial verify-artifacts": "tracked artifact audit",
+        "uv run kups-tutorial verify-reviews": "review audit",
+        (
+            "uv run kups-tutorial verify-release-readiness --skip-site "
+            "--allow-current-blockers"
+        ): "release-surface audit",
+        "uv run kups-tutorial verify-notebooks": "clean notebook execution",
+        "git diff --check": "whitespace audit",
+    }
+    for fragment, description in required_fragments.items():
+        if fragment not in text:
+            violations.append(f"{path}: missing CI {description}: {fragment}")
 
 
 def _check_post12_model_artifact(

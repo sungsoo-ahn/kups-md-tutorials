@@ -93,6 +93,7 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
     _write_notebook_execution_ledger(root)
     _write_page_snapshot_ledger(root)
     _write_website_build_ledger(root)
+    _write_ci_workflow(root)
 
 
 def _write_figure_source_ledger(root: Path) -> None:
@@ -240,6 +241,40 @@ def _write_website_build_ledger(root: Path) -> None:
             indent=2,
         )
         + "\n",
+        encoding="utf-8",
+    )
+
+
+def _write_ci_workflow(root: Path) -> None:
+    workflow_dir = root / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True, exist_ok=True)
+    (workflow_dir / "verify.yml").write_text(
+        "name: Verify tutorials\n"
+        "jobs:\n"
+        "  verify:\n"
+        "    steps:\n"
+        "      - name: Install dependencies\n"
+        "        run: uv sync --locked\n"
+        "      - name: Ruff\n"
+        "        run: uv run ruff check .\n"
+        "      - name: Pytest\n"
+        "        run: uv run pytest -q\n"
+        "      - name: Reproduce smoke outputs\n"
+        "        run: uv run kups-tutorial run-all --profile smoke --output-dir /tmp/kups-md-smoke\n"
+        "      - name: Verify smoke outputs\n"
+        "        run: uv run kups-tutorial verify --profile smoke --output-dir /tmp/kups-md-smoke\n"
+        "      - name: Verify committed full outputs\n"
+        "        run: uv run kups-tutorial verify --profile full\n"
+        "      - name: Audit tracked artifacts\n"
+        "        run: uv run kups-tutorial verify-artifacts\n"
+        "      - name: Audit review notes\n"
+        "        run: uv run kups-tutorial verify-reviews\n"
+        "      - name: Audit release surface\n"
+        "        run: uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers\n"
+        "      - name: Execute notebooks\n"
+        "        run: uv run kups-tutorial verify-notebooks --output-dir /tmp/kups-md-notebooks\n"
+        "      - name: Whitespace check\n"
+        "        run: git diff --check\n",
         encoding="utf-8",
     )
 
@@ -1040,6 +1075,40 @@ def test_release_readiness_reports_stale_website_build_ledger(
         in violation
         for violation in result.violations
     )
+
+
+def test_release_readiness_reports_stale_ci_workflow(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    workflow_path = tmp_path / ".github" / "workflows" / "verify.yml"
+    text = workflow_path.read_text(encoding="utf-8")
+    text = text.replace(
+        "uv run kups-tutorial run-all --profile smoke",
+        "uv run kups-tutorial run-all --profile full",
+    )
+    text = text.replace(
+        "uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers",
+        "uv run kups-tutorial verify-release-readiness --skip-site",
+    )
+    text = text.replace("uv run kups-tutorial verify-notebooks", "uv run pytest")
+    workflow_path.write_text(text, encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any("missing CI smoke reproduction" in violation for violation in result.violations)
+    assert any("missing CI release-surface audit" in violation for violation in result.violations)
+    assert any("missing CI clean notebook execution" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_manifest_provenance_violations(tmp_path: Path) -> None:

@@ -1859,3 +1859,55 @@ Revision decisions:
   before public indexing.
 - Re-run rendered snapshots after final production thermostat diagnostics or
   any public-indexing change.
+
+## kUPS Index Blog-Style Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29385647867`.
+- Website commit reviewed:
+  `22bbd77e6cdaff3f86b182c4d7304b96c1c11104`.
+- Website deploy run: `29385507777`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-index-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-index-snapshots/manifest.json`.
+- Capture scope: hidden series index at `/kups-md-tutorials/` after aligning
+  the index metadata and list rendering with the public `/blog/` archive style.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/`.
+- Both captured URLs returned HTTP 200.
+- Page title: `kUPS MD Tutorials | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-index-snapshots/post-index-desktop.png` (`1440 x 1740`)
+- `/tmp/kups-index-snapshots/post-index-mobile.png` (`390 x 2609`)
+
+Feedback:
+
+- Desktop capture renders a blog-archive-like hidden index with the same compact
+  title, description, metadata row, and ordered bibliography treatment used by
+  the public blog listing. All twelve tutorial links, descriptions, authorship,
+  update dates, and read-time metadata are visible without clipping.
+- Mobile capture wraps the series-status metadata across two lines, keeps all
+  twelve post entries readable, and preserves the public mobile nav without
+  adding a visible kUPS navigation item.
+- Live checks with cache-buster `?v=22bbd77` confirmed the hidden index
+  contains `kUPS MD Tutorials`, `Series status`, `Hidden draft`, and the Post 01
+  link; `/` and `/blog/` do not expose `kups-md-tutorials` or the tutorial
+  post slugs.
+
+Revision decisions:
+
+- No blocking layout issue was found for the hidden kUPS index.
+- The index is acceptable as a direct-link-only page matching the public blog
+  archive style while the tutorial series remains hidden from public
+  navigation.
+- Re-run rendered index snapshots before public indexing or after changing the
+  list metadata, navigation state, or series ordering.

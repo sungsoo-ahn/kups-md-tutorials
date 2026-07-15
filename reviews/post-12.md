@@ -408,3 +408,92 @@ Review decision:
   expected, on hidden/public-release blockers and the real MACE/fcc-Al GPU
   production blocker. It no longer reports placeholder artifact metadata as a
   blocker.
+
+## Update 2026-07-15: MLIP Validation Citation Pass
+
+Scope:
+
+- Updated the hidden website page at website commit `e03d963` to cite MLIP
+  validation guidance and the MACE-MP-0 foundation-model context.
+- Added prose that separates a qualitative foundation-model pilot from a
+  quantitative fcc-Al dynamics or free-energy claim.
+- Added the planned final GPU pass protocol: exact MACE artifact/revision,
+  fcc-Al cell and initialization path, timestep and precision policy,
+  neighbor/cutoff settings, thermostat or NVE handoff, trajectory length and
+  replica plan, model-support diagnostics, observable/free-energy targets, and
+  rejection or claim-narrowing rules.
+- Updated the hidden page's Current Status so the current citation pass is no
+  longer listed as missing. Additional citations are only required if the final
+  production article adds new scientific claims beyond the current controlled
+  MLIP-reliability and protocol discussion.
+- No tutorial code, configs, notebooks, result files, figures, or local figure
+  snapshots changed in this pass.
+
+Source checks:
+
+- Existing page context retained the earlier MLIP references: Behler &
+  Parrinello, Bartok et al., Batzner et al., and Batatia et al. 2022.
+- Added Morrow, Gardner & Deringer, "How to validate machine-learned
+  interatomic potentials", *The Journal of Chemical Physics* 158, 121501
+  (2023), DOI `10.1063/5.0139611`, for the task-specific validation claim.
+- Added Batatia et al., "A foundation model for atomistic materials chemistry",
+  *The Journal of Chemical Physics* 163, 184110 (2025), checked at
+  `https://pubs.aip.org/aip/jcp/article/163/18/184110/3372267/A-foundation-model-for-atomistic-materials`,
+  for the MACE-MP-0 foundation-model and task-specific-validation context.
+
+Website validation:
+
+- Website validators at commit `e03d963` passed:
+  `python3 scripts/validate_kups_pages.py`,
+  `python3 scripts/validate_blog.py`, and `git diff --check`.
+- Website deploy run `29410048273` completed successfully.
+- Live hidden-route check with cache-buster `?v=e03d963` confirmed the page
+  contains the new Morrow citation, Batatia foundation-model citation,
+  foundation-model-family text, final-GPU-protocol paragraph, and updated
+  Current Status language.
+- Live homepage and `/blog/` checks with cache-buster `?v=e03d963` found no
+  `kups-md-tutorials` or `post-12-mlip-capstone` links, so the page remains
+  direct-link only.
+
+Rendered-page review:
+
+- Snapshot workflow run: `29410306409`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post12-mlip-validation-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post12-mlip-validation-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile captures of
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/`
+  both returned HTTP 200 with title
+  `What Changes When the Potential Is a Machine-Learned Interatomic Potential? | Sungsoo Ahn`.
+- Rendered snapshots visually inspected:
+  `/tmp/kups-post12-mlip-validation-snapshots/post-12-desktop.png`
+  (`1440 x 11364`) and
+  `/tmp/kups-post12-mlip-validation-snapshots/post-12-mobile.png`
+  (`555 x 17739`).
+- Desktop feedback: the title, hidden-draft notice, source links, Morrow and
+  Batatia citation text, diagnostic tables, diagnostic figure, reproduction
+  block, final-GPU-protocol paragraph, updated Current Status, references, and
+  footer render without visible clipping or missing assets.
+- Mobile feedback: the long title, citation paragraphs, stacked tables,
+  diagnostic figure, production-readiness table, reproduction block, Current
+  Status section, references, and footer remain contained within the article
+  width. The figure and tables are dense but acceptable for the hidden draft.
+
+Prose and style review:
+
+- The new citations are attached to claims that need them: task-specific MLIP
+  validation and foundation-model deployment limits.
+- The page still distinguishes the deterministic CPU surrogate from the final
+  real MACE/fcc-Al GPU production evidence.
+- The production protocol paragraph improves the article as a planning
+  document without making unsupported production claims.
+
+Open items:
+
+- No additional hidden-draft blockers were found in this pass.
+- Final release remains blocked on the real MACE/fcc-Al GPU production run,
+  production diagnostics, regenerated production figure if the numerical
+  evidence changes, and refreshed rendered snapshots after final production
+  diagnostics or any public-indexing change.

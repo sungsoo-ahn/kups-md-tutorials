@@ -3318,3 +3318,68 @@ Revision decisions:
   checks, production uncertainty intervals if public claims depend on them, and
   new rendered snapshots after those final changes or any public-indexing
   change.
+
+## Post 12 MLIP Validation Citation Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29410306409`.
+- Website commit reviewed:
+  `e03d963`.
+- Website deploy run:
+  `29410048273`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post12-mlip-validation-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post12-mlip-validation-snapshots/manifest.json`.
+- Capture scope: hidden Post 12 page after adding the MLIP validation
+  citation, MACE-MP-0 foundation-model context, final production GPU protocol
+  guidance, and Current Status wording that no longer lists the current
+  citation pass as missing.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Changes When the Potential Is a Machine-Learned Interatomic Potential? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post12-mlip-validation-snapshots/post-12-desktop.png`
+  (`1440 x 11364`)
+- `/tmp/kups-post12-mlip-validation-snapshots/post-12-mobile.png`
+  (`555 x 17739`)
+
+Feedback:
+
+- Desktop capture renders the title, hidden-draft note, source links, Morrow
+  validation citation, Batatia foundation-model citation, diagnostic tables,
+  diagnostic figure, final-GPU-protocol paragraph, practical checklist,
+  reproduction block, updated Current Status, expanded references, and footer
+  without visible clipping or missing assets.
+- Mobile capture keeps the long title, citation paragraphs, dense tables,
+  figure and caption, production-readiness table, reproduction code block,
+  Current Status section, references, and footer contained within the article
+  width. The figure and tables remain dense but acceptable for the hidden
+  draft, and no text overlap was found.
+- Live check with cache-buster `?v=e03d963` confirmed the deployed page
+  contains the Morrow citation, Batatia foundation-model citation,
+  foundation-model-family text, final-GPU-protocol paragraph, and updated
+  Current Status language.
+- Live homepage and `/blog/` checks found no `kups-md-tutorials` or
+  `post-12-mlip-capstone` links, so the page remains direct-link only.
+
+Revision decisions:
+
+- Accepted for hidden draft after the validation-citation refresh.
+- No figure revision was required because figures, figure captions, notebooks,
+  configs, and result files were unchanged.
+- The current hidden-draft Post 12 citation gap is resolved; remaining
+  final-release blockers are the real MACE/fcc-Al GPU production run,
+  production diagnostics, regenerated production figure if numerical evidence
+  changes, and new rendered snapshots after final production diagnostics or
+  any public-indexing change.

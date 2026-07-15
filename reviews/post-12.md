@@ -6,11 +6,14 @@
 - Profiles reviewed: smoke and full
 - Current status: controlled MLIP reliability workflow, compact smoke/full
   outputs, notebook, full-profile diagnostic figure, figure snapshots, expanded
-  hidden website draft, rendered page snapshots, and this self-review artifact
-  are in place. The page remains hidden from public navigation.
-- Working-tree state: website expansion committed as
-  `c540d524e37527a8a586175d53cbefc76474492a`; this repository has review
-  updates staged for the current pass.
+  hidden website draft, rendered page snapshots, pinned MACE artifact metadata,
+  and this self-review artifact are in place. The page remains hidden from
+  public navigation.
+- Working-tree state: pinned-artifact tutorial commit
+  `35f16fe7df747b97c77e474312d529e3865f7707` and website commit
+  `a755ec8f3a2f2d3cf48081e9bd48f4b9c178c588` were reviewed in the
+  pinned-artifact pass; later review-ledger consistency edits are recorded
+  below.
 - Hidden draft URL:
   `https://sungsoo-ahn.github.io/kups-md-tutorials/post-12-mlip-capstone/`
 
@@ -56,9 +59,13 @@
 
 - Configs are committed-intended under `configs/post-12/`.
 - Smoke and full outputs are committed-intended under `results/post-12/`.
-- The workflow is deterministic and CPU-friendly. It records configured MACE
-  artifact metadata but uses a surrogate MLIP reliability diagnostic until the
-  final GPU/model-artifact pass freezes an actual downloaded hash.
+- The workflow is deterministic and CPU-friendly. It records pinned MACE
+  artifact metadata: `mace-mp-0b3-medium.model` from
+  `mace-foundations/mace-mp-0` at revision `e291ace` with SHA-256
+  `2f2be696351ac9e94fbe01cdfb6f017679acdbd2db7645209ef55fec9826b012`.
+  The numerical diagnostic remains a surrogate MLIP reliability diagnostic
+  until the final GPU production pass replaces it with real MACE/fcc-Al
+  trajectory evidence.
 - The summary records static force RMSE, force bias, static energy RMSE, NVE
   drift, ensemble temperature drift, extrapolation fraction, uncertainty mean,
   two-sigma coverage, neighbor-list risk, and free-energy barrier shift.
@@ -71,8 +78,8 @@
 
 Open items:
 
-- Replace placeholder model artifact metadata with the final pinned MACE
-  revision and verified hash during the GPU/final article pass.
+- Replace the deterministic CPU surrogate with a real MACE/fcc-Al GPU
+  production run during the final article pass.
 
 ## Scientific Review
 
@@ -98,8 +105,8 @@ Open items:
 - The expanded hidden page now clearly labels the current workflow as a
   deterministic surrogate diagnostic, not a completed MACE/fcc-Al GPU
   production run.
-- The final pass must pin an actual MACE artifact revision, verify its hash,
-  and record the GPU environment.
+- The final pass must keep the pinned MACE artifact revision/hash, run the real
+  GPU production diagnostic from that artifact, and record the GPU environment.
 - The expanded hidden page now connects the MLIP checks to each earlier
   tutorial:
   initialization, integrator drift, thermostat/barostat control, observables,
@@ -121,9 +128,9 @@ Feedback loop:
   small on the same axis.
 - The uncertainty-calibration panel clearly shows the two-sigma marker and the
   case distributions of absolute force error divided by uncertainty.
-- The artifact metadata annotation fits, but it intentionally exposes the
-  placeholder revision/hash. This must be revised after the final model
-  artifact is pinned.
+- The artifact metadata annotation fits and exposes the pinned model file and
+  revision. The pinned-artifact update below re-reviewed the generated figure
+  and confirmed that no placeholder artifact text remains.
 - No label clipping, unreadable ticks, or legend overlap was found in the
   inspected full-profile snapshot.
 
@@ -134,16 +141,17 @@ Rendered page figure check:
   snapshot `/tmp/kups-post12-expanded-snapshots/post-12-mobile.png`.
 - Desktop: the static-error, dynamics/extrapolation, and
   uncertainty-calibration panels render below the diagnostic section with axes,
-  legends, and caption readable in the article column. The placeholder
-  artifact caveat is visible in prose and the figure annotation.
+  legends, and caption readable in the article column. The later
+  pinned-artifact snapshot pass confirmed that the figure annotation and page
+  prose contain the verified artifact metadata, not placeholder wording.
 - Mobile: the figure remains legible at 555 px capture width. Panel labels are
   small but readable enough for the hidden draft, and the caption wraps without
   overlapping neighboring text.
 
 Open items:
 
-- Regenerate and re-review after the real MACE artifact metadata and GPU
-  production diagnostics are added.
+- Regenerate and re-review after the real MACE/fcc-Al GPU production
+  diagnostics are added.
 
 ## Notebook Review
 
@@ -171,8 +179,8 @@ Open items:
   warnings in the website repository.
 - `python3 scripts/validate_kups_pages.py` passes.
 - GitHub Pages deployment `29351644859` completed successfully. The live
-  hidden URL returns HTTP 200 and contains the expected title, MLIP capstone
-  notebook link, full summary link, current-status section, placeholder MACE
+  hidden URL returned HTTP 200 and contained the expected title, MLIP capstone
+  notebook link, full summary link, current-status section, then-current MACE
   warning, and `kups_md_post12_mlip_diagnostics.svg` figure.
 - The public homepage and blog index did not contain
   `post-12-mlip-capstone` or `kups-md-tutorials` in the deployed HTML checked
@@ -203,9 +211,8 @@ Open items:
   the reproduction code block is contained, and the footer renders normally.
 - Live hidden-route check with `?v=c540d52` confirmed the expanded section
   `How Does This Close The Series?`, the figure asset, the non-final note, and
-  the rendered snapshot status phrase. The literal placeholder hash string is
-  not printed in the HTML body, but the placeholder MACE artifact caveat is
-  visible in prose and in the reviewed figure.
+  the rendered snapshot status phrase. The later pinned-artifact pass replaced
+  the earlier artifact caveat with verified model metadata.
 - Live homepage and blog listing checks with `?v=c540d52` confirmed
   `post-12-mlip-capstone` and `kups-md-tutorials` are not exposed.
 
@@ -215,7 +222,7 @@ Open items:
 - Keep mobile title/table wrapping as a final typography-polish item after the
   rest of the articles are expanded.
 - Re-run rendered desktop/mobile snapshots after adding final MACE/fcc-Al GPU
-  diagnostics and pinned artifact metadata.
+  diagnostics or making any public-indexing change.
 
 ## Prose And Style Review
 
@@ -361,3 +368,43 @@ Release-readiness decision:
   prose.
 - The final public article remains blocked on a real MACE/fcc-Al GPU
   production run and production diagnostic figures/snapshots from that run.
+
+## Update 2026-07-15: Review Ledger Consistency Cleanup
+
+Scope:
+
+- Cleaned the older top-level Post 12 review sections so they no longer
+  contradict the later pinned-artifact update.
+- No configs, results, notebooks, figures, website page, or website assets
+  changed in this pass.
+
+Commands:
+
+- `rg -n "placeholder|MACE|artifact|model_revision|model_sha256|sha256|GPU|production" reviews/post-12.md reviews/page-snapshots.md configs/post-12 results/post-12 figures/post-12 notebooks/post-12-mlip-capstone.ipynb`
+- `rg -n "placeholder|MACE|artifact|model_revision|model_sha256|sha256|GPU|production|non-final|Current Status" _pages/kups-md-post-12-mlip-capstone.md assets/img/blog/kups_md_post12_mlip_diagnostics.svg` in `../sungsoo-ahn.github.io`
+- `uv run kups-tutorial verify-reviews`
+- `uv run kups-tutorial verify-release-readiness --skip-site`
+- `git diff --check`
+
+Review decision:
+
+- The current committed Post 12 configs, results, notebook output, figure
+  annotation, and website page already record pinned MACE metadata:
+  `mace-mp-0b3-medium.model`, revision `e291ace`, SHA-256
+  `2f2be696351ac9e94fbe01cdfb6f017679acdbd2db7645209ef55fec9826b012`.
+- The remaining `placeholder` mentions in this file are historical notes in
+  the pinned-artifact update, describing the earlier issue that was fixed.
+- No new figure snapshot was required because this pass changed only review
+  prose. The relevant existing inspected figure snapshot remains
+  `snapshots/post-12/mlip_diagnostics_full_snapshot.png`.
+- No new rendered page snapshot was required because this pass did not change
+  the website page, assets, front matter, CSS-sensitive markup, or linked
+  figures. The relevant existing rendered snapshots remain
+  `/tmp/kups-post12-pinned-artifact-snapshots/post-12-desktop.png` and
+  `/tmp/kups-post12-pinned-artifact-snapshots/post-12-mobile.png` from
+  snapshot workflow run `29378598376`.
+- `uv run kups-tutorial verify-reviews` passed for all 12 posts.
+- `uv run kups-tutorial verify-release-readiness --skip-site` still fails, as
+  expected, on hidden/public-release blockers and the real MACE/fcc-Al GPU
+  production blocker. It no longer reports placeholder artifact metadata as a
+  blocker.

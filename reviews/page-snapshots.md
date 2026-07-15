@@ -1486,3 +1486,66 @@ Revision decisions:
   production NPT diagnostic before public indexing.
 - Re-run rendered snapshots after final production NPT figures/citations or
   any public-indexing change.
+
+## Post 10 Uncertainty-Status Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29380491599`.
+- Website commit reviewed:
+  `6901b0ec2115f565db9f6f1fcbaf44411373ea63`.
+- Website deploy run: `29380373319`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post10-uncertainty-status-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post10-uncertainty-status-snapshots/manifest.json`.
+- Capture scope: post 10 after clarifying that the controlled
+  replica-disagreement uncertainty diagnostic is implemented, while production
+  MD context and any production-level uncertainty intervals remain
+  final-release blockers.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `What Does Umbrella Sampling Actually Sample? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post10-uncertainty-status-snapshots/post-10-desktop.png`
+  (`1440 x 11224`)
+- `/tmp/kups-post10-uncertainty-status-snapshots/post-10-mobile.png`
+  (`452 x 17062`)
+
+Feedback:
+
+- Desktop capture renders the hidden Post 10 draft end to end with the updated
+  author note, source links, umbrella diagnostic tables, four-panel figure,
+  practical checklist, reproduction block, Current Status section, references,
+  and footer present.
+- The Current Status section now names the local replica-disagreement
+  diagnostic as an implemented figure/status item and limits the missing
+  uncertainty work to production-level claims.
+- Mobile capture keeps the title, diagnostic tables, four-panel figure,
+  caption, code block, Current Status section, references, and footer
+  contained. Tables remain dense but readable, and no overlap or broken page
+  chrome was found.
+- Live checks with cache-buster `?v=6901b0e` confirmed the direct hidden URL
+  contains the updated status text, while `/` and `/blog/` do not expose
+  `post-10-umbrella-sampling` or `kups-md-tutorials`.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 10 uncertainty-status hidden
+  draft.
+- The controlled replica-disagreement uncertainty diagnostic is accepted for
+  the hidden draft state.
+- Keep mobile table density as a final typography-polish item.
+- Add production MD context with real atomistic umbrella windows, model checks,
+  and any production-level uncertainty intervals needed before public indexing.
+- Re-run rendered snapshots after final production MD figures/citations or any
+  public-indexing change.

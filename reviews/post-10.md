@@ -236,8 +236,8 @@ Non-blocking items accepted until the final article pass:
 
 Final-release blockers:
 
-- Add production MD context and any final diagnostics needed for the public
-  article, including final uncertainty diagnostics.
+- Add production MD context with real atomistic umbrella windows, model checks,
+  and any production-level uncertainty intervals needed for public claims.
 - Re-run rendered desktop/mobile snapshots after any final production MD or
   figure additions.
 
@@ -338,3 +338,72 @@ Website and rendered-page review:
   body without overflow; caption and surrounding prose are readable.
 - Mobile Post 10 feedback: the figure scales inside the article column, the
   caption wraps, and no text overlap was found in the inspected snapshot.
+
+## Update 2026-07-15: Uncertainty Status And Snapshot Refresh
+
+- Website commit reviewed:
+  `6901b0ec2115f565db9f6f1fcbaf44411373ea63`.
+- Website deployment run:
+  `29380373319`.
+- Snapshot workflow run:
+  `29380491599`.
+- Snapshot artifact: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post10-uncertainty-status-snapshots/`.
+
+Scope:
+
+- No tutorial code or generated-data change was made in this pass.
+- The hidden page status text was corrected to reflect the already implemented
+  local replica-disagreement diagnostic.
+- The final-release blocker was narrowed so it no longer treats all uncertainty
+  diagnostics as missing. The remaining blocker is production MD context with
+  real atomistic umbrella windows, model checks, and any production-level
+  uncertainty intervals required by future public claims.
+
+Validation:
+
+- `python3 scripts/validate_kups_pages.py` passed in
+  `../sungsoo-ahn.github.io`.
+- `python3 scripts/validate_blog.py` passed in `../sungsoo-ahn.github.io` with
+  pre-existing unused-image warnings.
+- `git diff --check` passed in `../sungsoo-ahn.github.io`.
+- Live check with `?v=6901b0e` confirmed the Post 10 page contains the updated
+  replica-diagnostic status text.
+- Live homepage and blog listing checks with `?v=6901b0e` confirmed
+  `post-10-umbrella-sampling` and `kups-md-tutorials` are not exposed.
+
+Scientific status:
+
+- Dense windows retain forward/reverse replica PMF RMSE `0.1148`, maximum
+  local replica PMF difference `0.6938`, and barrier replica difference
+  `0.0206`.
+- Sparse windows retain forward/reverse replica PMF RMSE `0.2352`, maximum
+  local replica PMF difference `0.9656`, and barrier replica difference
+  `0.0151`.
+- The accepted uncertainty diagnostic for the controlled hidden draft is the
+  local replica-disagreement curve plus forward/reverse replica PMF RMSE. It is
+  not a substitute for production atomistic uncertainty intervals if later
+  public claims depend on them.
+
+Rendered-page review:
+
+- Snapshot manifest reviewed:
+  `/tmp/kups-post10-uncertainty-status-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-10-umbrella-sampling/`;
+  both returned HTTP 200 and title
+  `What Does Umbrella Sampling Actually Sample? | Sungsoo Ahn`.
+- Desktop snapshot inspected:
+  `/tmp/kups-post10-uncertainty-status-snapshots/post-10-desktop.png` at
+  `1440 x 11224`.
+- Mobile snapshot inspected:
+  `/tmp/kups-post10-uncertainty-status-snapshots/post-10-mobile.png` at
+  `452 x 17062`.
+- Desktop feedback: the page renders end to end with source links, diagnostic
+  tables, four-panel figure, practical checklist, reproduction block, updated
+  Current Status section, references, and footer present. No blank page,
+  missing figure, clipped text, or broken page chrome was found.
+- Mobile feedback: the title, tables, figure, caption, code block, updated
+  Current Status section, references, and footer remain contained. Tables are
+  dense but readable, and no text overlap was found in the inspected snapshot.

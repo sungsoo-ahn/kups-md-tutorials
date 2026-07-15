@@ -792,6 +792,8 @@ class ArgonObservableTrajectorySpec:
     epsilon: float = 1.0
     sigma: float = 1.0
     cutoff: float = 2.5
+    uncertainty_block_count: int = 4
+    uncertainty_replica_count: int = 3
 
     def validate(self) -> None:
         if self.repetitions <= 0:
@@ -842,6 +844,12 @@ class ArgonObservableTrajectorySpec:
             raise ValueError(msg)
         if self.cutoff <= self.sigma:
             msg = "argon trajectory cutoff must be larger than sigma"
+            raise ValueError(msg)
+        if self.uncertainty_block_count < 2:
+            msg = "argon trajectory uncertainty_block_count must be at least two"
+            raise ValueError(msg)
+        if self.uncertainty_replica_count < 2:
+            msg = "argon trajectory uncertainty_replica_count must be at least two"
             raise ValueError(msg)
 
 
@@ -1901,6 +1909,8 @@ def load_free_energy_spec(
             epsilon=float(argon.get("epsilon", 1.0)),
             sigma=float(argon.get("sigma", 1.0)),
             cutoff=float(argon.get("cutoff", 2.5)),
+            uncertainty_block_count=int(argon.get("uncertainty_block_count", 4)),
+            uncertainty_replica_count=int(argon.get("uncertainty_replica_count", 3)),
         )
     spec = FreeEnergyTutorialSpec(
         post=str(root["post"]),

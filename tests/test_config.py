@@ -110,6 +110,8 @@ def test_load_free_energy_spec() -> None:
     assert spec.experiment.domain_min < spec.experiment.domain_max
     assert spec.argon_rdf_pmf is not None
     assert spec.argon_rdf_pmf.repetitions == 2
+    assert spec.argon_rdf_pmf.uncertainty_block_count == 4
+    assert spec.argon_rdf_pmf.uncertainty_replica_count == 3
 
 
 def test_load_estimator_spec() -> None:

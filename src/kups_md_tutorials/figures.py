@@ -1521,14 +1521,29 @@ def _draw_post08_figure(
 
     if len(axes) > 3 and summary.get("argon_rdf_pmf") is not None:
         argon = summary["argon_rdf_pmf"]
+        pmf_x = curves["argon_rdf_pmf_x"]
+        pmf_y = curves["argon_rdf_pmf_y"]
+        block_sem = curves.get("argon_rdf_pmf_block_sem_y")
+        replica_std = curves.get("argon_rdf_pmf_replica_std_y")
+        if block_sem is not None:
+            valid_band = np.isfinite(pmf_y) & np.isfinite(block_sem)
+            axes[3].fill_between(
+                pmf_x[valid_band],
+                pmf_y[valid_band] - block_sem[valid_band],
+                pmf_y[valid_band] + block_sem[valid_band],
+                color="#3f8f8a",
+                alpha=0.18,
+                linewidth=0,
+                label="block SEM",
+            )
         axes[3].plot(
-            curves["argon_rdf_pmf_x"],
-            curves["argon_rdf_pmf_y"],
+            pmf_x,
+            pmf_y,
             color="#3f8f8a",
             linewidth=1.5,
             label="-kT log g(r)",
         )
-        finite_pmf = curves["argon_rdf_pmf_y"][np.isfinite(curves["argon_rdf_pmf_y"])]
+        finite_pmf = pmf_y[np.isfinite(pmf_y)]
         pmf_scale = float(np.nanmax(finite_pmf)) if finite_pmf.size else 1.0
         rdf_scale = float(np.nanmax(curves["argon_rdf_y"]))
         if rdf_scale > 0.0 and pmf_scale > 0.0:
@@ -1556,13 +1571,28 @@ def _draw_post08_figure(
             0.95,
             f"N = {argon['atom_count']}\n"
             f"frames = {argon['frame_count']}\n"
-            f"rmin = {argon['pmf_minimum_radius']:.3f}",
+            f"rmin = {argon['pmf_minimum_radius']:.3f}\n"
+            f"rep std max = {argon['max_replica_pmf_std']:.2f}",
             transform=axes[3].transAxes,
             va="top",
             ha="left",
             fontsize=8.5,
             bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "alpha": 0.9},
         )
+        if replica_std is not None and np.any(np.isfinite(replica_std)):
+            twin = axes[3].twinx()
+            twin.plot(
+                pmf_x,
+                replica_std,
+                color="#7a4f9f",
+                linewidth=1.0,
+                linestyle="--",
+                label="replica std",
+            )
+            twin.set_ylabel("replica std", color="#7a4f9f", fontsize=8)
+            twin.tick_params(axis="y", colors="#7a4f9f", labelsize=8)
+            twin.spines["top"].set_visible(False)
+            twin.grid(False)
 
     for ax in axes:
         ax.spines["top"].set_visible(False)

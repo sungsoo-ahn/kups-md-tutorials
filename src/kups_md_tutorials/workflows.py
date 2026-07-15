@@ -624,6 +624,18 @@ def _verify_post08(post: str, profile: str, output_root: Path) -> None:
         if summary.argon_rdf_pmf.finite_pmf_bins <= 2:
             msg = "argon RDF-derived PMF should retain finite bins"
             raise ValueError(msg)
+        if summary.argon_rdf_pmf.uncertainty_block_count < 2:
+            msg = "argon RDF-derived PMF should record block uncertainty"
+            raise ValueError(msg)
+        if summary.argon_rdf_pmf.uncertainty_replica_count < 2:
+            msg = "argon RDF-derived PMF should record replica uncertainty"
+            raise ValueError(msg)
+        if summary.argon_rdf_pmf.max_block_pmf_sem <= 0.0:
+            msg = "argon RDF-derived PMF block uncertainty should be positive"
+            raise ValueError(msg)
+        if summary.argon_rdf_pmf.max_replica_pmf_std <= 0.0:
+            msg = "argon RDF-derived PMF replica uncertainty should be positive"
+            raise ValueError(msg)
 
 
 def _verify_post09(post: str, profile: str, output_root: Path) -> None:

@@ -1,6 +1,6 @@
 """Free-energy estimators for post 08."""
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 import csv
 import json
@@ -13,6 +13,8 @@ from kups_md_tutorials.config import (
     FreeEnergyTutorialSpec,
 )
 from kups_md_tutorials.observables import _summarize_argon_trajectory
+from kups_md_tutorials.observables import estimate_rdf
+from kups_md_tutorials.observables import _simulate_argon_trajectory
 from kups_md_tutorials.provenance import provenance
 
 
@@ -44,6 +46,12 @@ class ArgonRdfPmfSummary:
     pmf_barrier_height: float
     finite_pmf_bins: int
     masked_low_rdf_bins: int
+    uncertainty_block_count: int
+    uncertainty_replica_count: int
+    mean_block_pmf_sem: float
+    max_block_pmf_sem: float
+    mean_replica_pmf_std: float
+    max_replica_pmf_std: float
 
 
 @dataclass(frozen=True)
@@ -198,22 +206,83 @@ def _rdf_to_shifted_pmf(
     return pmf, valid
 
 
+def _pmf_uncertainty_from_stack(stack: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
+    values = np.asarray(stack, dtype=float)
+    finite_count = np.count_nonzero(np.isfinite(values), axis=0)
+    std = np.full(values.shape[1], np.nan, dtype=float)
+    sem = np.full(values.shape[1], np.nan, dtype=float)
+    enough = finite_count >= 2
+    if np.any(enough):
+        std[enough] = np.nanstd(values[:, enough], axis=0, ddof=1)
+        sem[enough] = std[enough] / np.sqrt(finite_count[enough])
+    return std, sem
+
+
 def _argon_rdf_pmf(
     spec: ArgonObservableTrajectorySpec | None,
-) -> tuple[ArgonRdfPmfSummary | None, tuple[np.ndarray, np.ndarray] | None, tuple[np.ndarray, np.ndarray] | None]:
+) -> tuple[
+    ArgonRdfPmfSummary | None,
+    tuple[np.ndarray, np.ndarray] | None,
+    tuple[np.ndarray, np.ndarray] | None,
+    tuple[np.ndarray, np.ndarray] | None,
+    tuple[np.ndarray, np.ndarray] | None,
+]:
     if spec is None:
-        return None, None, None
+        return None, None, None, None, None
 
-    trajectory_summary, rdf_curve, _ = _summarize_argon_trajectory(
-        _ArgonTrajectoryContainer(spec)
-    )
-    if trajectory_summary is None or rdf_curve is None:
-        return None, None, None
+    container = _ArgonTrajectoryContainer(spec)
+    trajectory_summary, rdf_curve, _ = _summarize_argon_trajectory(container)
+    simulated = _simulate_argon_trajectory(container)
+    if trajectory_summary is None or rdf_curve is None or simulated is None:
+        return None, None, None, None, None
 
     radii, rdf = rdf_curve
+    frames, _, cell_length = simulated
     pmf, valid = _rdf_to_shifted_pmf(rdf, temperature=spec.temperature)
     finite = np.isfinite(pmf)
     minimum_idx = int(np.nanargmin(pmf))
+
+    block_pmfs: list[np.ndarray] = []
+    block_size = max(1, frames.shape[0] // spec.uncertainty_block_count)
+    for block_idx in range(spec.uncertainty_block_count):
+        start = block_idx * block_size
+        stop = frames.shape[0] if block_idx == spec.uncertainty_block_count - 1 else start + block_size
+        block = frames[start:stop]
+        if len(block) < 2:
+            continue
+        _, block_rdf = estimate_rdf(
+            block,
+            cell_length=cell_length,
+            number_density=spec.number_density,
+            max_radius=spec.rdf_max_radius,
+            bin_width=spec.rdf_bin_width,
+        )
+        block_rdf = np.where(np.isfinite(rdf), block_rdf, np.nan)
+        block_pmf, _ = _rdf_to_shifted_pmf(block_rdf, temperature=spec.temperature)
+        block_pmfs.append(block_pmf)
+    _, block_sem = _pmf_uncertainty_from_stack(block_pmfs)
+
+    replica_pmfs: list[np.ndarray] = [pmf]
+    for replica_idx in range(1, spec.uncertainty_replica_count):
+        replica_spec = replace(spec, seed=spec.seed + 1009 * replica_idx)
+        replica_simulated = _simulate_argon_trajectory(
+            _ArgonTrajectoryContainer(replica_spec)
+        )
+        if replica_simulated is None:
+            continue
+        replica_frames, _, replica_cell = replica_simulated
+        _, replica_rdf = estimate_rdf(
+            replica_frames,
+            cell_length=replica_cell,
+            number_density=replica_spec.number_density,
+            max_radius=replica_spec.rdf_max_radius,
+            bin_width=replica_spec.rdf_bin_width,
+        )
+        replica_rdf = np.where(np.isfinite(rdf), replica_rdf, np.nan)
+        replica_pmf, _ = _rdf_to_shifted_pmf(replica_rdf, temperature=spec.temperature)
+        replica_pmfs.append(replica_pmf)
+    replica_std, _ = _pmf_uncertainty_from_stack(replica_pmfs)
+
     summary = ArgonRdfPmfSummary(
         atom_count=trajectory_summary.atom_count,
         frame_count=trajectory_summary.frame_count,
@@ -226,8 +295,14 @@ def _argon_rdf_pmf(
         pmf_barrier_height=float(np.nanmax(pmf[finite]) - np.nanmin(pmf[finite])),
         finite_pmf_bins=int(np.count_nonzero(finite)),
         masked_low_rdf_bins=int(np.count_nonzero(np.isfinite(rdf) & ~valid)),
+        uncertainty_block_count=len(block_pmfs),
+        uncertainty_replica_count=len(replica_pmfs),
+        mean_block_pmf_sem=float(np.nanmean(block_sem)),
+        max_block_pmf_sem=float(np.nanmax(block_sem)),
+        mean_replica_pmf_std=float(np.nanmean(replica_std)),
+        max_replica_pmf_std=float(np.nanmax(replica_std)),
     )
-    return summary, (radii, rdf), (radii, pmf)
+    return summary, (radii, rdf), (radii, pmf), (radii, block_sem), (radii, replica_std)
 
 
 def run_free_energy_experiment(
@@ -310,10 +385,16 @@ def run_free_energy_experiment(
     )
     curves["rdf"] = (radii, rdf)
     curves["rdf_pmf"] = (radii, rdf_pmf)
-    argon_summary, argon_rdf, argon_pmf = _argon_rdf_pmf(spec.argon_rdf_pmf)
+    argon_summary, argon_rdf, argon_pmf, argon_block_sem, argon_replica_std = _argon_rdf_pmf(
+        spec.argon_rdf_pmf
+    )
     if argon_rdf is not None and argon_pmf is not None:
         curves["argon_rdf"] = argon_rdf
         curves["argon_rdf_pmf"] = argon_pmf
+    if argon_block_sem is not None:
+        curves["argon_rdf_pmf_block_sem"] = argon_block_sem
+    if argon_replica_std is not None:
+        curves["argon_rdf_pmf_replica_std"] = argon_replica_std
 
     return (
         FreeEnergyExperimentSummary(

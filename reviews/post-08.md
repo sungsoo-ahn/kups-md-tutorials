@@ -5,10 +5,11 @@
 - Post: 08
 - Profiles reviewed: smoke and full
 - Current status: controlled one-dimensional free-energy workflow, compact
-  reduced-unit argon trajectory RDF-derived PMF workflow, committed smoke/full
-  outputs, notebook, full-profile diagnostic figure, hidden website draft,
-  rendered page snapshots, and self-review artifact are in place; larger GPU
-  kUPS RDF-derived PMF diagnostics and final citations remain pending.
+  reduced-unit argon trajectory RDF-derived PMF workflow with block/replica
+  uncertainty, committed smoke/full outputs, notebook, full-profile diagnostic
+  figure, hidden website draft, rendered page snapshots, and self-review
+  artifact are in place; larger GPU kUPS RDF-derived PMF diagnostics and final
+  citations remain pending.
 
 ## Commands
 
@@ -53,8 +54,8 @@
 
 Open items:
 
-- Add larger GPU kUPS RDF-derived PMF diagnostics with block/replica
-  uncertainty before treating this post as final.
+- Add larger GPU kUPS RDF-derived PMF diagnostics before treating this post as
+  final.
 
 ## Scientific Review
 
@@ -78,6 +79,11 @@ Open items:
   finite PMF bins; the retained shifted PMF range is about `1.64` in reduced
   energy units. This is a support-aware PMF transform diagnostic, not a
   production free-energy barrier.
+- The refreshed argon RDF-PMF uncertainty diagnostic uses 4 contiguous blocks
+  and 3 independent seed-shifted compact replicas.
+- The full profile reports mean block PMF SEM `0.0084`, maximum block PMF SEM
+  `0.0290`, mean local replica PMF standard deviation `0.0109`, and maximum
+  local replica PMF standard deviation `0.0616`.
 
 Open items:
 
@@ -113,8 +119,8 @@ Feedback loop:
 
 Open items:
 
-- Add larger production RDF-PMF figures with block/replica uncertainty after
-  GPU kUPS diagnostics are implemented.
+- Add larger production RDF-PMF figures after GPU kUPS diagnostics are
+  implemented.
 
 ## Notebook Review
 
@@ -218,7 +224,146 @@ Open items:
 
 - Keep mobile title and table wrapping as final typography-polish items after
   the rest of the articles are expanded.
-- Add larger GPU kUPS RDF-derived PMF diagnostics, block/replica uncertainty,
-  and final citations before treating this post as final.
+- Add larger GPU kUPS RDF-derived PMF diagnostics and final citations before
+  treating this post as final.
 - Re-run the page snapshot workflow again after the final production
   RDF-derived PMF figure and citations are added.
+
+## Update 2026-07-15: RDF-PMF Block And Replica Uncertainty
+
+- Tutorial working-tree state reviewed before commit: Post 08 schema,
+  workflow, figure, configs, committed smoke/full outputs, notebook, snapshots,
+  and website export assets changed together.
+- Website commit reviewed:
+  `8bff587c0ff672594e6a462b40d6722f60b2b5ef`.
+- Website deployment run:
+  `29381569320`.
+- Snapshot workflow run:
+  `29381687757`.
+- Snapshot artifact: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post08-rdf-pmf-uncertainty-snapshots/`.
+
+Commands added in this pass:
+
+- `uv run ruff check src/kups_md_tutorials/config.py src/kups_md_tutorials/free_energies.py src/kups_md_tutorials/figures.py src/kups_md_tutorials/workflows.py tests/test_config.py`
+- `uv run pytest tests/test_config.py tests/test_figures.py -q`
+- `uv run kups-tutorial run 08 --profile smoke`
+- `uv run kups-tutorial verify 08 --profile smoke`
+- `uv run kups-tutorial run 08 --profile full`
+- `uv run kups-tutorial verify 08 --profile full`
+- `uv run python scripts/generate_post08_figures.py`
+- `uv run jupyter execute notebooks/post-08-free-energies.ipynb --inplace`
+- `uv run pytest tests/test_config.py tests/test_cli.py tests/test_figures.py tests/test_notebooks.py -q`
+- `uv run kups-tutorial export-site --site-root ../sungsoo-ahn.github.io --profile full`
+- `python3 scripts/validate_kups_pages.py` in
+  `../sungsoo-ahn.github.io`
+- `python3 scripts/validate_blog.py` in `../sungsoo-ahn.github.io`
+- `gh workflow run "Capture kUPS snapshots" --ref main -f posts=8`
+- `gh run download 29381687757 --name kups-md-page-snapshots --dir /tmp/kups-post08-rdf-pmf-uncertainty-snapshots`
+
+Code and reproducibility review:
+
+- `ArgonObservableTrajectorySpec` now records explicit
+  `uncertainty_block_count` and `uncertainty_replica_count` values, both
+  committed in the smoke and full Post 08 configs.
+- `ArgonRdfPmfSummary` now records block and replica PMF uncertainty metrics:
+  block count, replica count, mean and maximum block PMF SEM, and mean and
+  maximum local replica PMF standard deviation.
+- `free_energy_curves.csv` now exports `argon_rdf_pmf_block_sem` and
+  `argon_rdf_pmf_replica_std` columns aligned to the trajectory RDF-PMF
+  radius grid.
+- Post 08 verification now requires positive block and replica PMF uncertainty
+  when the argon RDF-PMF diagnostic is configured.
+- The implementation remains deterministic: uncertainty replicas are
+  seed-shifted compact trajectories, and block uncertainty is computed from
+  contiguous blocks of the committed compact trajectory protocol.
+
+Scientific review:
+
+- Full-profile compact argon RDF-PMF still uses 108 atoms and 551 sampled
+  frames at number density `0.85` and temperature `0.70`.
+- RDF first peak remains near radius `1.125` with `g(r)` about `3.01`.
+- Shifted PMF minimum remains radius `1.125`; finite-bin PMF range remains
+  about `1.6429` reduced energy units.
+- The refreshed uncertainty diagnostic uses 4 trajectory blocks and 3 compact
+  seed-shifted replicas.
+- Mean block PMF SEM is `0.0084`; maximum block PMF SEM is `0.0290`.
+- Mean local replica PMF standard deviation is `0.0109`; maximum local
+  replica PMF standard deviation is `0.0616`.
+- Interpretation: the hidden draft now has a concrete block/replica
+  uncertainty diagnostic for the compact RDF-PMF transform. This remains a
+  compact reduced-unit teaching diagnostic, not a larger GPU kUPS production
+  free-energy calculation.
+
+Figure feedback:
+
+- Source data inspected:
+  `results/post-08/full/free_energy_summary.json` and
+  `results/post-08/full/free_energy_curves.csv`.
+- Figure asset inspected:
+  `figures/post-08/free_energy_diagnostics_full.svg`.
+- Snapshot inspected:
+  `snapshots/post-08/free_energy_diagnostics_full_snapshot.png`.
+- Intended visual claim: PMFs are estimator products; RDF-derived PMFs require
+  finite support; and compact trajectory RDF-PMF uncertainty should be visible
+  through block and replica diagnostics rather than hidden in prose.
+- Feedback: the fourth panel now shows the trajectory RDF-PMF, scaled RDF,
+  PMF minimum marker, block SEM band, and dashed replica-standard-deviation
+  curve. Axis labels and legends fit. The block SEM band is subtle because the
+  maximum SEM is only `0.0290`, so the annotation and notebook printout carry
+  the quantitative value. The dashed replica curve is legible on the secondary
+  axis and does not obscure the PMF line.
+- Revision decision: no additional figure edit was needed after inspecting the
+  refreshed full-profile snapshot.
+
+Notebook review:
+
+- The notebook now prints compact argon RDF-PMF block count, replica count,
+  maximum block SEM, and maximum replica standard deviation.
+- `uv run jupyter execute notebooks/post-08-free-energies.ipynb --inplace`
+  completed successfully after the notebook source was updated.
+
+Website and rendered-page review:
+
+- The hidden page now describes the block/replica RDF-PMF uncertainty
+  diagnostic and keeps the larger GPU kUPS RDF-PMF diagnostic as the remaining
+  production blocker.
+- Website validators passed; `validate_blog.py` still reports only
+  pre-existing unused-image warnings.
+- Live hidden-route check with `?v=8bff587` confirmed the Post 08 page
+  contains `block SEM` and `replica disagreement`.
+- Live homepage and blog listing checks with `?v=8bff587` confirmed
+  `post-08-free-energies` and `kups-md-tutorials` are not exposed.
+- Snapshot manifest reviewed:
+  `/tmp/kups-post08-rdf-pmf-uncertainty-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`;
+  both returned HTTP 200 and title
+  `How Do Equilibrium Samples Become Free Energies? | Sungsoo Ahn`.
+- Desktop snapshot inspected:
+  `/tmp/kups-post08-rdf-pmf-uncertainty-snapshots/post-08-desktop.png` at
+  `1440 x 11537`.
+- Mobile snapshot inspected:
+  `/tmp/kups-post08-rdf-pmf-uncertainty-snapshots/post-08-mobile.png` at
+  `550 x 17669`.
+- Desktop feedback: the refreshed hidden article renders end to end with
+  source links, PMF tables, equations, updated four-panel figure, reproduction
+  block, Current Status section, references, and footer present. The updated
+  fourth figure panel is visible and contained; no missing asset, blank page,
+  clipped text, or broken page chrome was found.
+- Mobile feedback: the title, tables, equations, updated figure, caption,
+  code block, Current Status section, references, and footer remain contained.
+  Tables are dense but readable; the four-panel figure scales into the column
+  without overlapping neighboring text.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 08 refreshed hidden draft.
+- The compact block/replica RDF-PMF uncertainty diagnostic is accepted for the
+  hidden draft state.
+- Keep mobile title/table density as a final typography-polish item.
+- Add larger GPU kUPS RDF-derived PMF diagnostics and final citations before
+  public indexing.
+- Re-run rendered snapshots after final production RDF-PMF figures/citations
+  or any public-indexing change.

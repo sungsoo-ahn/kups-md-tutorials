@@ -1613,3 +1613,65 @@ Revision decisions:
   indexing.
 - Re-run rendered snapshots after final production MD figures/citations or any
   public-indexing change.
+
+## Post 08 RDF-PMF Uncertainty Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29381687757`.
+- Website commit reviewed:
+  `8bff587c0ff672594e6a462b40d6722f60b2b5ef`.
+- Website deploy run: `29381569320`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post08-rdf-pmf-uncertainty-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post08-rdf-pmf-uncertainty-snapshots/manifest.json`.
+- Capture scope: post 08 after adding compact RDF-PMF block SEM and replica
+  disagreement diagnostics, exporting the refreshed full-profile figure and
+  compact JSON/CSV assets, and updating hidden-page prose/status.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Equilibrium Samples Become Free Energies? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post08-rdf-pmf-uncertainty-snapshots/post-08-desktop.png`
+  (`1440 x 11537`)
+- `/tmp/kups-post08-rdf-pmf-uncertainty-snapshots/post-08-mobile.png`
+  (`550 x 17669`)
+
+Feedback:
+
+- Desktop capture renders the hidden Post 08 draft end to end with the updated
+  author note, source links, PMF diagnostic tables, equations, updated
+  four-panel figure, reproduction block, Current Status section, references,
+  and footer present.
+- The refreshed figure shows the trajectory RDF-PMF panel with block SEM and
+  replica-disagreement overlays. The panel remains contained in the article
+  column, and the caption matches the updated claim.
+- Mobile capture keeps the title, tables, equations, updated figure, caption,
+  code block, Current Status section, references, and footer contained. Tables
+  remain dense but readable, and no overlap, clipped figure, missing asset, or
+  broken page chrome was found.
+- Live checks with cache-buster `?v=8bff587` confirmed the direct hidden URL
+  contains `block SEM` and `replica disagreement`, while `/` and `/blog/` do
+  not expose `post-08-free-energies` or `kups-md-tutorials`.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 08 RDF-PMF uncertainty
+  hidden draft.
+- The compact block/replica RDF-PMF uncertainty diagnostic is snapshot-reviewed
+  for the hidden draft state.
+- Keep mobile title/table density as a final typography-polish item.
+- Add larger GPU kUPS RDF-derived PMF diagnostics and final citations before
+  public indexing.
+- Re-run rendered snapshots after final production RDF-PMF figures/citations or
+  any public-indexing change.

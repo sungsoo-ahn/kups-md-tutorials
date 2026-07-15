@@ -2095,6 +2095,75 @@ Revision decisions:
 - Re-run rendered snapshots after public-indexing changes or major curriculum
   title/description updates.
 
+## Post 08 RDF-PMF Support-Sensitivity Snapshot Refresh
+
+- Capture date: 2026-07-15.
+- Website workflow: `Capture kUPS snapshots`.
+- Snapshot run: `29390138917`.
+- Website commit reviewed:
+  `6c08328`.
+- Website deploy run: `29390018103`.
+- Tutorial commit reviewed:
+  `b5e8a88400268edb568b611945dcee85e34143d2`.
+- Artifact name: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post08-support-sensitivity-final-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post08-support-sensitivity-final-snapshots/kups-md-page-snapshots/manifest.json`.
+- Capture scope: Post 08 hidden page after adding RDF-PMF
+  support-threshold sensitivity, refreshing the figure/assets, updating the
+  notebook/review text, and correcting the page provenance text.
+
+Manifest coverage:
+
+- 2 rendered snapshots captured.
+- Desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`.
+- Both captured URLs returned HTTP 200.
+- Page title:
+  `How Do Equilibrium Samples Become Free Energies? | Sungsoo Ahn`.
+
+Snapshots visually inspected:
+
+- `/tmp/kups-post08-support-sensitivity-final-snapshots/kups-md-page-snapshots/post-08-desktop.png`
+  (`1440 x 11817`)
+- `/tmp/kups-post08-support-sensitivity-final-snapshots/kups-md-page-snapshots/post-08-mobile.png`
+  (`550 x 18162`)
+- `/tmp/kups-post08-support-sensitivity-final-snapshots/kups-md-page-snapshots/post-08-figure-wide.png`
+- `/tmp/kups-post08-support-sensitivity-final-snapshots/kups-md-page-snapshots/post-08-mobile-figure-wide.png`
+
+Feedback:
+
+- Desktop capture renders the hidden Post 08 page end to end with sidebar TOC,
+  updated support-threshold prose, refreshed diagnostic figure, caption,
+  reproduction block, Practical Checklist, Current Status, references, and
+  footer present.
+- The desktop figure crop shows the trajectory RDF-PMF panel with support
+  `0.05`, dotted support `0.02` and `0.10` curves, block SEM, replica
+  disagreement, PMF-minimum marker, and `support span = 1.35` annotation
+  visible without blocking the panel.
+- Mobile capture keeps the support-threshold prose, figure, caption, tables,
+  code block, Current Status, and references contained. The figure is dense at
+  mobile width but readable, and no text/image overlap was found in the
+  inspected crop.
+- Live check with cache-buster `?v=6c08328` returned HTTP 200 and confirmed
+  the deployed HTML contains `support-threshold sensitivity`, `2.998`,
+  `1.355`, and the updated support-threshold figure caption.
+- Public homepage and public blog checks did not expose `kups-md-tutorials` or
+  `post-08-free-energies`, preserving the hidden direct-link-only status.
+
+Revision decisions:
+
+- No blocking layout issue was found for the Post 08 support-sensitivity
+  hidden draft.
+- The compact RDF-PMF support-threshold diagnostic is accepted for the hidden
+  draft state.
+- Keep mobile figure/table density as a final typography-polish item.
+- Add larger GPU kUPS RDF-derived PMF diagnostics and final citations before
+  public indexing.
+- Re-run rendered snapshots after final production RDF-PMF figures/citations
+  or any public-indexing change.
+
 ## Post 07 VACF Replica Snapshot Refresh
 
 - Capture date: 2026-07-15.

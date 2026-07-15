@@ -434,8 +434,45 @@ Figure feedback:
 
 Website review status:
 
-- Pending in this pass: refresh the hidden website page, deploy it, capture
-  rendered page snapshots, and record live-page feedback.
+- Website commit reviewed:
+  `6c08328`.
+- Website deploy run:
+  `29390018103`.
+- Snapshot workflow run:
+  `29390138917`.
+- Snapshot artifact: `kups-md-page-snapshots`.
+- Downloaded review copy:
+  `/tmp/kups-post08-support-sensitivity-final-snapshots/`.
+- Manifest reviewed:
+  `/tmp/kups-post08-support-sensitivity-final-snapshots/kups-md-page-snapshots/manifest.json`.
+- Manifest coverage: desktop and mobile snapshots were captured for
+  `https://sungsoo-ahn.github.io/kups-md-tutorials/post-08-free-energies/`;
+  both returned HTTP 200 with page title
+  `How Do Equilibrium Samples Become Free Energies? | Sungsoo Ahn`.
+- Desktop snapshot inspected:
+  `/tmp/kups-post08-support-sensitivity-final-snapshots/kups-md-page-snapshots/post-08-desktop.png`
+  (`1440 x 11817`).
+- Mobile snapshot inspected:
+  `/tmp/kups-post08-support-sensitivity-final-snapshots/kups-md-page-snapshots/post-08-mobile.png`
+  (`550 x 18162`).
+- Desktop figure crop inspected:
+  `/tmp/kups-post08-support-sensitivity-final-snapshots/kups-md-page-snapshots/post-08-figure-wide.png`.
+- Mobile figure crop inspected:
+  `/tmp/kups-post08-support-sensitivity-final-snapshots/kups-md-page-snapshots/post-08-mobile-figure-wide.png`.
+- Desktop feedback: the hidden page renders end to end with sidebar TOC,
+  updated support-threshold prose, refreshed four-panel figure, caption,
+  reproduction block, Current Status section, references, and footer. The
+  fourth panel shows the support-threshold curves and `support span = 1.35`
+  annotation without clipping.
+- Mobile feedback: the support-threshold prose, figure, and caption remain
+  contained in the mobile column. The figure is dense but readable; no text or
+  image overlap was found in the inspected crop.
+- Live hidden-route check with `?v=6c08328` confirmed the deployed HTML
+  contains `support-threshold sensitivity`, `2.998`, `1.355`, and the updated
+  figure caption.
+- Live homepage and public blog checks confirmed `kups-md-tutorials` and
+  `post-08-free-energies` are not exposed in public navigation or the public
+  blog listing.
 
 Final-release blockers:
 

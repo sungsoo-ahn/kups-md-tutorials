@@ -37,6 +37,12 @@ def audit_release_readiness(
 
     violations: list[str] = []
     _check_review_blockers(review_dir, violations)
+    _check_figure_source_provenance(
+        review_dir / "figure-sources.json",
+        figure_root=figure_root,
+        results_root=results_root,
+        violations=violations,
+    )
     _check_required_artifact_surface(
         config_root=config_root,
         results_root=results_root,
@@ -175,6 +181,80 @@ def _check_required_artifact_surface(
                 violations,
                 missing_reason=f"missing {description}",
             )
+
+
+def _check_figure_source_provenance(
+    path: Path,
+    *,
+    figure_root: Path,
+    results_root: Path,
+    violations: list[str],
+) -> None:
+    if not path.exists():
+        violations.append(f"{path}: missing figure source provenance ledger")
+        return
+    text = path.read_text(encoding="utf-8")
+    try:
+        ledger = json.loads(text)
+    except json.JSONDecodeError as exc:
+        violations.append(f"{path}: invalid JSON: {exc}")
+        return
+    if not isinstance(ledger, dict):
+        violations.append(f"{path}: figure source provenance ledger must be a JSON object")
+        return
+
+    repo_root = path.parent.parent
+    covered_files: set[str] = set()
+    for post in SUPPORTED_POSTS:
+        entries = ledger.get(f"post-{post}")
+        if not isinstance(entries, list) or not entries:
+            violations.append(f"{path}: missing figure source entries for post {post}")
+            continue
+        for index, entry in enumerate(entries, start=1):
+            label = f"{path}: post-{post} entry {index}"
+            if not isinstance(entry, dict):
+                violations.append(f"{label} must be a JSON object")
+                continue
+            figure_files = entry.get("figure_files")
+            if not isinstance(figure_files, list) or not figure_files:
+                violations.append(f"{label} missing figure_files")
+            else:
+                for figure_file in figure_files:
+                    if not isinstance(figure_file, str) or not figure_file:
+                        violations.append(f"{label} contains invalid figure file path")
+                        continue
+                    covered_files.add(figure_file)
+                    if not _ledger_path_exists(repo_root, figure_file):
+                        violations.append(f"{label} figure file does not exist: {figure_file}")
+
+            for field in (
+                "source_url",
+                "source_type",
+                "license",
+                "modifications",
+                "generator",
+            ):
+                value = entry.get(field)
+                if not isinstance(value, str) or not value.strip():
+                    violations.append(f"{label} missing {field}")
+
+            source_data = entry.get("source_data")
+            if not isinstance(source_data, list) or not source_data:
+                violations.append(f"{label} missing source_data")
+            else:
+                for source_path in source_data:
+                    if not isinstance(source_path, str) or not source_path:
+                        violations.append(f"{label} contains invalid source data path")
+                        continue
+                    if not _ledger_path_exists(repo_root, source_path):
+                        violations.append(f"{label} source data does not exist: {source_path}")
+
+    for figure_path in sorted(figure_root.glob("post-*/*.svg")) + sorted(
+        figure_root.glob("post-*/*.png")
+    ):
+        rel_path = _relative_to_root_or_posix(figure_path, repo_root)
+        if rel_path not in covered_files:
+            violations.append(f"{path}: missing source provenance for {rel_path}")
 
 
 def _check_post12_model_artifact(
@@ -575,6 +655,27 @@ def _check_glob_matches(
     matches = sorted(directory.glob(pattern))
     if not matches:
         violations.append(f"{directory}: {missing_reason}")
+
+
+def _relative_or_posix(path: Path) -> str:
+    try:
+        return path.relative_to(Path.cwd()).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def _relative_to_root_or_posix(path: Path, root: Path) -> str:
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return _relative_or_posix(path)
+
+
+def _ledger_path_exists(repo_root: Path, path_text: str) -> bool:
+    path = Path(path_text)
+    if path.is_absolute():
+        return path.exists()
+    return path.exists() or (repo_root / path).exists()
 
 
 def _section_after_heading(text: str, heading: str) -> str | None:

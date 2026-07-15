@@ -79,6 +79,41 @@ def _write_required_artifacts(root: Path, *, placeholder: bool = False) -> None:
             )
 
     _write_post12_model_metadata(root, placeholder=placeholder)
+    _write_figure_source_ledger(root)
+
+
+def _write_figure_source_ledger(root: Path) -> None:
+    review_dir = root / "reviews"
+    review_dir.mkdir(parents=True, exist_ok=True)
+    ledger = {}
+    for post in range(1, 13):
+        post_id = f"{post:02d}"
+        ledger[f"post-{post_id}"] = [
+            {
+                "figure_files": [
+                    f"figures/post-{post_id}/example_diagnostics.svg",
+                    f"figures/post-{post_id}/example_diagnostics.png",
+                    f"figures/post-{post_id}/example_diagnostics_full.svg",
+                    f"figures/post-{post_id}/example_diagnostics_full.png",
+                ],
+                "source_url": f"internal:scripts/generate_post{post_id}_figures.py",
+                "source_type": "custom-generated",
+                "license": "repository-owned draft figure",
+                "modifications": (
+                    "Generated from committed compact tutorial outputs; no external "
+                    "figure source was reused."
+                ),
+                "generator": f"scripts/generate_post{post_id}_figures.py",
+                "source_data": [
+                    f"configs/post-{post_id}/full.json",
+                    f"results/post-{post_id}/full/example_summary.json",
+                ],
+            }
+        ]
+    (review_dir / "figure-sources.json").write_text(
+        json.dumps(ledger, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _manifest_fixture(post_id: str, profile: str) -> dict[str, object]:
@@ -471,6 +506,38 @@ def test_release_readiness_reports_missing_required_artifacts(tmp_path: Path) ->
         "post-08" in violation and "figure snapshot" in violation
         for violation in result.violations
     )
+
+
+def test_release_readiness_reports_missing_figure_source_provenance(
+    tmp_path: Path,
+) -> None:
+    _write_clean_reviews(tmp_path / "reviews")
+    _write_required_artifacts(tmp_path)
+    _write_site_pages(tmp_path / "site", hidden=False)
+    ledger_path = tmp_path / "reviews" / "figure-sources.json"
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    ledger["post-08"][0]["figure_files"].remove(
+        "figures/post-08/example_diagnostics_full.png"
+    )
+    ledger["post-08"][0]["license"] = ""
+    ledger_path.write_text(json.dumps(ledger) + "\n", encoding="utf-8")
+
+    result = audit_release_readiness(
+        review_dir=tmp_path / "reviews",
+        config_root=tmp_path / "configs",
+        results_root=tmp_path / "results",
+        notebook_root=tmp_path / "notebooks",
+        figure_root=tmp_path / "figures",
+        snapshot_root=tmp_path / "snapshots",
+        site_root=tmp_path / "site",
+    )
+
+    assert any(
+        "missing source provenance for figures/post-08/example_diagnostics_full.png"
+        in violation
+        for violation in result.violations
+    )
+    assert any("post-08 entry 1 missing license" in violation for violation in result.violations)
 
 
 def test_release_readiness_reports_manifest_provenance_violations(tmp_path: Path) -> None:

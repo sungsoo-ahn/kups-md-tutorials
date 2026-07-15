@@ -535,6 +535,61 @@ Review decision:
 - Full-profile execution now enforces the smoke-before-full checkpoint from
   PLAN.md.
 
+## Update 2026-07-15: Figure Source Provenance Gate
+
+Scope:
+
+- Added a repository-side final-publication check for the PLAN requirement to
+  record figure source URL, license or ownership status, and modifications
+  outside the rendered post body.
+- Added `reviews/figure-sources.json` as the current provenance ledger for all
+  committed SVG/PNG tutorial figures. The current figures are custom-generated
+  from committed compact outputs and generation scripts, not copied from
+  external figure sources.
+- The release gate now requires every committed figure under
+  `figures/post-*/*.svg` and `figures/post-*/*.png` to be covered by a ledger
+  entry with `source_url`, `source_type`, `license`, `modifications`,
+  `generator`, and existing `source_data` paths.
+- Added a regression test that removes one Post 08 figure from the ledger and
+  clears its license field, then confirms both violations are reported.
+
+Commands:
+
+- `uv run ruff check src/kups_md_tutorials/release_readiness.py tests/test_release_readiness.py`
+- `uv run pytest tests/test_release_readiness.py -q`
+- `uv run kups-tutorial verify-release-readiness --skip-site 2>&1 | tail -n 180`
+- Pending final validation for this commit: full local validation set, push,
+  and CI.
+
+Code and reproducibility review:
+
+- The ledger check runs before the generic artifact-surface check so missing
+  or incomplete source records are reported even when the figure files exist.
+- Current committed figures satisfy the new provenance gate; the
+  `--skip-site` readiness audit reports only the known hidden/public-release
+  and production-diagnostic blockers, with no figure-source violations.
+- The check resolves ledger paths relative to the repository root implied by
+  the review directory, which keeps isolated tests and the real checkout
+  consistent.
+
+Figure and rendered-page review:
+
+- No figure assets, figure-generation code, website pages, or website assets
+  changed in this pass.
+- Because this milestone only adds a provenance ledger, verifier, and
+  synthetic test fixture, no new figure snapshot capture or rendered page
+  snapshot capture was required.
+- Existing figure and page snapshot evidence remains in the per-post review
+  files and `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the release-readiness tooling milestone.
+- The final-publication gate now enforces artifact surface, figure source
+  provenance, manifest provenance, blog-style metadata, article length,
+  citation backlink integrity, figure include integrity, footnote hygiene,
+  hidden/non-final state, and unresolved final-release blockers.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

@@ -1,0 +1,254 @@
+{
+  "post-01": [
+    {
+      "figure_files": [
+        "figures/post-01/initialization_diagnostics.svg",
+        "figures/post-01/initialization_diagnostics.png",
+        "figures/post-01/initialization_diagnostics_full.svg",
+        "figures/post-01/initialization_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post01_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full initialization summaries and initial-state files with deterministic plotting code.",
+      "generator": "scripts/generate_post01_figures.py",
+      "source_data": [
+        "configs/post-01/smoke.json",
+        "configs/post-01/full.json",
+        "results/post-01/smoke/initialization_summary.json",
+        "results/post-01/full/initialization_summary.json"
+      ]
+    }
+  ],
+  "post-02": [
+    {
+      "figure_files": [
+        "figures/post-02/integrator_diagnostics.svg",
+        "figures/post-02/integrator_diagnostics.png",
+        "figures/post-02/integrator_diagnostics_full.svg",
+        "figures/post-02/integrator_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post02_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full integrator summaries and trajectory samples with deterministic plotting code.",
+      "generator": "scripts/generate_post02_figures.py",
+      "source_data": [
+        "configs/post-02/smoke.json",
+        "configs/post-02/full.json",
+        "results/post-02/smoke/integrator_summary.json",
+        "results/post-02/full/integrator_summary.json"
+      ]
+    }
+  ],
+  "post-03": [
+    {
+      "figure_files": [
+        "figures/post-03/error_diagnostics.svg",
+        "figures/post-03/error_diagnostics.png",
+        "figures/post-03/error_diagnostics_full.svg",
+        "figures/post-03/error_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post03_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full timestep, precision, force-error, and argon NVE diagnostic summaries.",
+      "generator": "scripts/generate_post03_figures.py",
+      "source_data": [
+        "configs/post-03/smoke.json",
+        "configs/post-03/full.json",
+        "results/post-03/smoke/error_summary.json",
+        "results/post-03/full/error_summary.json"
+      ]
+    }
+  ],
+  "post-04": [
+    {
+      "figure_files": [
+        "figures/post-04/thermostat_diagnostics.svg",
+        "figures/post-04/thermostat_diagnostics.png",
+        "figures/post-04/thermostat_diagnostics_full.svg",
+        "figures/post-04/thermostat_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post04_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full thermostat and argon Langevin handoff summaries with deterministic plotting code.",
+      "generator": "scripts/generate_post04_figures.py",
+      "source_data": [
+        "configs/post-04/smoke.json",
+        "configs/post-04/full.json",
+        "results/post-04/smoke/thermostat_summary.json",
+        "results/post-04/full/thermostat_summary.json"
+      ]
+    }
+  ],
+  "post-05": [
+    {
+      "figure_files": [
+        "figures/post-05/barostat_diagnostics.svg",
+        "figures/post-05/barostat_diagnostics.png",
+        "figures/post-05/barostat_diagnostics_full.svg",
+        "figures/post-05/barostat_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post05_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full pressure, scalar-cell, and argon NPT-like diagnostic summaries.",
+      "generator": "scripts/generate_post05_figures.py",
+      "source_data": [
+        "configs/post-05/smoke.json",
+        "configs/post-05/full.json",
+        "results/post-05/smoke/barostat_summary.json",
+        "results/post-05/full/barostat_summary.json"
+      ]
+    }
+  ],
+  "post-06": [
+    {
+      "figure_files": [
+        "figures/post-06/trajectory_length_diagnostics.svg",
+        "figures/post-06/trajectory_length_diagnostics.png",
+        "figures/post-06/trajectory_length_diagnostics_full.svg",
+        "figures/post-06/trajectory_length_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post06_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full trajectory-length, autocorrelation, effective-sample-size, and argon observable summaries.",
+      "generator": "scripts/generate_post06_figures.py",
+      "source_data": [
+        "configs/post-06/smoke.json",
+        "configs/post-06/full.json",
+        "results/post-06/smoke/trajectory_length_summary.json",
+        "results/post-06/full/trajectory_length_summary.json"
+      ]
+    }
+  ],
+  "post-07": [
+    {
+      "figure_files": [
+        "figures/post-07/observable_diagnostics.svg",
+        "figures/post-07/observable_diagnostics.png",
+        "figures/post-07/observable_diagnostics_full.svg",
+        "figures/post-07/observable_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post07_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full RDF, coordination, finite-size, and velocity-autocorrelation summaries.",
+      "generator": "scripts/generate_post07_figures.py",
+      "source_data": [
+        "configs/post-07/smoke.json",
+        "configs/post-07/full.json",
+        "results/post-07/smoke/observable_summary.json",
+        "results/post-07/full/observable_summary.json"
+      ]
+    }
+  ],
+  "post-08": [
+    {
+      "figure_files": [
+        "figures/post-08/free_energy_diagnostics.svg",
+        "figures/post-08/free_energy_diagnostics.png",
+        "figures/post-08/free_energy_diagnostics_full.svg",
+        "figures/post-08/free_energy_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post08_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full histogram PMF, RDF-derived PMF, binning-bias, reweighting, and uncertainty summaries.",
+      "generator": "scripts/generate_post08_figures.py",
+      "source_data": [
+        "configs/post-08/smoke.json",
+        "configs/post-08/full.json",
+        "results/post-08/smoke/free_energy_summary.json",
+        "results/post-08/full/free_energy_summary.json"
+      ]
+    }
+  ],
+  "post-09": [
+    {
+      "figure_files": [
+        "figures/post-09/estimator_diagnostics.svg",
+        "figures/post-09/estimator_diagnostics.png",
+        "figures/post-09/estimator_diagnostics_full.svg",
+        "figures/post-09/estimator_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post09_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full FEP, BAR, overlap, effective-sample-size, and estimator-failure summaries.",
+      "generator": "scripts/generate_post09_figures.py",
+      "source_data": [
+        "configs/post-09/smoke.json",
+        "configs/post-09/full.json",
+        "results/post-09/smoke/estimator_summary.json",
+        "results/post-09/full/estimator_summary.json"
+      ]
+    }
+  ],
+  "post-10": [
+    {
+      "figure_files": [
+        "figures/post-10/umbrella_diagnostics.svg",
+        "figures/post-10/umbrella_diagnostics.png",
+        "figures/post-10/umbrella_diagnostics_full.svg",
+        "figures/post-10/umbrella_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post10_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full umbrella-window, overlap, WHAM-style reconstruction, and sparse-window summaries.",
+      "generator": "scripts/generate_post10_figures.py",
+      "source_data": [
+        "configs/post-10/smoke.json",
+        "configs/post-10/full.json",
+        "results/post-10/smoke/umbrella_summary.json",
+        "results/post-10/full/umbrella_summary.json"
+      ]
+    }
+  ],
+  "post-11": [
+    {
+      "figure_files": [
+        "figures/post-11/enhanced_sampling_diagnostics.svg",
+        "figures/post-11/enhanced_sampling_diagnostics.png",
+        "figures/post-11/enhanced_sampling_diagnostics_full.svg",
+        "figures/post-11/enhanced_sampling_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post11_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full adaptive-bias, nonequilibrium-work, Jarzynski, Crooks, and steered-pair summaries.",
+      "generator": "scripts/generate_post11_figures.py",
+      "source_data": [
+        "configs/post-11/smoke.json",
+        "configs/post-11/full.json",
+        "results/post-11/smoke/enhanced_sampling_summary.json",
+        "results/post-11/full/enhanced_sampling_summary.json"
+      ]
+    }
+  ],
+  "post-12": [
+    {
+      "figure_files": [
+        "figures/post-12/mlip_diagnostics.svg",
+        "figures/post-12/mlip_diagnostics.png",
+        "figures/post-12/mlip_diagnostics_full.svg",
+        "figures/post-12/mlip_diagnostics_full.png"
+      ],
+      "source_url": "internal:scripts/generate_post12_figures.py",
+      "source_type": "custom-generated",
+      "license": "repository-owned draft figure; no external image or diagram source reused",
+      "modifications": "Generated from committed smoke/full MLIP force-error, extrapolation, drift, uncertainty, and model-artifact summaries.",
+      "generator": "scripts/generate_post12_figures.py",
+      "source_data": [
+        "configs/post-12/smoke.json",
+        "configs/post-12/full.json",
+        "results/post-12/smoke/mlip_summary.json",
+        "results/post-12/full/mlip_summary.json"
+      ]
+    }
+  ]
+}

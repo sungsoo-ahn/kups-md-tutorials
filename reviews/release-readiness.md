@@ -2620,6 +2620,66 @@ Review decision:
   migrating hidden drafts to final `_posts`, recapturing rendered snapshots
   after that migration, and passing strict `verify-release-readiness`.
 
+## Update 2026-07-15: Website Build Ledger Sync
+
+Scope:
+
+- Refreshed `reviews/website-build.json` after syncing the runtime manifest
+  export to the website repository.
+- The ledger now points to website commit
+  `e90347c31d555837502803183dddee547c498a8a` and GitHub Actions deploy run
+  `29440401291`.
+- Run `29440401291` completed successfully and included the required
+  `Validate blog posts`, `Validate hidden kUPS pages`, `Build site`, and
+  `Deploy to GitHub Pages` steps.
+- No code, configs, result summaries, notebooks, figure assets, snapshots,
+  website pages, website prose, front matter, CSS-sensitive markup, or website
+  JSON exports changed in this pass.
+
+Commands:
+
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io --allow-current-blockers`
+  passed for 12 posts.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `uv run pytest tests/test_release_readiness.py` passed with 40 tests.
+- `git diff --check` passed in this repository.
+- In `../sungsoo-ahn.github.io`, `python3 scripts/validate_blog.py` passed
+  with the existing unused-image warnings, `python3 scripts/validate_kups_pages.py`
+  passed, and `git diff --check` passed.
+- `uv run kups-tutorial verify-release-readiness --site-root ../sungsoo-ahn.github.io`
+  failed only on the existing final-release blockers: production GPU
+  diagnostics, hidden/non-final kUPS pages, missing final `_posts`, public
+  indexing, and rendered snapshot recapture after final publication changes.
+
+Code and reproducibility review:
+
+- The prior website-build ledger still referred to website commit `7b4bdd6`
+  and deploy run `29436872074`. After the website runtime-manifest export was
+  committed and deployed as `e90347c`, the release-surface audit correctly
+  rejected the stale `head_sha`.
+- This ledger sync restores the invariant that release-readiness evidence
+  names the current website checkout and the exact deploy/build run for that
+  checkout.
+
+Figure and rendered-page review:
+
+- No figure assets or figure-generation code changed, so no figure snapshot was
+  required.
+- No website prose, front matter, linked figures, page assets, CSS-sensitive
+  markup, or website JSON export changed in this pass, so no rendered
+  desktop/mobile page snapshots were required. Existing rendered-page evidence
+  remains in `reviews/page-snapshots.md`.
+
+Review decision:
+
+- Accepted for the website-build ledger sync after focused
+  release-readiness tests, review audit, site-aware current-blocker release
+  audit, website validators, and strict-readiness confirmation of only known
+  final blockers.
+- Final release remains blocked on production GPU diagnostics, public indexing,
+  migrating hidden drafts to final `_posts`, recapturing rendered snapshots
+  after that migration, and passing strict `verify-release-readiness`.
+
 ## Open Items
 
 Blocking items for the current hidden draft/tooling milestone:

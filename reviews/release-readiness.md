@@ -3118,6 +3118,58 @@ Review decision:
   recapturing rendered snapshots after final publication changes, and passing
   strict `verify-release-readiness`.
 
+## Update 2026-07-17: Selected GPU Completion Gate
+
+Scope:
+
+- Added `kups-tutorial verify-gpu-rerun --posts "03 04"`, which checks the
+  same consolidated GPU status records used by `gpu-status` and fails when a
+  selected post still has a CPU fallback or review-declared production GPU
+  blocker.
+- Added the gate to the manual `Production GPU reruns` workflow after the
+  post-rerun status capture and before the release-surface audit. A dispatched
+  GPU workflow can no longer pass its handoff while selected posts remain
+  unresolved.
+- Extended the release-surface workflow contract and regression fixture to
+  require the new step and its ordering. Added CLI and collector tests for
+  comma-separated rejection, space-separated workflow input, selected-post
+  filtering, and duplicate normalization.
+- Updated the README with the local handoff command and the workflow behavior.
+
+Current command output reviewed:
+
+- `uv run kups-tutorial verify-gpu-rerun --posts "01 02"` passed and reported
+  both selected non-GPU posts, confirming the workflow-compatible input path.
+- The current production inventory remains unchanged: selected Posts 03, 04,
+  05, 06, 07, 08, 10, 11, and 12 would correctly fail until their production
+  readiness records or review blocker are cleared on a CUDA-capable run.
+
+Commands and evidence:
+
+- `uv run ruff check src/kups_md_tutorials/production_status.py
+  src/kups_md_tutorials/cli.py src/kups_md_tutorials/release_readiness.py
+  tests/test_production_status.py tests/test_release_readiness.py` passed.
+- `uv run pytest tests/test_production_status.py tests/test_release_readiness.py
+  -q` passed with 54 tests.
+- `uv run kups-tutorial verify-gpu-rerun --posts "01 02"` passed.
+- `uv run kups-tutorial verify-release-readiness --site-root
+  ../sungsoo-ahn.github.io --allow-current-blockers` passed for 12 posts.
+- `uv run kups-tutorial verify-reviews` passed for 12 posts.
+- `git diff --check` passed.
+
+Review decision:
+
+- Accepted for the production-GPU handoff milestone. The completion gate makes
+  the manual workflow’s success signal match its selected post list.
+- No figure or rendered-page snapshot was required because this change only
+  touches CLI/status tooling, GitHub Actions automation, tests, README
+  documentation, and review prose; no figures, notebooks, configs, result
+  files, website pages, CSS-sensitive markup, or publication assets changed.
+- Final release remains blocked on the real CUDA production diagnostics,
+  clearing the Post 12 capstone review blocker, public indexing, migration from
+  hidden drafts to final `_posts`, final desktop/mobile snapshots, and strict
+  `verify-release-readiness`.
+
 ## Update 2026-07-15: Website Build Ledger Refresh After Publication Prep
 
 Scope:

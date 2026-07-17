@@ -4,12 +4,14 @@ import argparse
 from collections.abc import Sequence
 import json
 from pathlib import Path
+import re
 
 from kups_md_tutorials.artifact_audit import verify_tracked_artifacts
 from kups_md_tutorials.production_status import (
     collect_gpu_status,
     format_gpu_status,
     gpu_status_json,
+    verify_selected_gpu_reruns,
 )
 from kups_md_tutorials.release_readiness import (
     verify_release_readiness,
@@ -91,6 +93,19 @@ def _build_parser() -> argparse.ArgumentParser:
         default="text",
         help="output format",
     )
+
+    gpu_rerun = subparsers.add_parser(
+        "verify-gpu-rerun",
+        help="require selected posts to have no remaining production GPU blockers",
+    )
+    gpu_rerun.add_argument(
+        "--posts",
+        required=True,
+        help="space- or comma-separated post identifiers, such as 03 04",
+    )
+    gpu_rerun.add_argument("--results-root", type=Path, default=Path("results"))
+    gpu_rerun.add_argument("--review-dir", type=Path, default=Path("reviews"))
+    gpu_rerun.add_argument("--profile", choices=("smoke", "full"), default="full")
 
     export_site = subparsers.add_parser(
         "export-site", help="export compact assets for the site"
@@ -183,6 +198,23 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(json.dumps(gpu_status_json(records), indent=2))
             else:
                 print(format_gpu_status(records))
+            return 0
+        if args.command == "verify-gpu-rerun":
+            posts = tuple(
+                post.zfill(2)
+                for post in re.split(r"[\s,]+", args.posts.strip())
+                if post
+            )
+            records = collect_gpu_status(
+                results_root=args.results_root,
+                review_dir=args.review_dir,
+                profile=args.profile,
+            )
+            selected_posts = verify_selected_gpu_reruns(records, posts=posts)
+            print(
+                "Selected GPU rerun passed for "
+                f"{len(selected_posts)} posts: {', '.join(selected_posts)}"
+            )
             return 0
         if args.command == "export-site":
             posts = None

@@ -340,6 +340,10 @@ def _write_gpu_production_workflow(root: Path) -> None:
         "        run: uv run kups-tutorial verify \"${post}\" --profile full\n"
         "      - name: Record pending GPU status after rerun\n"
         "        run: uv run kups-tutorial gpu-status --format json | tee gpu-status-after.json\n"
+        "      - name: Require selected GPU reruns to clear blockers\n"
+        "        env:\n"
+        "          KUPS_POSTS: ${{ inputs.posts }}\n"
+        "        run: uv run kups-tutorial verify-gpu-rerun --posts \"${KUPS_POSTS}\"\n"
         "      - name: Audit release surface after GPU rerun\n"
         "        run: uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers\n"
         "      - name: Upload compact production artifacts\n"
@@ -1937,6 +1941,10 @@ def test_release_readiness_reports_stale_gpu_production_workflow(
         "uv run kups-tutorial gpu-status",
     )
     text = text.replace("production-gpu-rerun-artifacts", "gpu-output")
+    text = text.replace(
+        "uv run kups-tutorial verify-gpu-rerun --posts \"${KUPS_POSTS}\"",
+        "uv run kups-tutorial gpu-status",
+    )
     workflow_path.write_text(text, encoding="utf-8")
 
     result = audit_release_readiness(
@@ -1959,6 +1967,10 @@ def test_release_readiness_reports_stale_gpu_production_workflow(
     )
     assert any(
         "missing production GPU stable artifact name" in violation
+        for violation in result.violations
+    )
+    assert any(
+        "missing production GPU selected-rerun GPU completion gate" in violation
         for violation in result.violations
     )
 

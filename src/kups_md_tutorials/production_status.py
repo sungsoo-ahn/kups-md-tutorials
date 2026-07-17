@@ -137,6 +137,36 @@ def gpu_status_json(records: tuple[GpuStatusRecord, ...]) -> dict[str, Any]:
     }
 
 
+def verify_selected_gpu_reruns(
+    records: tuple[GpuStatusRecord, ...],
+    *,
+    posts: tuple[str, ...],
+) -> tuple[str, ...]:
+    """Require selected posts to have no remaining production GPU blockers."""
+
+    selected_posts = tuple(dict.fromkeys(post.zfill(2) for post in posts if post))
+    if not selected_posts:
+        raise ValueError("at least one post must be selected for GPU rerun verification")
+
+    pending = [
+        record
+        for record in records
+        if record.post in selected_posts
+        and record.target_requests_gpu
+        and not record.production_gpu_ready
+    ]
+    if not pending:
+        return selected_posts
+
+    lines = ["Selected GPU rerun is incomplete:"]
+    for record in pending:
+        reason = record.gpu_blocking_reason or "production GPU readiness is false"
+        lines.append(
+            f"- post-{record.post} {record.record_path}: {reason}"
+        )
+    raise ValueError("\n".join(lines))
+
+
 def _collect_gpu_records(
     value: object,
     *,

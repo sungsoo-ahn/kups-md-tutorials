@@ -62,6 +62,11 @@ jobs:
       - name: Record pending GPU status after rerun
         run: uv run kups-tutorial gpu-status --format json | tee gpu-status-after.json
 
+      - name: Require selected GPU reruns to clear blockers
+        env:
+          KUPS_POSTS: ${{ inputs.posts }}
+        run: uv run kups-tutorial verify-gpu-rerun --posts "${KUPS_POSTS}"
+
       - name: Audit release surface after GPU rerun
         run: uv run kups-tutorial verify-release-readiness --skip-site --allow-current-blockers
 

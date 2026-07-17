@@ -1,11 +1,14 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from kups_md_tutorials.cli import main
 from kups_md_tutorials.production_status import (
     collect_gpu_status,
     format_gpu_status,
     gpu_status_json,
+    verify_selected_gpu_reruns,
 )
 
 
@@ -89,6 +92,91 @@ def test_collect_gpu_status_adds_review_gpu_blocker_without_runtime_record(
         "uv run kups-tutorial run 12 --profile full && "
         "uv run kups-tutorial verify 12 --profile full"
     )
+
+
+def test_verify_selected_gpu_reruns_filters_to_selected_posts(tmp_path: Path) -> None:
+    result_dir = tmp_path / "post-03" / "full"
+    result_dir.mkdir(parents=True)
+    (result_dir / "error_summary.json").write_text(
+        json.dumps(
+            {
+                "argon_nve_protocol": {
+                    "target_requests_gpu": True,
+                    "production_gpu_ready": False,
+                    "gpu_blocking_reason": "runtime was jax:cpu;devices:cpu",
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    records = collect_gpu_status(
+        results_root=tmp_path,
+        review_dir=tmp_path / "reviews",
+    )
+
+    assert verify_selected_gpu_reruns(records, posts=("01", "01")) == ("01",)
+    with pytest.raises(ValueError, match="post-03 argon_nve_protocol"):
+        verify_selected_gpu_reruns(records, posts=("03",))
+
+
+def test_verify_gpu_rerun_cli_rejects_pending_selected_post(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    result_dir = tmp_path / "post-03" / "full"
+    result_dir.mkdir(parents=True)
+    (result_dir / "error_summary.json").write_text(
+        json.dumps(
+            {
+                "argon_nve_protocol": {
+                    "target_requests_gpu": True,
+                    "production_gpu_ready": False,
+                    "gpu_blocking_reason": "runtime was jax:cpu;devices:cpu",
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SystemExit) as error:
+        main(
+            [
+                "verify-gpu-rerun",
+                "--posts",
+                "03,04",
+                "--results-root",
+                str(tmp_path),
+                "--review-dir",
+                str(tmp_path / "reviews"),
+            ]
+        )
+
+    assert error.value.code == 1
+    assert "Selected GPU rerun is incomplete:" in capsys.readouterr().err
+
+
+def test_verify_gpu_rerun_cli_accepts_space_separated_posts(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    assert (
+        main(
+            [
+                "verify-gpu-rerun",
+                "--posts",
+                "01 02",
+                "--results-root",
+                str(tmp_path / "results"),
+                "--review-dir",
+                str(tmp_path / "reviews"),
+            ]
+        )
+        == 0
+    )
+
+    assert "Selected GPU rerun passed for 2 posts: 01, 02" in capsys.readouterr().out
 
 
 def test_gpu_status_cli_prints_current_pending_records(capsys) -> None:

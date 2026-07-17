@@ -1160,6 +1160,9 @@ def _check_gpu_production_workflow(
         "uv run kups-tutorial gpu-status --format json | tee gpu-status-after.json": (
             "post-rerun GPU status capture"
         ),
+        "uv run kups-tutorial verify-gpu-rerun --posts \"${KUPS_POSTS}\"": (
+            "selected-rerun GPU completion gate"
+        ),
         (
             "uv run kups-tutorial verify-release-readiness --skip-site "
             "--allow-current-blockers"
@@ -1199,11 +1202,17 @@ def _check_gpu_production_workflow(
         ),
         (
             "uv run kups-tutorial gpu-status --format json | tee gpu-status-after.json",
+            "uv run kups-tutorial verify-gpu-rerun --posts \"${KUPS_POSTS}\"",
+            "post-rerun GPU status capture",
+            "selected-rerun GPU completion gate",
+        ),
+        (
+            "uv run kups-tutorial verify-gpu-rerun --posts \"${KUPS_POSTS}\"",
             (
                 "uv run kups-tutorial verify-release-readiness --skip-site "
                 "--allow-current-blockers"
             ),
-            "post-rerun GPU status capture",
+            "selected-rerun GPU completion gate",
             "post-rerun release-surface audit",
         ),
     )
